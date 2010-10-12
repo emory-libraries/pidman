@@ -1,0 +1,19 @@
+# Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
+purl:
+  id: 1
+  pid_id: 2
+  pid: 2dbx
+  uri: "http://www.emory.edu"
+ark:
+  id: 2
+  pid_id: 1
+  pid: 2dc1
+  uri: "http://www.cnn.com"
+  qualify: "?"
+  proxy_id: 1
+ark2:
+  id: 3
+  pid_id: 1
+  pid: 2dc1
+  uri: "http://www.cnn.com"
+  qualify: "??"

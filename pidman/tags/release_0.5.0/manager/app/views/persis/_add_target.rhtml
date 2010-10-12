@@ -1,0 +1,21 @@
+<table border="1">
+<% for target in @pids.targets %>
+	<tr>
+		<td><%= link_to('Remove', {:controller => 'targets', :action => 'destroy', :id => target}, :confirm => 'Do you really want to destroy this target?') %>	</td>
+		<td><%= link_to('Edit', {:controller => 'targets', :action => 'edit', :id => target}) %></td>
+    	<td><%= link_to(target.getURL, target.getURL, :target => "_blank" ) %></td>
+		<td colspan="2"><%= target.uri %></td>		
+	</tr>     		   
+<% end %>   
+
+<% if @pids.is_a? Purl %>
+	<% if @pids.targets.empty? %>
+		<tr>
+			<td><%= render :partial => 'new_target', :locals => {:pid => @pids, :target => Target.new} %></td>
+			<td><%#= link_to('New Target', {:controller => 'targets', :action => 'new', :pid_id => @pids.id}) %></td>	
+		</tr>
+	<% end %>
+<% else %>
+	<%= render :partial => 'new_target', :locals => {:pid => @pids, :target => Target.new} %>	
+<% end %>
+</table>

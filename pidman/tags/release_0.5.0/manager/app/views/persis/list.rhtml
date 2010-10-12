@@ -1,0 +1,16 @@
+<%= render :partial => "searchbox" %>
+
+<h1>Listing pids</h1><p\>
+
+<!--
+<h2>My PIDs</h2>
+<%#= render :partial => "pids", :locals => {:pids => @myPids} %>
+-->
+
+<h2>Domain PIDs</h2>
+<%= render :partial => "pids", :locals => {:pids => @Pids} %>
+
+<%= paginating_links(@Pids) %>
+<br />
+
+<%= link_to 'Create new PID', :action => 'new' %>

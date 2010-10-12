@@ -1,0 +1,26 @@
+<h2>Admin Screen</h2>
+<%  
+    functions = Array.new
+    
+    if (session[:active_user][:dflt_role] >= 1)  #User   
+        functions << {:anchor => "Create Purl", :controller => "persis", :action => "new", :type => 'Purl', :sort => 0}
+        functions << {:anchor => "Create Ark", :controller => "persis", :action => "new",  :type => 'Ark',  :sort => 0}
+        functions << {:anchor => "Edit Profile", :controller => "user_admin", :action => "editProfile", :sort => 4}
+    end
+    if (session[:active_user][:dflt_role] >= 2)  #Editor
+        functions << {:anchor => "Edit PIDs", :controller => "persis", :action => "list", :sort => 1}
+    end
+    if (session[:active_user][:dflt_role] == 3)  #Domain Admin
+        functions << {:anchor => "Manage Users", :controller => "user_admin", :action => "index", :sort => 2}
+    end
+    if (session[:active_user][:is_superuser])  #Global Admin
+        functions << {:anchor => "Manage Proxies", :controller => "proxy_admin", :action => "index", :sort => 6}
+        functions << {:anchor => "Manage External Systems", :controller => "ext_system_admin", :action => "index", :sort => 5}
+        functions << {:anchor => "Manage Domains", :controller => "domain_admin", :action => "index", :sort => 3}
+    end
+ %>
+ 
+ <% functions.sort!{|x, y | x[:sort] <=> y[:sort]} %>
+ <% for function in functions %>
+    <%= link_to(function[:anchor], {:controller => function[:controller], :action => function[:action], :type => function[:type]}) %><br />
+ <% end %>

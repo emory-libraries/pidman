@@ -1,0 +1,12 @@
+
+[2009-02-24 croddy] How to restart the resolver:
+   1. Log in to Dirac.
+   2. Become root.
+   3. /etc/init.d/httpd restart
+   4. Open http://pid.emory.edu in a web browser. Log in and click on one of the pids to verify that the resolver is working properly.
+   5. If you receive an error from Apache, check /var/log/httpd/error_log
+   
+   
+does not like python include files to be executable; you may get some strange behavior trying to import local python modules if the file permissions include execute.
+
+   

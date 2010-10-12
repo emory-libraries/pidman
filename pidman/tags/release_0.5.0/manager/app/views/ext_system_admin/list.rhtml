@@ -1,0 +1,26 @@
+<h1>Listing ext_systems</h1>
+
+<table>
+  <tr>
+  <% for column in ExtSystem.content_columns %>
+    <th><%= column.human_name %></th>
+  <% end %>
+  </tr>
+  
+<% for ext_system in @ext_systems %>
+  <tr>
+  <% for column in ExtSystem.content_columns %>
+    <td><%=h ext_system.send(column.name) %></td>
+  <% end %>
+    <td><%= link_to 'Show', :action => 'show', :id => ext_system %></td>
+    <td><%= link_to 'Edit', :action => 'edit', :id => ext_system %></td>
+  </tr>
+<% end %>
+</table>
+
+<%= link_to 'Previous page', { :page => @ext_system_pages.current.previous } if @ext_system_pages.current.previous %>
+<%= link_to 'Next page', { :page => @ext_system_pages.current.next } if @ext_system_pages.current.next %> 
+
+<br />
+
+<%= link_to 'New ext_system', :action => 'new' %>

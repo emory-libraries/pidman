@@ -1,0 +1,42 @@
+<% unless (@pids.active) %>
+    <h2>INACTIVE</h2><p\>
+<% end %>
+
+
+<p>
+  <b>PID:</b> <%= link_to("#{ID_SERVER_URL}/#{@pids.pid}", "#{ID_SERVER_URL}/#{@pids.pid}", :target => "_blank" ) %>
+</p>
+
+<% if @pid.type == 'Ark' %>
+    <%= render :partial => 'targets', :locals => {:pid => @pid, :targets => @pids.targets} %>
+<% else %>
+    <%= render :partial => 'purl/target', :locals => {:pid => @pid, :t => @pids.target} %>
+<% end %>
+
+<p><b>Proxy:</b> <%=h @pids.proxy.name %></p>
+<p><b>Domain:</b> <%=h @pids.domain.name %></p>
+
+<% unless (@pids.ext_system.nil?) %>
+    <p>
+        <b>External System:</b> <%=h @pids.ext_system.name %>
+        <b>Key:</b> <%=h @pids.ext_system.key_field %>
+    </p>
+<% end %>
+
+<p><b>Active:</b> <%=h @pids.active %></p>
+
+<p><b>Creator:</b> <%=h @pids.creator.username %> <%=h @pids.creator.first %> <%=h @pids.creator.last %> </p>
+<p><b>Created Date:</b> <%=h @pids.created_at %></p>
+
+<p><b>Modified By:</b> <%= @pids.editor.username %> <%= @pids.editor.last %>, <%= @pids.editor.first %></p>
+<p><b>Last Modified:</b> <%=h @pids.updated_at %></p>
+
+
+
+<% unless (@pids.PidHistory.empty?) %>
+    <%= link_to "History", {:action => "pid_history", :pid => @pids.pid} %> <br />
+<% end %>
+
+
+<%= link_to 'Edit', :action => 'edit', :id => @pids %> |
+<%= link_to 'Back', :action => 'list' %>

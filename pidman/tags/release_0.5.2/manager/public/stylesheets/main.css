@@ -1,0 +1,16 @@
+table.pid_table 
+{
+  width: 95%;
+  border: 1px solid black;
+  padding: 8px;
+  padding-bottom: 12px;
+  margin-bottom: 20px;
+  background-color: white;
+}
+
+label
+{
+	width: 200em;
+	font-weight: bold;
+	display: inline;
+}

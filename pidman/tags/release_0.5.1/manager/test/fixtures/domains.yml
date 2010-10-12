@@ -1,0 +1,9 @@
+# Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
+first:
+  id: 1
+  name: Domain1
+  updated_at: 2007-01-01 00:00:00
+another:
+  id: 2
+  name: Domain2
+  updated_at: 2007-01-01 00:00:00

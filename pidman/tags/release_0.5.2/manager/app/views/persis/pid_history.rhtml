@@ -1,0 +1,63 @@
+<h1>Pid History</h1>
+
+<% for pid_history in @pidHistory %>
+    <p><label for="pids_pid">Pid:</label> 
+    <% unless (pid_history.pid.nil?) %>
+        <%= link_to("#{ID_SERVER_URL}/#{pid_history.pid}", "#{ID_SERVER_URL}/#{pid_history.pid}", :target => "_blank" ) %>
+    <% end %>
+    </p>
+    
+    
+    <div>
+        <label for="create_on">Created On:</label> 
+        <%=h pid_history.created_at %>
+    </div>
+    <div>
+        <label for="create_by">Created By:</label> 
+        <%= pid_history.creator.username %> <%= pid_history.creator.last %>, <%= pid_history.creator.first %>
+    </div>
+    
+    <div>
+        <label for="updated_at">Modified On:</label> 
+        <%=h pid_history.updated_at %>
+    </div>
+
+    <div>
+        <label for="modified_by">Modified By:</label> 
+        <%= pid_history.editor.username %> <%= pid_history.editor.last %>, <%= pid_history.editor.first %>
+    </div>
+
+    <div>
+        <label for="name">Name:</label> 
+        <%= pid_history.name %> 
+    </div>
+
+    <div>
+        <label for="proxy">Proxy:</label> 
+        <%= pid_history.proxy.name %> 
+    </div>
+
+    <div>
+        <label for="domain">Domain:</label> 
+        <%= pid_history.domain.name %> 
+    </div>
+
+    <div>
+        <label for="active">Active:</label> 
+        <%= pid_history.active %> 
+    </div>
+    
+    <% unless (pid_history.ext_system.nil?) %>
+        <div>
+            <label for="ext_system">External System:</label> <%=h pid_history.ext_system.name %>
+            <label for="ext_system_key">Key:</label> <%=h pids_history.ext_system.key_field %>
+        </div>
+    <% end %>
+    
+    <hr />
+<% end %>
+
+<% if @pidHistory[0].targets_count > 0 %>
+    <%= render :partial => 'targets', :locals => {:pid => @pidHistory[0], :targets => @pidHistory[0].targets, :edit => false} %>
+<% end %>
+    

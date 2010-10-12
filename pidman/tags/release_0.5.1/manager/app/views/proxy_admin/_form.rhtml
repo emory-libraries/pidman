@@ -1,0 +1,13 @@
+<%= error_messages_for 'proxy' %>
+
+<!--[form:proxy]-->
+<p><label for="proxy_name">Name</label><br/>
+<%= text_field 'proxy', 'name'  %></p>
+
+<p><label for="proxy_transform">Transform</label><br/>
+<%= text_field 'proxy', 'transform'  %></p>
+
+<p><label for="proxy_updated_at">Last modified</label><br/>
+<%=h @proxy.updated_at %></p> 
+<!--[eoform:proxy]-->
+

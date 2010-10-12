@@ -1,0 +1,9 @@
+<%= start_form_tag :action => 'search' %>
+  
+    <input type="text" id="search" name="search" size="50">
+    <div id="search_auto_complete" class="auto_complete"></div>
+    <%= auto_complete_field 'search', 
+		:update => 'search_auto_complete', 
+		:frequency => 0.5, :url => {:action => 'auto_complete_search'} %>
+  <%= submit_tag 'Search' %>
+<%= end_form_tag %>

@@ -1,0 +1,20 @@
+# Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
+first:
+  id: 1
+  username: jbwhite  
+  first: Jason
+  last: White
+  email: jbwhite@emory.edu
+  updated_at: 2007-01-01 00:00:00
+  password:  098f6bcd4621d373cade4e832627b4f6
+  is_superuser: true
+  
+second:
+  id: 2
+  username: test_user
+  first: nil
+  last: nil
+  email: nil
+  updated_at: 2007-01-01 00:00:00
+  password:  098f6bcd4621d373cade4e832627b4f6 #test
+  is_superuser: true

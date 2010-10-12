@@ -1,0 +1,5 @@
+<p><b>Target:</b> 
+    <%= link_to(t.uri, t.uri) %> 
+    <%= link_to 'Edit', :controller => 'targets', :action => 'edit', :id => t %>
+    <%= link_to 'Remove', {:controller => 'targets', :action => 'destroy', :id => t }, :confirm => 'Are you sure?', :post => true %>
+</p>

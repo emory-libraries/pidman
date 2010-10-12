@@ -1,0 +1,9 @@
+<h1>Editing domain</h1>
+
+<%= start_form_tag :action => 'update', :id => @domain %>
+  <%= render :partial => 'form' %>
+  <%= submit_tag 'Edit' %>
+<%= end_form_tag %>
+
+<%= link_to 'Show', :action => 'show', :id => @domain %> |
+<%= link_to 'Back', :action => 'list' %>

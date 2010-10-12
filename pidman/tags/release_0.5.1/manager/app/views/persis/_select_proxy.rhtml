@@ -1,0 +1,9 @@
+<%# <label for="pids_proxy">Proxy</label> %>
+<%#= select('pids', 'proxy_id', Proxy.find_all.collect {|p| [ p.name, p.id ] }) %>
+
+<% p = Proxy.find_by_name('EZproxy') %>
+<% unless (p.nil?) %>
+	Proxy: <%= check_box ('target', 'proxy_id', {}, p.id, nil) %> <%= p.name %>
+<% else %>
+	Proxy Not Defined -- see administrator
+<% end %>

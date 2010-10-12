@@ -1,0 +1,63 @@
+<P>
+<%= error_messages_for 'user' %>
+
+<!--[form:user]-->
+<p><label for="user_username">Username:</label> <%= text_field 'user', 'username'  %></p>
+
+<p><label for="user_first">First</label> <%= text_field 'user', 'first'  %></p>
+
+<p><label for="user_last">Last</label> <%= text_field 'user', 'last'  %></p>
+
+<p><label for="user_email">Email</label> <%= text_field 'user', 'email'  %></p>
+
+<p><label for="user_password">Password</label> <%= password_field 'user', 'password'  %><br/>
+<p><label for="user_password">Confirm</label>  <input type="password" name="confirm"><br/>
+
+<p><label for="user_updated_at">Last modified</label> <%=h @user.updated_at  %></p>
+
+<br /><br /><br />
+
+<% unless(session[:active_user][:id] == params[:id].to_i) %>    
+    <% if (session[:active_user][:is_superuser]) %>
+        <%= check_box("user", "is_superuser", {:id => 'is_superuser', :onClick => "toggle_radios(this.form, 'domain_role', true)"}, true) %> Global Administrator <i>admin all domains</i><br />  
+    <% end  %>
+        
+    <table id="domains_users">    
+        <tr><th>Domain</th><th>Permission</th></tr>
+
+    <% Domain.find(:all).each do | domain |%>
+        <tr>
+            <td><%= domain.name %></td>
+            <td>
+                <% Role.find(:all).each do | role |%>
+                    <% if (@user.testRole(domain.id, role.id))
+                        checked = " CHECKED "
+                       else 
+                        checked = "" 
+                    end %>
+                    <input type="radio" name="u[permission][<%= domain.id %>]" value="<%= role.id %>" <%= checked %> ><%= role.role%>
+                <% end %>
+                
+            </td>
+        </tr>
+    <% end %>
+    </table>
+    <script>toggle_radios(document.forms[0], 'domain_role', document.getElementById('is_superuser').checked);</script>
+    
+<% else %>
+    You can not edit your own domains
+    <% if @user.is_superuser %> 
+        Global Administrator<br />
+    <% else %>
+            <table>
+                <tr><th>Domain</th><th>Permission</th><tr>
+                <% @user.Domains.each do | domain |%>
+                   <tr><td><%=  domain.name %>:</td><td><%= Role.displayRole(domain.role_id) %></td></tr>
+                <% end %> 
+            </table>
+    <% end %>    
+<% end %>    
+<p/>
+
+
+<!--[eoform:user]-->

@@ -1,0 +1,7 @@
+<ul class="result">
+<% for pid in @pids do -%>
+  <li class="result">
+    <div class="name"><%= link_to pid.name, :action => 'edit', :id => pid %></div>
+  </li>
+<% end -%>
+</ul>

@@ -1,0 +1,8 @@
+<% for column in Domain.content_columns %>
+<p>
+  <b><%= column.human_name %>:</b> <%=h @domain.send(column.name) %>
+</p>
+<% end %>
+
+<%= link_to 'Edit', :action => 'edit', :id => @domain %> |
+<%= link_to 'Back', :action => 'list' %>
