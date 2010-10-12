@@ -1,0 +1,23 @@
+# Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
+ark:
+  id: 1
+  pid: 2dc1   
+  domain_id: 1
+  active: true
+  name: CNN Online
+  creator_id: 1
+  created_at: 2006-12-31 00:00:00
+  updated_at: 2007-01-01 00:00:00
+  modified_by: 1
+  type: Ark
+purl:
+  id: 2
+  pid: 2dbx  
+  domain_id: 1
+  active: true
+  name: Test Purl
+  creator_id: 1
+  created_at: 2006-12-31 00:00:00
+  updated_at: 2007-01-01 00:00:00
+  modified_by: 1
+  type: Purl

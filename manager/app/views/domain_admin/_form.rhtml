@@ -1,0 +1,10 @@
+<%= error_messages_for 'domain' %>
+
+<!--[form:domain]-->
+<p><label for="domain_name">Name</label><br/>
+<%= text_field 'domain', 'name'  %></p>
+
+<p><label for="domain_updated_at">Last modified</label><br/>
+<%=h @domain.updated_at  %></p>
+<!--[eoform:domain]-->
+

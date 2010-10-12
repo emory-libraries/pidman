@@ -1,0 +1,13 @@
+<%= error_messages_for 'ext_system' %>
+
+<!--[form:ext_system]-->
+<p><label for="ext_system_name">Name</label><br/>
+<%= text_field 'ext_system', 'name'  %></p>
+
+<p><label for="ext_system_key_field">Key field</label><br/>
+<%= text_field 'ext_system', 'key_field'  %></p>
+
+<p><label for="ext_system_updated_at">Last modified</label><br/>
+<%=h @ext_system.updated_at %>
+<!--[eoform:ext_system]-->
+

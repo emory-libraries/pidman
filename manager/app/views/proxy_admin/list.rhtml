@@ -1,0 +1,26 @@
+<h1>Listing proxies</h1>
+
+<table>
+  <tr>
+  <% for column in Proxy.content_columns %>
+    <th><%= column.human_name %></th>
+  <% end %>
+  </tr>
+  
+<% for proxy in @proxies %>
+  <tr>
+  <% for column in Proxy.content_columns %>
+    <td><%=h proxy.send(column.name) %></td>
+  <% end %>
+    <td><%= link_to 'Show', :action => 'show', :id => proxy %></td>
+    <td><%= link_to 'Edit', :action => 'edit', :id => proxy %></td>
+  </tr>
+<% end %>
+</table>
+
+<%= link_to 'Previous page', { :page => @proxy_pages.current.previous } if @proxy_pages.current.previous %>
+<%= link_to 'Next page', { :page => @proxy_pages.current.next } if @proxy_pages.current.next %> 
+
+<br />
+
+<%= link_to 'New proxy', :action => 'new' %>

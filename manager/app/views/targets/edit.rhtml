@@ -1,0 +1,10 @@
+<h1>Editing target</h1>
+
+<%= start_form_tag :action => 'update', :id => @target %>
+  <%= render :partial => 'form' %>
+  <%= submit_tag 'Edit' %>
+<%= end_form_tag %>
+
+
+<% anchor = 'Return to ' + @target.Pid.type.to_s %>
+<%= link_to anchor, :controller => 'persis', :action => 'edit', :id => @target.pid_id %>

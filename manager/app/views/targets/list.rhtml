@@ -1,0 +1,27 @@
+<h1>Listing targets</h1>
+
+<table>
+  <tr>
+  <% for column in Target.content_columns %>
+    <th><%= column.human_name %></th>
+  <% end %>
+  </tr>
+  
+<% for target in @targets %>
+  <tr>
+  <% for column in Target.content_columns %>
+    <td><%=h target.send(column.name) %></td>
+  <% end %>
+    <td><%= link_to 'Show', :action => 'show', :id => target %></td>
+    <td><%= link_to 'Edit', :action => 'edit', :id => target %></td>
+    <td><%= link_to 'Destroy', { :action => 'destroy', :id => target }, :confirm => 'Are you sure?', :post => true %></td>
+  </tr>
+<% end %>
+</table>
+
+<%= link_to 'Previous page', { :page => @target_pages.current.previous } if @target_pages.current.previous %>
+<%= link_to 'Next page', { :page => @target_pages.current.next } if @target_pages.current.next %> 
+
+<br />
+
+<%= link_to 'New target', :action => 'new' %>

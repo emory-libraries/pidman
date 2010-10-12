@@ -1,0 +1,8 @@
+<% for column in ExtSystem.content_columns %>
+<p>
+  <b><%= column.human_name %>:</b> <%=h @ext_system.send(column.name) %>
+</p>
+<% end %>
+
+<%= link_to 'Edit', :action => 'edit', :id => @ext_system %> |
+<%= link_to 'Back', :action => 'list' %>
