@@ -1,0 +1,359 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Welcome to pidman’s documentation! &mdash; pidman v1.9-0 documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '#',
+        VERSION:     '1.9-0',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="pidman v1.9-0 documentation" href="#" />
+    <link rel="next" title="Pidman API Documentation" href="api_list.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="api_list.html" title="Pidman API Documentation"
+             accesskey="N">next</a> |</li>
+        <li><a href="#">pidman v1.9-0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="welcome-to-pidman-s-documentation">
+<h1>Welcome to pidman&#8217;s documentation!<a class="headerlink" href="#welcome-to-pidman-s-documentation" title="Permalink to this headline">¶</a></h1>
+</div>
+<div class="section" id="overview">
+<h1>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h1>
+<p>This is a management application for maintaining and managing purls and arks.
+Together these resources allow the assignment of unique persistant identifiers.</p>
+<p>You can find more information on
+<a class="reference external" href="http://en.wikipedia.org/wiki/Archival_Resource_Key">arks</a> and
+<a class="reference external" href="http://purl.oclc.org/docs/index.html">purls</a></p>
+</div>
+<div class="section" id="dependencies">
+<h1>Dependencies<a class="headerlink" href="#dependencies" title="Permalink to this headline">¶</a></h1>
+<blockquote>
+<ul class="simple">
+<li>soaplib==0.8.1 -  <a class="reference external" href="http://pypi.python.org/pypi/soaplib">http://pypi.python.org/pypi/soaplib</a></li>
+<li>psycopg2    - currently requires postgres &amp; psycopg2 for stored procedure</li>
+<li>python-ldap</li>
+<li>python-lxml - <a class="reference external" href="http://codespeak.net/lxml/installation.html">http://codespeak.net/lxml/installation.html</a></li>
+<li>django 1.2+</li>
+<li>south==0.7.2</li>
+</ul>
+</blockquote>
+</div>
+<div class="section" id="extensions">
+<h1>Extensions<a class="headerlink" href="#extensions" title="Permalink to this headline">¶</a></h1>
+<p>We rely on a couple of externally-developed extensions. They need to be
+downloaded added to the python path. Extensions are listed in settings.py
+and annotated with where they can be downloaded. Put them into a directory
+and add that local path to the EXTENSION_DIRS in localsettings.py.</p>
+</div>
+<div class="section" id="components">
+<h1>Components<a class="headerlink" href="#components" title="Permalink to this headline">¶</a></h1>
+<p>The component applications of this project are:</p>
+<div class="section" id="pid">
+<h2>pid<a class="headerlink" href="#pid" title="Permalink to this headline">¶</a></h2>
+<p>Core application to represent pid objects and build central behaviors for them.</p>
+</div>
+<div class="section" id="pidauth">
+<h2>pidauth<a class="headerlink" href="#pidauth" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="resolver">
+<h2>resolver<a class="headerlink" href="#resolver" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="rest-api">
+<h2>rest_api<a class="headerlink" href="#rest-api" title="Permalink to this headline">¶</a></h2>
+<p>Provides a rest api for selected pid functions such as create, edit and delete
+model objects from <cite>pidman.pid.models</cite>.</p>
+</div>
+<div class="section" id="soap-api">
+<h2>soap_api<a class="headerlink" href="#soap-api" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+<div class="section" id="installation">
+<h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h1>
+<p>Create PostGres database and grant privileges to user
+Copy pidman/localsettings-example.py to pidman/localsettings.py
+Configure localsettings
+Execute the following:</p>
+<div class="highlight-python"><pre>$ pidman/manage.py syncdb
+$ pidman/manage.py migrate</pre>
+</div>
+<p>To verify installation execute without errors:</p>
+<div class="highlight-python"><pre>$ pidman/manage.py test</pre>
+</div>
+</div>
+<div class="section" id="unit-tests">
+<h1>Unit Tests<a class="headerlink" href="#unit-tests" title="Permalink to this headline">¶</a></h1>
+<p>All unit tests should be run EXCEPT for the ones in linkcheck module.
+Currently they are not compatible with django 1.1.  To  run unit tests use the
+following command while in the pidman directory:</p>
+<div class="highlight-python"><pre>$ python ./manage.py test auth admin contenttypes sessions sites soap_api
+$ pid pidauth resolver usage_stats rest_api</pre>
+</div>
+</div>
+<div class="section" id="version-history">
+<h1>Version History<a class="headerlink" href="#version-history" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="release-0-8-3">
+<h2>Release 0.8.3<a class="headerlink" href="#release-0-8-3" title="Permalink to this headline">¶</a></h2>
+<p>Date: ???</p>
+<ul class="simple">
+<li>Changed eulcore external to <a class="reference external" href="https://svn.library.emory.edu/svn/python-eulcore/trunk/src/eulcore">https://svn.library.emory.edu/svn/python-eulcore/trunk/src/eulcore</a></li>
+<li>Removed south external</li>
+</ul>
+<p><strong>Deploy Instructions</strong></p>
+<ul class="simple">
+<li>Make sure externals are updated</li>
+<li>run syncdb</li>
+<li>run migrations</li>
+</ul>
+</div>
+<div class="section" id="release-0-8-2">
+<h2>Release 0.8.2<a class="headerlink" href="#release-0-8-2" title="Permalink to this headline">¶</a></h2>
+<p>Date: August 2010</p>
+<ul class="simple">
+<li>Bugfix: resolved issue that was causing a general validation error and
+preventing any save or update on an existing pid.</li>
+<li>Users can now delete ARK targets via admin interface.  An ARK with no targets
+is considered inactive.</li>
+</ul>
+<p>Release 0.8.1
+&#8212;&#8212;&#8212;&#8212;_
+Date: March 2010</p>
+<ul class="simple">
+<li>Changed banner from &#8220;PID Manager&#8221; to &#8220;Persistent Identifier Manager &#8211;
+Emory University Libraries&#8221;</li>
+<li>Changed external eulcore to -r 72 .../python-eulcore/trunk/src/eulcore</li>
+<li>Changed LDAP authentication backend to
+eulcore.django.ldap.emory.EmoryLDAPBackend</li>
+<li>Removed dependency on Noid.pm</li>
+</ul>
+<p><strong>Deploy Instructions</strong></p>
+<ul>
+<li><p class="first">export a copy of the database using pg_dump</p>
+</li>
+<li><p class="first">make a copy of the entire persis directory in case we have to put it back quickly</p>
+</li>
+<li><p class="first">svn revert any modified files</p>
+</li>
+<li><dl class="first docutils">
+<dt>Switch to the correct tag or branch:</dt>
+<dd><ul class="first last simple">
+<li>Staging: svn switch to branches/release_0.8.x and update</li>
+<li>Production: svn switch to tags/release_0.8.1 and update</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>from within the pidman directory run::</dt>
+<dd><p class="first last">$ python ./manage.py syncdb
+$ python ./manage.py migrate</p>
+</dd>
+</dl>
+</li>
+<li><p class="first">Restart apache</p>
+</li>
+</ul>
+</div>
+<div class="section" id="release-0-70">
+<h2>Release 0.70<a class="headerlink" href="#release-0-70" title="Permalink to this headline">¶</a></h2>
+<p>Date: October 6, 2009
+SVN revision: 274</p>
+<p>Comment: The solution to fix the broken migration is done in this deployment.
+Migrations are removed and then replaced with newly created migrations.</p>
+<p><strong>Deploy Instructions</strong></p>
+<p><em>Part One:</em></p>
+<p>Make sure you are using django South version 0.6.1.
+The production version of South (0.6.0) does not handle
+constraints correctly.</p>
+<p><em>Part Two (DIRAC - terminal window):</em></p>
+<p>Export entire database and schema for backup purposes only:</p>
+<div class="highlight-python"><pre>$ dirac&gt; cd /home/persis
+$ dirac&gt; pg_dump persis | gzip &gt; dirac_persis_all.gz
+$ dirac&gt; pg_dump -a persis -f dirac_persis_data_only.sql
+$ dirac&gt; pg_dump -s persis -f dirac_persis_schema_only.sql</pre>
+</div>
+<p>Export needed data from production/dirac:</p>
+<div class="highlight-python"><pre>$ dirac&gt; pg_dump -a -D -O -t pid_pid persis &gt; table_pid_pid.sql
+$ dirac&gt; pg_dump -a -D -O -t pid_target persis &gt; table_pid_target.sql
+$ dirac&gt; pg_dump -a -D -O -t pid_proxy persis &gt; table_pid_proxy.sql
+$ dirac&gt; pg_dump -a -D -O -t pidauth_domain persis &gt; table_pid_domain.sql
+$ dirac&gt; pg_dump -a -D -O -t pid_extsystem persis &gt; table_pid_extsystem.sql
+$ dirac&gt; pg_dump -a -D -O -t auth_user persis &gt; table_auth_user.sql</pre>
+</div>
+<p>copy these output sql files to wilson. ie. One way to do this:</p>
+<ul class="simple">
+<li>on ubuntu Places-&gt;Connect to Server popup</li>
+<li>set Service type: SSH</li>
+<li>Server: dirac</li>
+<li>etc.</li>
+<li>Repeat for wilson, and copy using file manager gui</li>
+</ul>
+<p><em>Part Three (WILSON - phpPgAdmin GUI) DATABASE SETUP:</em></p>
+<p>phpPgAdmin gui tool&gt; drop the database persis
+phpPgAdmin gui tool&gt; create a new database persis
+(Be sure to set encoding to &#8220;UTF8&#8221;.)</p>
+<dl class="docutils">
+<dt>Part Four (WILSON - terminal window) TABLE SETUP::</dt>
+<dd>$ wilson&gt; cd /home/persis
+$ wilson&gt; run python manage.py syncdb.
+$ wilson&gt; python manage.py migrate.</dd>
+</dl>
+<p>Verify that all the table constraints are correct.</p>
+<p>Part Five (WILSON - terminal window): IMPORT TABLE DATA</p>
+<p>Adjust data sql dump files for tables (if needed).</p>
+<p>Load sql files on new database:</p>
+<div class="highlight-python"><pre>$ wilson&gt; psql dbname username &lt; table_auth_user.sql
+$ wilson&gt; psql dbname username &lt; table_pid_extsystem.sql</pre>
+</div>
+<p>Adjust pidauth_domain, search and replace pidauth with pid:</p>
+<div class="highlight-python"><pre>$ wilson&gt; psql dbname username &lt; table_pid_domain.sql
+$ wilson&gt; psql dbname username &lt; table_pid_proxy.sql
+$ wilson&gt; grep "false, " table_pid_pid.sql &gt; table_fix_active_flag_in_pid_target.sql</pre>
+</div>
+<dl class="docutils">
+<dt>Adjust table to look like this::</dt>
+<dd>$ update pid_target
+$ set active - &#8216;false&#8217;
+$ from pid_pid
+$ where pid_target.pid_id - pid_pid.id and pid_pid.pid - &#8216;2wsmq&#8217;;</dd>
+<dt>Adjust table_pid_pid.sql - remove active column and data</dt>
+<dd><ul class="first last simple">
+<li>search/replace &#8216;true, &#8216;</li>
+<li>search/replace &#8216;false, &#8216;</li>
+<li>search/replace &#8216;active, &#8216;</li>
+<li>wilson&gt; psql dbname username &lt; table_pid_pid.sql</li>
+<li>wlson&gt; psql dbname username &lt; table_pid_target.sql</li>
+<li>wilson&gt; psql dbname username &lt; table_fix_active_flag_in_pid_target.sql</li>
+</ul>
+</dd>
+</dl>
+<p>Contents:</p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="api_list.html">Pidman API Documentation</a><ul>
+<li class="toctree-l2"><a class="reference external" href="api_list.html#module-pidman.pid.admin">pid</a></li>
+<li class="toctree-l2"><a class="reference external" href="api_list.html#module-pidman.pidauth.models">pidauth</a></li>
+<li class="toctree-l2"><a class="reference external" href="api_list.html#module-pidman.resolver.views">resolver</a></li>
+<li class="toctree-l2"><a class="reference external" href="api_list.html#module-pidman.rest_api.views">rest_api</a></li>
+<li class="toctree-l2"><a class="reference external" href="api_list.html#module-pidman.soap_api.views">soap_api</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><a class="reference external" href="genindex.html"><em>Index</em></a></li>
+<li><a class="reference external" href="modindex.html"><em>Module Index</em></a></li>
+<li><a class="reference external" href="search.html"><em>Search Page</em></a></li>
+</ul>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h3><a href="#">Table Of Contents</a></h3>
+            <ul>
+<li><a class="reference external" href="#">Welcome to pidman&#8217;s documentation!</a></li>
+<li><a class="reference external" href="#overview">Overview</a></li>
+<li><a class="reference external" href="#dependencies">Dependencies</a></li>
+<li><a class="reference external" href="#extensions">Extensions</a></li>
+<li><a class="reference external" href="#components">Components</a><ul>
+<li><a class="reference external" href="#pid">pid</a></li>
+<li><a class="reference external" href="#pidauth">pidauth</a></li>
+<li><a class="reference external" href="#resolver">resolver</a></li>
+<li><a class="reference external" href="#rest-api">rest_api</a></li>
+<li><a class="reference external" href="#soap-api">soap_api</a></li>
+</ul>
+</li>
+<li><a class="reference external" href="#installation">Installation</a></li>
+<li><a class="reference external" href="#unit-tests">Unit Tests</a></li>
+<li><a class="reference external" href="#version-history">Version History</a><ul>
+<li><a class="reference external" href="#release-0-8-3">Release 0.8.3</a></li>
+<li><a class="reference external" href="#release-0-8-2">Release 0.8.2</a></li>
+<li><a class="reference external" href="#release-0-70">Release 0.70</a><ul>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference external" href="#indices-and-tables">Indices and tables</a></li>
+</ul>
+
+            <h4>Next topic</h4>
+            <p class="topless"><a href="api_list.html"
+                                  title="next chapter">Pidman API Documentation</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="_sources/index.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="api_list.html" title="Pidman API Documentation"
+             >next</a> |</li>
+        <li><a href="#">pidman v1.9-0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright Copyright 2010, Emory University General Library.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.4.
+    </div>
+  </body>
+</html>
