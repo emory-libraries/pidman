@@ -1,0 +1,49 @@
+#!/usr/bin/env python
+
+import getpass
+from optparse import OptionParser
+from soaplib.client import make_service_client
+from soaplib.serializers import primitive as t
+from soaplib.service import SoapServiceBase, soapmethod
+
+dev_endpoint = 'https://wilson.library.emory.edu/pidman/persis_api/'
+prod_endpoint = 'https://pid.emory.edu/persis_api/'
+
+parser = OptionParser()
+parser.add_option('-u', '--user', default=getpass.getuser())
+parser.add_option('-p', '--password')
+parser.add_option('-n', '--name', default='')
+parser.add_option('-q', '--qualifier', default='')
+parser.add_option('-d', '--domain', type='int')
+parser.add_option('-o', '--proxy', type='int')
+parser.add_option('-x', '--ext-system-name')
+parser.add_option('-X', '--ext-system-key')
+
+parser.add_option('-e', '--endpoint', default=dev_endpoint)
+parser.add_option('--dev', action='store_const', dest='endpoint', const=dev_endpoint)
+parser.add_option('--prod', action='store_const', dest='endpoint', const=prod_endpoint)
+
+options, args = parser.parse_args()
+if options.password is None:
+    options.password = getpass.getpass()
+
+# loading the actual persis soap service object is a pain. mock it up for now
+class FakePidService(SoapServiceBase):
+    @soapmethod(t.String, t.String, t.String, t.String, t.String, t.Integer,
+                t.Integer, t.String, t.String,
+        _returns=t.String,
+        _outVariableName='return')
+    def GenerateArk(self, username, password, uri, name, qualifier,
+            domain_id, proxy_is, external_system, external_system_key):
+        pass
+
+service = FakePidService()
+
+client = make_service_client(options.endpoint, service)
+for target in args:
+    ark_url = client.GenerateArk(options.user, options.password, target,
+                                 options.name, options.qualifier,
+                                 options.domain, options.proxy,
+                                 options.ext_system_name,
+                                 options.ext_system_key)
+    print ark_url

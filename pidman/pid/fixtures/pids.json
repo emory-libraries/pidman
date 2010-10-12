@@ -1,0 +1,171 @@
+[
+   {
+      "pk": 1,
+      "model": "auth.user",
+      "fields": {
+         "username": "test",
+         "first_name": "",
+         "last_name": "",
+         "is_active": true,
+         "is_superuser": true,
+         "is_staff": true,
+         "last_login": "2009-09-01 15:14:46",
+         "groups": [],
+         "user_permissions": [],
+         "password": "sha1$1104f$3e6b7a58ec240f33b80e24255f1c4aa85476bbaf",
+         "email": "test@test.com",
+         "date_joined": "2009-09-01 15:14:21"
+      }
+   },
+  {
+    "pk": 1, 
+    "model": "pid.policy", 
+    "fields": {
+      "created_at": "2009-08-21 12:10:43", 
+      "commitment": "Not Guaranteed",
+      "title": "Not Guaranteed"
+    }
+  }, 
+  {
+    "pk": 2, 
+    "model": "pid.policy", 
+    "fields": {
+      "created_at": "2009-08-21 12:10:50", 
+      "commitment": "Permanent, Dynamic Content",
+      "title": "Permanent, Dynamic Content"
+    }
+  }, 
+  {
+    "pk": 3, 
+    "model": "pid.policy", 
+    "fields": {
+      "created_at": "2009-08-21 12:10:56", 
+      "commitment": "Permanent, Stable Content",
+      "title": "Permanent, Stable Content"
+    }
+  }, 
+  {
+    "pk": 4, 
+    "model": "pid.policy", 
+    "fields": {
+      "created_at": "2009-08-21 12:11:07", 
+      "commitment": "Permanent, Unchanging Content",
+      "title": "Permanent, Unchanging Content"
+    }
+  },
+  {
+    "pk": 5,
+    "model": "pid.policy",
+    "fields": {
+      "created_at": "2009-08-21 12:11:07",
+      "commitment": "Inactive Policy",
+      "title": "Inactive Policy"
+    }
+  },
+  {
+    "pk": 2, 
+    "model": "pid.domain", 
+    "fields": {
+      "policy": 3, 
+      "name": "Red", 
+      "parent": 1, 
+      "updated_at": "2009-08-25 15:56:20"
+    }
+  }, 
+  {
+    "pk": 5, 
+    "model": "pid.domain", 
+    "fields": {
+      "policy": 3, 
+      "name": "Yellow", 
+      "parent": null, 
+      "updated_at": "2009-08-25 16:28:38"
+    }
+  }, 
+  {
+    "pk": 4, 
+    "model": "pid.domain", 
+    "fields": {
+      "policy": null, 
+      "name": "Orange", 
+      "parent": 5, 
+      "updated_at": "2009-08-25 16:34:25"
+    }
+  }, 
+  {
+    "pk": 1, 
+    "model": "pid.domain", 
+    "fields": {
+      "policy": 2, 
+      "name": "Blue", 
+      "parent": null, 
+      "updated_at": "2009-08-25 16:46:36"
+    }
+  }, 
+  {
+    "pk": 3, 
+    "model": "pid.domain", 
+    "fields": {
+      "policy": 1, 
+      "name": "Green", 
+      "parent": null, 
+      "updated_at": "2009-08-25 16:49:11"
+    }
+  }, 
+  {
+    "pk": 1, 
+    "model": "pid.pid", 
+    "fields": {
+      "domain": 1, 
+      "name": "testark", 
+      "creator": 1, 
+      "created_at": "2009-08-21 12:12:49", 
+      "pid": "tsd", 
+      "updated_at": "2009-08-21 12:14:03", 
+      "ext_system_key": "", 
+      "ext_system": null, 
+      "policy": 1, 
+      "type": "Ark", 
+      "editor": 1
+    }
+  }, 
+  {
+    "pk": 2, 
+    "model": "pid.pid", 
+    "fields": {
+      "domain": 2, 
+      "name": "newark", 
+      "creator": 1, 
+      "created_at": "2009-08-21 14:23:34", 
+      "pid": "twm", 
+      "updated_at": "2009-08-21 14:23:34", 
+      "ext_system_key": "", 
+      "ext_system": null, 
+      "policy": null, 
+      "type": "Ark", 
+      "editor": 1
+    }
+  }, 
+  {
+    "pk": 1, 
+    "model": "pid.target", 
+    "fields": {
+      "qualify": "", 
+      "noid": "tsd", 
+      "pid": 1, 
+      "uri": "http://fedora/get/pid", 
+      "proxy": null
+    }
+  },
+  {
+    "pk": 2,
+    "model": "pid.target",
+    "fields": {
+      "qualify": "",
+      "noid": "twm",
+      "pid": 2,
+      "uri": "http://fedora/get/pid",
+      "proxy": null
+    }
+  }
+]
