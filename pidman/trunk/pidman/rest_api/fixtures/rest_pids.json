@@ -1,0 +1,227 @@
+[
+ {
+    "pk": 1,
+    "model": "auth.user",
+    "fields": {
+      "username": "testuser",
+      "first_name": "Test",
+      "last_name": "User",
+      "is_active": true,
+      "is_superuser": false,
+      "is_staff": true,
+      "last_login": "2010-10-01 15:39:41",
+      "groups": [],
+      "user_permissions": [],
+      "password": "sha1$12103$c16466e131afcb7610c402c8477fc55f8741a06b",
+      "email": "",
+      "date_joined": "2010-09-30 12:21:26"
+    }
+  }, 
+  {
+    "pk": 2,
+    "model": "auth.user",
+    "fields": {
+      "username": "testadmin",
+      "first_name": "Super",
+      "last_name": "Admin",
+      "is_active": true,
+      "is_superuser": true,
+      "is_staff": true,
+      "last_login": "2010-09-27 14:20:41",
+      "groups": [],
+      "user_permissions": [],
+      "password": "sha1$69a9b$3722d143ffa442205a333f0162ef6d08e908dca0",
+      "email": "test.admin@email.com",
+      "date_joined": "2010-09-27 14:20:35"
+    }
+  },
+  {
+    "pk": 1, 
+    "model": "pid.extsystem", 
+    "fields": {
+      "updated_at": "2010-09-28 12:31:26", 
+      "name": "EUCLID", 
+      "key_field": "catkey"
+    }
+  }, 
+  {
+    "pk": 2, 
+    "model": "pid.policy", 
+    "fields": {
+      "created_at": "2010-09-28 12:38:55", 
+      "commitment": "Not Guaranteed: No commitment has been made to retain this resource.  It could become unavailable at any time.  Its identifier could be changed.", 
+      "title": "Not Guaranteed"
+    }
+  }, 
+  {
+    "pk": 1, 
+    "model": "pid.policy", 
+    "fields": {
+      "created_at": "2010-09-28 12:18:09", 
+      "commitment": "Permanent, Stable Content: A commitment has been made to keep this resource permanently available.  Its identifier will always provide access to the resource.  Its content is subject only to minor corrections or additions.", 
+      "title": "Permanent, Stable Content"
+    }
+  }, 
+  {
+    "pk": 2, 
+    "model": "pid.domain", 
+    "fields": {
+      "policy": [
+        "Not Guaranteed"
+      ], 
+      "name": "General purchased collections", 
+      "parent": null, 
+      "updated_at": "2010-09-28 12:59:37"
+    }
+  }, 
+  {
+    "pk": 3, 
+    "model": "pid.domain", 
+    "fields": {
+      "policy": null, 
+      "name": "Making of Modern Law", 
+      "parent": 2, 
+      "updated_at": "2010-09-28 12:59:37"
+    }
+  }, 
+  {
+    "pk": 1, 
+    "model": "pid.domain", 
+    "fields": {
+      "policy": [
+        "Permanent, Stable Content"
+      ], 
+      "name": "LSDI", 
+      "parent": null, 
+      "updated_at": "2010-09-28 12:19:09"
+    }
+  }, 
+  {
+    "pk": 2, 
+    "model": "pid.pid", 
+    "fields": {
+      "domain": 1, 
+      "name": "ocm02728156-3504 Historic records of the Fifth New York Cavalry: First Ira Harris Guard", 
+      "creator": 1, 
+      "created_at": "2010-09-28 12:46:23", 
+      "pid": "8crx1", 
+      "updated_at": "2010-09-28 12:47:10", 
+      "ext_system_key": "", 
+      "ext_system": null, 
+      "policy": null, 
+      "type": "Ark", 
+      "editor": 1
+    }
+  }, 
+  {
+    "pk": 3, 
+    "model": "pid.pid", 
+    "fields": {
+      "domain": 3, 
+      "name": "Patent Office papers ", 
+      "creator": 1, 
+      "created_at": "2010-09-28 13:04:43", 
+      "pid": "124tw", 
+      "updated_at": "2010-09-28 13:07:14", 
+      "ext_system_key": "galmoml002908", 
+      "ext_system": [
+        "EUCLID"
+      ], 
+      "policy": [
+        "Permanent, Stable Content"
+      ], 
+      "type": "Purl", 
+      "editor": 1
+    }
+  }, 
+  {
+    "pk": 1, 
+    "model": "pid.pid", 
+    "fields": {
+      "domain": 2, 
+      "name": "", 
+      "creator": 1, 
+      "created_at": "2010-09-28 12:42:00", 
+      "pid": "8g1wx", 
+      "updated_at": "2010-09-28 12:42:00", 
+      "ext_system_key": "ocn663096870", 
+      "ext_system": [
+        "EUCLID"
+      ], 
+      "policy": [
+        "Permanent, Stable Content"
+      ], 
+      "type": "Purl", 
+      "editor": 1
+    }
+  }, 
+  {
+    "pk": 1, 
+    "model": "pid.proxy", 
+    "fields": {
+      "updated_at": "2010-09-28 12:32:02", 
+      "name": "EZproxy", 
+      "transform": "https://proxy.library.emory.edu/login?url="
+    }
+  }, 
+  {
+    "pk": 2, 
+    "model": "pid.target", 
+    "fields": {
+      "pid": [
+        "8crx1"
+      ], 
+      "noid": "8crx1", 
+      "uri": "http://domokun.library.emory.edu:8080/fedora/get/emory:8crx1/", 
+      "qualify": "", 
+      "proxy": null, 
+      "active": true
+    }
+  }, 
+  {
+    "pk": 3, 
+    "model": "pid.target", 
+    "fields": {
+      "pid": [
+        "8crx1"
+      ], 
+      "noid": "8crx1", 
+      "uri": "http://domokun.library.emory.edu:8080/fedora/get/emory:8crx1/", 
+      "qualify": "PDF", 
+      "proxy": null, 
+      "active": true
+    }
+  }, 
+  {
+    "pk": 1, 
+    "model": "pid.target", 
+    "fields": {
+      "pid": [
+        "8g1wx"
+      ], 
+      "noid": "8g1wx", 
+      "uri": "http://dx.doi.org/10.1007/978-3-642-11712-1", 
+      "qualify": "", 
+      "proxy": [
+        "EZproxy"
+      ], 
+      "active": true
+    }
+  }, 
+  {
+    "pk": 4, 
+    "model": "pid.target", 
+    "fields": {
+      "pid": [
+        "124tw"
+      ], 
+      "noid": "124tw", 
+      "uri": "http://galenet.galegroup.com/servlet/MOML?af=RN&ae=F151585971&srchtp=a&ste=14&locID=emory", 
+      "qualify": "", 
+      "proxy": [
+        "EZproxy"
+      ], 
+      "active": false
+    }
+  }
+]
