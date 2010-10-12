@@ -1,0 +1,19 @@
+<tr>
+	<td colspan="2">
+		<%= submit_tag 'Add Target' %>
+	</td>
+	<td>
+		<label for="target_uri">URI:</label>
+		<%= text_field 'target', 'uri'  %>
+	</td>		
+	<% if pid.is_a?(Ark) %>
+		<td>
+			<label for="target_qualify">Qualifier:</label>
+			<%= text_field 'target', 'qualifier'  %>
+		</td>
+	<% end %>			
+
+	<td>
+		<p><%= render :partial => 'select_proxy' %></p>
+	</td>
+</tr>

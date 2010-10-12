@@ -1,0 +1,2 @@
+module DomainAdminHelper
+end

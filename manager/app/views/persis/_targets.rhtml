@@ -1,0 +1,21 @@
+<p><b>Targets:</b></p>
+<table>
+    <tr>
+        <td colspan="2">&nbsp;</td>
+        <td><b>Target URI</b></td>        
+        <td><b>Quailfier</b></td>
+    </tr>
+    
+    <% for target in targets %>
+        <tr>
+            <td>
+                <%= link_to 'Edit', :controller => 'targets', :action => 'edit', :id => target unless !edit %>
+                <%= link_to 'Details', :controller => 'targets', :action => 'show', :id => target unless edit %>
+            </td>
+            <td><%= link_to 'Remove', {:controller => 'targets', :action => 'destroy', :id => target }, :confirm => 'Are you sure?', :post => true unless !edit %></td>
+            <td><%= link_to(target.uri, target.uri) %></td>            
+            <td><%= target.qualify %></td>
+        </tr>
+    <% end %>
+    
+</table>
