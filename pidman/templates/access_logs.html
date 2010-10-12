@@ -1,0 +1,14 @@
+<div class="module">
+    <table summary="Models available in the Sites application.">
+        <caption><span class="section">Export Access Log</span></caption>
+        <tbody>
+            <tr>
+                <th scope="row">By Fiscal Year</th>
+                <td><a href="access_log">All</a></td>
+                {% for year in years %}
+                    <td><a href="access_log/{{ year }}">{{ year }}</a></td>
+                {% endfor %}
+            </tr>
+        </tbody>
+    </table>
+</div>
