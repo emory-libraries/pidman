@@ -1,0 +1,37 @@
+<%= error_messages_for 'pids' %>
+
+<!--[form:pids]-->
+<p>
+	<label for="pids_pid">PID:</label> 
+	<% unless (@pids.pid.nil?) %>
+		<%= @pids.pid  %>
+	<% else %>
+		<i>AUTOGEN</i>
+	<% end %>
+</p>
+
+<p><%= render :partial => 'add_target' %></p>
+
+<% domains = Domain.getDomainsForAdmin(session[:active_user][:id], session[:active_user][:is_superuser]) %>
+<% unless (domains.length == 1) %>
+    <p><label for="pids_proxy">Domain</label> 
+    <%= select('pids', 'domain_id', Domain.getDomainsForAdmin(session[:active_user][:id], session[:active_user][:is_superuser])) %>
+    </p>
+<% else %>
+    <input type="hidden" name="pids[domain_id]" value="<%= domains[0][1] %>">
+    <p><label for="pids_proxy">Domain</label> <%= domains[0][0] %> </p>
+<% end %>
+
+<p>
+	<label for="pids_ext_system">External System</label>
+	<%= select('pids', 'ext_system_id', ExtSystem.find_all.collect {|es| [ es.name, es.id ] }, { :include_blank => true }) %>
+	<label for="pids_ext_system_key">Key</label> <%= text_field 'pids', 'ext_system_key'  %>
+</p>
+
+<p><label for="pids_active">Active:</label> <select id="pids_active" name="pids[active]"><option value="false">False</option><option value="true" selected>True</option></select></p>
+
+<p><label for="pids_name">Name: </label><%= text_field 'pids', 'name'  %><font size='-1' color='red'><i>optional</i></font></p>
+
+<% if false %><p><label for="pids_updated_at">Last modified</label> <%= @pids.updated_at %></p><% end %>
+<% if false %><p><label for="pids_created_at">Create Date</label> <%= @pids.created_at %></p><% end %>
+<!--[eoform:pids]-->

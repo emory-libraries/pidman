@@ -1,0 +1,46 @@
+<html>
+<head>
+  <title>Persis: <%= controller.action_name %></title>
+  <%= stylesheet_link_tag 'scaffold' %>
+  <%= stylesheet_link_tag 'main' %>
+  
+  <%#= javascript_include_tag :defaults %>
+  <%#= javascript_include_tag 'prototype' %>
+  <%= define_javascript_functions %> <!-- not recommended but autocomplete doesnt work without this -->  
+  
+  <style type="text/css">
+    div.auto_complete {
+      position:absolute;
+      width:500px;
+      background-color:white;
+      border:1px solid #888;
+      margin:0px;
+      padding:0px;
+    }
+    
+    ul.result   {
+        margin: 0;
+        padding: 0;
+    }    
+    
+    li.selected { background-color: #ffb; }
+    li.result   {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+  </style>  
+  
+</head>
+<body>
+
+<div style="float: right;" id="user">Hello <%= session[:active_user].name %></div>
+<div id="logout"><%= link_to 'logout', :action => 'logout', :controller => 'login'%></div>
+<div id="admin"><%= link_to 'admin', :action => 'index', :controller => 'admin'%></div>
+
+<p style="color: green"><%= flash[:notice] %></p>
+
+<%= yield  %>
+
+</body>
+</html>

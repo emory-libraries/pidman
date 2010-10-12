@@ -1,0 +1,8 @@
+<% for column in Proxy.content_columns %>
+<p>
+  <b><%= column.human_name %>:</b> <%=h @proxy.send(column.name) %>
+</p>
+<% end %>
+
+<%= link_to 'Edit', :action => 'edit', :id => @proxy %> |
+<%= link_to 'Back', :action => 'list' %>

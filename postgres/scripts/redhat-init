@@ -1,0 +1,63 @@
+#!/bin/bash
+#
+# Starts/stops the persistent identifier services
+#
+# chkconfig: 345 99 99
+# description: Starts/stops the persistent identifier services
+
+# source function library
+. /etc/init.d/functions
+
+test -x /usr/local/lib/persis/resolver.py || exit 1
+
+RETVAL=0
+resolver="resolver.py"
+
+start() {
+    if [ ! -f /var/lock/subsys/resolver.py ] ; then
+        echo -n $"Starting $resolver: "
+        daemon /usr/local/lib/persis/resolver.py -user resolver >> /var/log/persis/resolver.log 2>&1 &
+        RETVAL=$?
+        [ $RETVAL -eq 0 ] && touch /var/lock/subsys/resolver.py
+        echo
+    fi
+    return $RETVAL
+}
+
+stop() {
+    echo -n $"Stopping $resolver: "
+    killproc /usr/local/lib/persis/resolver.py
+    RETVAL=$?
+    [ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/resolver.py
+    echo
+    return $RETVAL
+}
+
+restart() {
+    stop
+    sleep 5
+    start
+}
+
+reload() {
+    restart
+}
+
+case "$1" in
+    start)
+        start
+    ;;
+    stop)
+        stop
+    ;;
+    reload|restart)
+        restart
+    ;;
+    *)
+        echo $"Usage: $0 {start|stop|restart|condrestart|status}"
+        exit 1
+    esac
+
+exit $?
+exit $RETVAL
+

@@ -1,0 +1,30 @@
+<%= link_to 'Sort By Created ' + @direction, {:action => 'list', :sort => 'created_at', :direction => @direction} %><br/>
+<%= link_to 'Sort By Modified ' + @direction, {:action => 'list', :sort => 'updated_at', :direction => @direction} %><br/>
+
+<table class="pid_table">
+  <tr>
+    <th>&nbsp</th>
+    <th align="center"><%= link_to 'Type', {:action => 'list', :sort => 'type', :direction => @direction} %></th>        
+    <th align="left">Domain</th>        
+    <th align="left"><%= link_to 'Name', {:action => 'list', :sort => 'name', :direction => @direction} %></th>
+    <th align="left">Target</th>
+  </tr>
+  
+    <% for pid in pids %>
+    
+        <tr>
+            <td><%= link_to 'Edit', :action => 'edit', :id => pid %></td>
+            <!--<td><%= link_to 'Destroy', { :action => 'destroy', :id => pid }, :confirm => 'Are you sure?', :post => true %></td>-->
+            
+            <td align="center"><%= pid.type %></td>
+            <td align="left"><%= pid.domain.name %></td>
+			<td align="left"><%= pid.name[0..50] %></td>
+            <td align="left">
+                <%= link_to(pid.targets[0].getURL[0..128], 
+						pid.targets[0].getURL, :target => "_blank" ) unless pid.targets.empty? %>
+            </td>
+        </tr>
+    
+    <% end %>
+</table>
+

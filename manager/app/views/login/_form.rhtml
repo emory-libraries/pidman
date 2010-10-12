@@ -1,0 +1,20 @@
+<%= error_messages_for 'login' %>
+<% if @flash[:notice] %>
+    <div class="notice"><%= @flash[:notice] %></div>
+<% end %>
+
+<!--[form:login]-->
+<table>
+    <tr>
+        <td>Username:</td>
+        <td><%= text_field 'login', 'un'  %></td>
+    </tr>
+    
+    <tr>
+        <td>Password</td>
+        <td><%= password_field 'login', 'pw'  %></td>
+    </tr>
+</table>
+
+<!--[eoform:login]-->
+

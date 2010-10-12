@@ -1,0 +1,13 @@
+<h1>New <%= @pids.type.to_s %></h1>
+
+<% if (@pids.is_a?(Ark)) %>
+  <%= start_form_tag :action => 'createArk' %>
+<% else %>
+  <%= start_form_tag :action => 'createPurl' %>
+<% end %>
+
+  <%= render :partial => 'form' %>
+  
+  <%= submit_tag "Create"%>
+<%= end_form_tag %>
+

@@ -1,0 +1,16 @@
+<html>
+<head>
+  <title>RoleAdmin: <%= controller.action_name %></title>
+  <%= stylesheet_link_tag 'scaffold' %>
+</head>
+<body>
+
+<div id="logout"><%= link_to 'logout', :action => 'logout', :controller => 'login'%></div>
+<div id="admin"><%= link_to 'admin', :action => 'index', :controller => 'admin'%></div>
+
+<p style="color: green"><%= flash[:notice] %></p>
+
+<%= yield  %>
+
+</body>
+</html>

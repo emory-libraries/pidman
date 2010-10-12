@@ -1,0 +1,20 @@
+<%= error_messages_for 'target' %>
+
+<!-- hide pid on form -->
+<%= hidden_field 'target', 'pid_id'  %>
+<%= hidden_field 'target', 'pid'  %>
+
+<!--[form:target]-->
+<p><label for="target_target">Target URL</label><br/>
+<%= text_field 'target', 'uri'  %></p>
+
+<% if @target.Pid.is_a?(Ark) %>
+	<p><label for="target_qualify">Qualifier</label><br/>
+	<%= text_field 'target', 'qualify'  %></p>
+<% end %>
+
+<p><%= render :partial => 'persis/select_proxy' %></p>
+
+
+<!--[eoform:target]-->
+
