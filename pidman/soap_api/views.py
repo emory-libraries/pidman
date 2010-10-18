@@ -6,7 +6,16 @@ ERR_NOT_AUTHORIZED = 'request canceled: not authorized'
 
 def create_pid(domain_id, user, name, type, uri, qualifier='', proxy_id=None,
     external_system_name=None, external_system_key=None, **kwargs):
-    """Convenience function to create new ark or purl with a single target"""
+    '''Convenience function to create new ark or purl with a single target.
+    Handles all the look-ups for related objects to be associated with the new
+    :class:`~pidman.pid.models.Pid`.
+
+    Common functionality for :meth:`PersistentIdentifierService.GenerateArk`
+    and :meth:`PersistentIdentifierService.GeneratePurl`.
+
+    :returns: :class:`~pidman.pid.models.Target` - the single target created
+        for the new :class:`~pidman.pid.models.Pid`
+    '''
     d = Domain.objects.get(pk=domain_id)
                     
     # if external_system is specified, find ExtSystem by name
@@ -36,9 +45,9 @@ def create_pid(domain_id, user, name, type, uri, qualifier='', proxy_id=None,
     return t
 
 # added new create_pid method to include active flag
+# TODO: this method is redundant and should be consolidated with create_pid or removed entirely
 def create_pid_active(domain_id, user, name, type, uri, qualifier='', proxy_id=None,
     active=True, external_system_name=None, external_system_key=None, **kwargs):
-    """Convenience function to create new ark or purl with a single target"""
     d = Domain.objects.get(pk=domain_id)
                     
     # if external_system is specified, find ExtSystem by name
@@ -87,7 +96,22 @@ class PersistentIdentifierService(DjangoSoapApp):
         _outVariableName='return')
     def GenerateArk(self, username, password, uri, name, qualifier, domain_id, proxy_id,
                     external_system, external_system_key):
-        """Create a new ark with a single target and return the full ark (with qualifier if specified)"""
+        '''Create a new ARK with a single target. Returns the resolvable form
+        of the full ARK, with any qualifier that was specified.
+        
+        :param username: user login
+        :param password: user password
+        :param uri: target URI for the new ARK
+        :param name: title or label for the new ARK
+        :param qualifier: qualifier for the new ARK (empty string for unqualified)
+        :param domain_id: numeric id for the :class:`~pid.pidman.models.Domain`
+            the new ARK should belong to
+        :param proxy_id: numeric id for the :class:`~pid.pidman.models.Proxy`
+            that the new ARK target should use for resolving, or blank for none
+        :param external_system: name of an :class:`~pid.pidman.models.ExtSystem`,
+            or blank for none
+        :param external_system_key: key or identifier in the specified external system
+        '''
         user = authenticate(username=username, password=password)
         if user is None:
             raise Exception(ERR_NOT_AUTHORIZED)
@@ -109,7 +133,18 @@ class PersistentIdentifierService(DjangoSoapApp):
                 _returns=soap_types.String,
                 _outVariableName='return')
     def AddArkTarget(self, username, password, noid, qualifier, uri, proxy_id):
-        """Add a new target to an existing ark and return resolvable url for the new target"""
+        '''Add a new :class:`~pidman.pid.models.Target` to an existing ARK and
+        return the resolvable url for the new target.
+        
+        :param username: user login
+        :param password: user password
+        :param noid: NOID portion of the ARK for the :class:`~pidman.pid.models.Pid`
+            instance the target should be added to
+        :param qualifier: qualifier for the new ARK (empty string for unqualified)
+        :param uri: URI for the new target
+        :param proxy_id: numeric id for the :class:`~pid.pidman.models.Proxy`
+            that the new ARK target should use for resolving, or blank for none
+        '''
         user = authenticate(username=username, password=password)
         if user is None:
             raise Exception(ERR_NOT_AUTHORIZED)
@@ -135,7 +170,6 @@ class PersistentIdentifierService(DjangoSoapApp):
         # return the resolvable url for the target that was just created
         return t.get_resolvable_url()
 
-
     @soapmethod(soap_types.String,  # username
                 soap_types.String,  # password
                 soap_types.String,  # uri
@@ -146,8 +180,22 @@ class PersistentIdentifierService(DjangoSoapApp):
                 soap_types.String,  # external system key
                 _returns=soap_types.String,
                 _outVariableName='return')
-    def GeneratePurl(self, username, password, uri, name, domain_id, proxy_id, external_system, external_system_key):
-        """Generate a new purl for the specified url and return the purl"""
+    def GeneratePurl(self, username, password, uri, name, domain_id, proxy_id,
+                     external_system, external_system_key):
+        '''Generate a new PURL for the specified url and return it.
+
+        :param username: user login
+        :param password: user password
+        :param uri: target URI for the new PURL
+        :param name: title or label for the new PURL
+        :param domain_id: numeric id for the :class:`~pid.pidman.models.Domain`
+            the new PURL should belong to
+        :param proxy_id: numeric id for the :class:`~pid.pidman.models.Proxy`
+            that the new PURL target should use for resolving, or blank for none
+        :param external_system: name of an :class:`~pid.pidman.models.ExtSystem`,
+            or blank for none
+        :param external_system_key: key or identifier in the specified external system
+        '''
         user = authenticate(username=username, password=password)
         if user is None:
             raise Exception(ERR_NOT_AUTHORIZED)
@@ -165,7 +213,15 @@ class PersistentIdentifierService(DjangoSoapApp):
                 _returns=soap_types.String,
                 _outVariableName='return')
     def EditTarget(self, username, password, purl, uri):
-        """Update the target for an existing ark or purl and return the purl or qualified ark that was updated"""
+        '''Update the target for an existing ARK or PURL and return the PURL or
+        qualified ARK that was updated.
+        
+        :param username: user login
+        :param password: user password
+        :param purl: full, URL resolvable form of the PURL, ARK, or qualified
+            ARK to be updated
+        :param uri: updated URI 
+        '''
         user = authenticate(username=username, password=password)
         if user is None:
             raise Exception(ERR_NOT_AUTHORIZED)

@@ -1,12 +1,16 @@
 Overview
 ========
 
-This is a management application for maintaining and managing purls and arks.
-Together these resources allow the assignment of unique persistant identifiers.
+This is a management application for maintaining, managing, and
+resolving PURLs (Permanent URLs) and ARKs (Archival Resource Keys).
+Together these resources allow the assignment of unique persistent
+identifiers.
 
-You can find more information on
-`arks <http://en.wikipedia.org/wiki/Archival_Resource_Key>`_ and
-`purls <http://purl.oclc.org/docs/index.html>`_
+You can find more information on `ARKs
+<http://en.wikipedia.org/wiki/Archival_Resource_Key>`_ and `PURLs
+<http://purl.oclc.org/docs/index.html>`_ or view the complete `ARK
+specification
+<https://confluence.ucop.edu/download/attachments/16744455/arkspec.txt?version=1>`_
 
 
 Dependencies
@@ -31,23 +35,27 @@ Components
 
 The component applications of this project are:
 
-pid
----
+:mod:`~pidman.pid`
+------------------
 Core application to represent pid objects and build central behaviors for them.
 
-pidauth
--------
+:mod:`~pidman.pidauth`
+----------------------
+Unused: initially to allow for intended for per-domain permissions, but not implemented.
 
-resolver
---------
+:mod:`~pidman.resolver`
+-----------------------
+Resolve ARK and PURLs to their Target URLs.
 
-rest_api
---------
-Provides a rest api for selected pid functions such as create, edit and delete
+:mod:`~pidman.rest_api`
+-----------------------
+Provides a REST API for selected pid functions such as create, edit and delete
 model objects from `pidman.pid.models`.
 
-soap_api
---------
+:mod:`~pidman.soap_api`
+-----------------------
+Provides a limited SOAP API for creating ARKs and PURLs.  Deprecated; new projects
+should use the REST API instead.
 
 
 
