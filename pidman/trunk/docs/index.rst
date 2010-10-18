@@ -11,7 +11,7 @@ Welcome to pidman's documentation!
 Version History
 ===============
 
-.. include:: ../RELEASENOTES
+.. include:: ../CHANGELOG
 
 Contents:
 
