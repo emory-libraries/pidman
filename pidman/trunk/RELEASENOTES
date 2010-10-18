@@ -1,6 +1,37 @@
+Release 0.9
+-----------
+Date: October 2010
+
+New REST API for accessing, creating, and updating Pids and Domains,
+with the following features:
+* An unathenticated user can GET metadata for an existing PURL or ARK,
+including any qualifiers, via REST.
+* An unauthenticated user can GET a list of existing domains via REST.
+* An unauthenticated user can GET metadata for a single existing
+domain via REST.
+* An authenticated user can create a new ARK, PURL, or qualified ARK
+by POSTing the metadata for the requested ARK or PURL.
+* An authenticated user can update an existing ARK, PURL, or qualified
+ARK via REST.
+* An authenticated user can create a new Domain or Subdomain by
+POSTing the metadata for the requested Domain.
+* An authenticated user can update metadata for an existing Domain. 
+* An authenticated user can remove an ARK qualifier via HTTP delete.
+* When a user attempts to delete an unqualified ARK or PURL, the ARK
+or PURL is not removed and the user gets an error response.
+* When a user makes changes to ARKs, PURLs, or Domains via the REST
+API, their actions are tracked just as if the changes were made
+manually through the admin interface.
+* A user can search for existing ARKs and PURLs by target, domain,
+etc. via REST.
+
+
+As of this release, the SOAP API be considered deprecated.
+
+
 Release 0.8.3
 -------------
-Date: ???
+Date: September 2010
 
 * Changed eulcore external to https://svn.library.emory.edu/svn/python-eulcore/trunk/src/eulcore
 * Removed south external (This means south will have to be installed on the system.  See README)
@@ -21,7 +52,7 @@ Date: August 2010
   is considered inactive.
 
 Release 0.8.1
-------------_
+-------------
 Date: March 2010
 
 * Changed banner from "PID Manager" to "Persistent Identifier Manager --

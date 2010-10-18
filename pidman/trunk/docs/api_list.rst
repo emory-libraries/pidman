@@ -9,22 +9,26 @@ pid
 .. automodule:: pidman.pid
    :members:
 
-**models**
+models
+^^^^^^
 
 .. automodule:: pidman.pid.models
    :members:
 
-**ark_utils**
+Utility Methods for ARKs
+^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. automodule:: pidman.pid.ark_utils
    :members:
 
-**noid**
+noid functionality
+^^^^^^^^^^^^^^^^^^
 
 .. automodule:: pidman.pid.noid
    :members:
 
-**admin**
+admin
+^^^^^
 
 .. automodule:: pidman.pid.admin
    :members:
@@ -35,7 +39,8 @@ pidauth
 .. automodule:: pidman.pidauth
    :members:
 
-**models**
+models
+^^^^^^
 
 .. automodule:: pidman.pidauth.models
    :members:
@@ -46,7 +51,8 @@ resolver
 .. automodule:: pidman.resolver
    :members:
    
-**views**
+views
+^^^^^
 
 .. automodule:: pidman.resolver.views
    :members:
@@ -54,22 +60,26 @@ resolver
 rest_api
 --------
 
-This module provides REST API calls for CRUD calls to PIDs, Domains, and Targets
+This module provides REST API access for CRUD calls on :class:`~pidman.pid.models.Pid`,
+:class:`~pidman.pid.models.Domain`, and :class:`~pidman.pid.models.Target` objects.
 
 .. automodule:: pidman.rest_api
    :members:
 
-**decorators**
+decorators
+^^^^^^^^^^
 
 .. automodule:: pidman.rest_api.decorators
    :members:
 
-**models**
+models
+^^^^^^
 
 .. automodule:: pidman.rest_api.models
    :members:
 
-**views**
+views
+^^^^^
 
 .. automodule:: pidman.rest_api.views
    :members:
@@ -80,7 +90,11 @@ soap_api
 .. automodule:: pidman.soap_api
    :members:
 
-**views**
+views
+^^^^^
 
 .. automodule:: pidman.soap_api.views
    :members:
+
+.. autoclass:: pidman.soap_api.views.PersistentIdentifierService
+    :members:

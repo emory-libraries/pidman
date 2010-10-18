@@ -1,4 +1,4 @@
-from django.http import HttpResponseRedirect, HttpResponse
+from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render_to_response
 from pidman.pid.models import Target, Pid
 from pidman.pid.ark_utils import normalize_ark
@@ -7,6 +7,13 @@ def resolve_purl(request, noid):
     return resolve_pid(noid)
 
 def resolve_ark(request, naan, noid, qual=''):
+    '''Resolve an ARK or qualified ARK to the appropriate target URL.
+
+    If there are no qualifiers and the URL ends with single question mark,
+    returns minimal metadata about the ARK.  If the URL ends with two question
+    marks, returns the commitment statement for the requested ARK.  See
+    :meth:`ark_metadata` for more information.
+    '''
     noid = normalize_ark(noid)
     if qual:
         qual = normalize_ark(qual)
@@ -22,6 +29,11 @@ def resolve_ark(request, naan, noid, qual=''):
     return resolve_pid(noid, qual)
 
 def resolve_pid(noid, qual=''):
+    '''Common functionality for resolving PURLs and ARKs.
+    
+    Retrive the :class:`Target` requested, prefix the :class:`Proxy` transform
+    to the target URL if a proxy is defined, and then redirect to the target URL.
+    '''
     t = get_object_or_404(Target, noid__exact=noid, qualify=qual, active=True)
     url = t.uri
     if (t.proxy):
@@ -31,6 +43,10 @@ def resolve_pid(noid, qual=''):
 # ARK spec 5.1.2 generic description service
 # ARK spec 5.1.1 generic policy service
 def ark_metadata(request, noid):
+    '''Display minimal ARK metadata or preservation commitment statement in a
+    simple, plain-text format.
+
+    See ARK specification sections 5.1.1 and 5.1.2 for more information.'''
     pid = get_object_or_404(Pid, pid__exact=noid)
     full_path = request.get_full_path()
     if full_path[-2:] == "??":

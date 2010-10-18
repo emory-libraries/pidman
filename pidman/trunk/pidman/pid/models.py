@@ -6,7 +6,7 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.contenttypes import generic
 from django.core.urlresolvers import reverse
-from django.db import connection, models, transaction
+from django.db import connection, models
 
 from linkcheck import Linklist
 from linkcheck.models import Link as LinkCheckLink
@@ -17,7 +17,7 @@ from django.core.exceptions import ValidationError
 
 def mint_noid():
     '''mint_noid() -> unicode
-    Generate a new NOID.
+    Generate a new NOID (Nice Opaque IDentifier).
     '''
     cursor = connection.cursor()
     cursor.execute("SELECT nextval('pid_pid_pid_seq')")
@@ -32,6 +32,9 @@ class ExtSystemManager(models.Manager):
         return self.get(name=name)
 
 class ExtSystem(models.Model):
+    '''External System.  Use this model to define an External Systems that
+    will be used with :class:`Pid` instances, so that users can store an
+    associated identifier from an external system on a :class:`Pid` instance.'''
     name = models.CharField(unique=True, max_length=127)
     key_field = models.CharField(max_length=127)
     updated_at = models.DateTimeField(auto_now=True)
@@ -53,6 +56,12 @@ class PolicyManager(models.Manager):
         return self.get(title=title)
 
 class Policy(models.Model):
+    '''A policy that defines the commitment level for :class:`Pid` instances.
+    Can be associated with :class:`Domain` or :class:`Pid`.
+
+    The Policy is used for ARK metadata exposed via the resolver; see section
+    5.1.1 of the ARK specification.
+    '''
     created_at = models.DateTimeField("Date Created", auto_now_add=True)
     commitment = models.TextField("Commitment Statement")
     title      = models.CharField(unique=True, max_length=255)
@@ -75,6 +84,14 @@ class DomainException(Exception):
 # error, most likely because of Domain -> collection/subdomain recursive relation.
 
 class Domain(models.Model):
+    '''A Domain is a collection of :class:`Pid` instances.  Domains can have an
+    associated :class:`Policy`, which all Pids in that collection inherit by
+    default.  This implementation allows for collections or subdomains
+    that belong to a domain (currently only supports one level of nesting).
+    
+    Domains are **not** part of the ARK spec, but a feature of this implementation
+    meant for managing and grouping PIDs.
+    '''
     name = models.CharField(unique=True, max_length=255)
     updated_at = models.DateTimeField(auto_now=True)
     policy = models.ForeignKey(Policy, blank=True, null=True)
@@ -85,7 +102,11 @@ class Domain(models.Model):
         return self.name
 
     def get_policy(self):
-        "Return the policy for this domain or from parent domain if inherited."
+        '''Return the policy for this domain or from parent domain if inherited.
+        Raises a :class:`DomainException` if no policy is found.
+        
+        :return: instance of :class:`Policy`
+        '''
         if self.policy:
             return self.policy
         elif self.parent:
@@ -94,12 +115,13 @@ class Domain(models.Model):
             raise DomainException("No Policy Exists")
 
     def num_collections(self):
-        "Number of collections under this domain"
+        "Number of collections under this domain."
         return self.collections.count()
     num_collections.short_description = "# collections"
 
     def num_pids(self):
-        "Number of pids in this domain, including pids in any subdomains"
+        '''Number of :class:`Pid` instances in this domain, including those in
+        any subdomains.'''
         pid_count = self.pid_set.count()
         for subdomain in self.collections.all():
             pid_count += subdomain.pid_set.count()
@@ -111,6 +133,7 @@ class PidManager(models.Manager):
         return self.get(pid=noid)
 
 class Pid(models.Model):
+    '''Pid: an ARK or a PURL, with associated :class:`Target` instance(s).'''
     pid = models.CharField(unique=True, max_length=255, editable=False, default=mint_noid)
     domain = models.ForeignKey(Domain)
     name = models.CharField(max_length=1023, blank=True)
@@ -133,8 +156,12 @@ class Pid(models.Model):
     def natural_key(self):
         return (self.pid,)
     
-    # find primary target (should be the only target for purl, default target for ark)
     def primary_target(self):
+        '''Return the  primary target for this pid (the only target for a PURL,
+        or the default target for an ARK).
+
+        :return: :class:`Target`
+        '''
         try:
             t = self.target_set.filter(qualify='')
             if len(t):
@@ -166,7 +193,7 @@ class Pid(models.Model):
             return ''
 
     def url_link(self):
-        """Return html for clickable url to open in new window."""
+        """Return html for a clickable URL that opens in new window."""
         url = self.url()
         if url:
             return "<a target='_blank' href='%(url)s'>%(url)s</a>" % {'url': url}
@@ -176,6 +203,8 @@ class Pid(models.Model):
     url_link.allow_tags = True
 
     def primary_uri(self):
+        '''Return the resolvable URL for the primary :class:`Target` associated
+        with this pid.'''
         target = self.primary_target()
         if target:
             return target.get_resolvable_url()
@@ -198,9 +227,10 @@ class Pid(models.Model):
         return True
 
     def save(self, force_insert=False, force_update=False, *args, **kwargs):
-        """
-        extending default save to keep pid and noid in sync
-        """
+        '''
+        Custom save method to ensure that pid and noid for all associated
+        :class:`Target` instances are kept in sync.
+        '''
         if (self.is_valid()):
             super(Pid, self).save(force_insert=force_insert, force_update=force_update, *args, **kwargs)
             #keep pid and noid in sync
@@ -253,7 +283,10 @@ class Pid(models.Model):
     show_target_linkcheck_status.allow_tags = True
 
     def get_policy(self):
-        "Return the policy for this pid (may be inherited from domain)."
+        '''Return the :class:`Policy` for this pid.  If this pid is not active,
+        this method automatically returns the inactive Policy.  If the pid has
+        a policy explicitly assigned, that is used; otherwise, the policy is 
+        inherited from the :class:`Domain` this pid belongs to.'''
         if self.is_active() == False:
             return Policy.objects.get(title__exact='Inactive Policy')
         elif self.policy:
@@ -261,10 +294,14 @@ class Pid(models.Model):
         else:
             return self.domain.get_policy()
 
-    #Pid is active in any targets are active
     def is_active(self):
-        active = False
+        '''Determine if this Pid is active.  A Pid isconsidered active if
+        **any** of its associated :class:`Target` instances are active.
 
+        :return: boolean
+        '''
+        active = False
+        # consider active if any targets are active
         for t in self.target_set.all():
             if t.active == True:
                 active = True
@@ -280,6 +317,11 @@ class InvalidArkManager(PidManager):
             ''.join(qualifier_allowed_characters) + ']')
 
 class InvalidArk(Pid):
+    '''Filtered set of :class:`Pid` instances that filters on invalid qualifiers.
+    This model was created to make it easy to find and correct any invalid Pids
+    that were added before ARK validation was added to the application.  Meant for
+    access/update use only in the Django Admin interface.
+    '''
     objects = InvalidArkManager()
     class Meta:
         proxy = True
@@ -289,6 +331,10 @@ class ProxyManager(models.Manager):
         return self.get(name=name)
     
 class Proxy(models.Model):
+    '''Use this model to define Proxy systems that should be used when resolving
+    :class:`Target` instances.  The transform property is prepended to the
+    target URL before resolving.
+    '''
     name = models.CharField(unique=True, max_length=127)
     transform = models.CharField(max_length=127)
     updated_at = models.DateTimeField(auto_now=True)
@@ -309,6 +355,12 @@ class TargetManager(models.Manager):
         return self.get(noid=noid, qualify=qualifier)
 
 class Target(models.Model):
+    '''Target URLs associated with a :class:`Pid` instance.
+
+    Note that each Target has the database id of the associated :class:`Pid` as
+    well as the **noid**, so that resolving a Target can be done as efficiently
+    as possible.
+    '''
     pid = models.ForeignKey(Pid)
     noid = models.CharField(max_length=255, editable=False)
     uri = models.CharField(max_length=2048)
@@ -329,7 +381,7 @@ class Target(models.Model):
         return (self.noid, self.qualify)
     
     def get_resolvable_url(self):
-        """Return the purl or ark (with any qualifiers) for this target."""
+        """Return the resolvable PURL or ARK URL (with any qualifiers) for this target."""
         url = settings.PID_RESOLVER_URL.rstrip('/')
         if (self.pid.type == "Purl"):
             return "/".join([url, self.noid])
@@ -342,8 +394,11 @@ class Target(models.Model):
     # extend default save - replace special token in target uri with noid
     def save(self, force_insert=False, force_update=False, *args, **kwargs):
         """
-        extend default save - replace special token in target uri with noid
-        and make sure pid and noid stay in sync
+        Custom save method.  When present, replace a special token string
+        (configured in django settings as **PID_REPLACEMENT_TOKEN**) in the
+        target uri with the noid.  Also ensures that pid and noid stay
+        synchronized, check that qualifier does not contain any invalid characters,
+        and normalizes ARK qualifier so it will be resolved correctly.
         """
         # a special token in target URI should be replaced with minted noid
         if (self.uri.find(settings.PID_REPLACEMENT_TOKEN) != -1):
@@ -388,7 +443,16 @@ class TargetLinkCheck(Linklist):
     image_fields = [] # fields in the model that contain raw image fields    
 
 def parse_resolvable_url(urlstring):
-    """Parse a PURL, ARK, or qualified ARK in resolvable url form"""
+    '''Parse a PURL, ARK, or qualified ARK in resolvable url form.
+
+    :return: dictionary with with the following keys and values:
+     * type (Ark or Purl)
+     * schema (http/https)
+     * hostname
+     * NAAN (Name authority number - ARKs only)
+     * NOID
+     * qualifier (qualified ARKs only)
+    '''
     
     info = {"qualifier":''}     # default to '' so qualifier will always be set; override if present
     if (urlstring.find('/ark:/') != -1):

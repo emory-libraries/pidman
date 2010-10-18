@@ -333,15 +333,14 @@ def target(request, noid, type, qualifier):
 
 @basic_authentication
 def create_pid(request, type):
-    '''On POST, create a new ARK or PURL.  On successful creation, returns a 
+    '''On POST, create a new ARK or PURL.  On successful creation, returns a
     response with status code 201 (Created), and response content is the resolvables
     url for the newly minted ARK or PURL.  If required parameters are missing
     or any parameters are invalid (e.g., referencing a Proxy or Policy that does
     not exist), the returned response will have a status code 400 (Bad Request),
     and the content of the response will be an explanatory message.
 
-    Supported POST parameters
-    
+    Supported POST parameters:
         * domain - REQUIRED; domain should be in URI resource format, e.g.
           http://pid.emory.edu/domain/1
         * target_uri - REQUIRED; URL that the new ARK or PURL should resolve to
@@ -354,7 +353,12 @@ def create_pid(request, type):
         * qualifier - target should be created with the specified target;**ARK only**
 
     :param type: type of pid to create - ark or purl
-    
+
+    Example create urls::
+
+        http://pid.emory.edu/ark/ - create a new ARK
+        http://pid.emory.edu/prl/ - create a new PURL
+
     '''
     if request.method == 'POST':
         # TODO: require ssl ?
@@ -510,7 +514,7 @@ def search_pids(request):
 
 @basic_authentication
 def domains(request):
-    '''On GET, returns a list of all top-level :class:`pidman.pid.models.Domain`
+    '''On GET, returns a list of all top-level :class:`~pidman.pid.models.Domain`
     instances.  Subdomains/collections, if any, will be listed under the domain
     they belong to.
 
@@ -524,7 +528,10 @@ def domains(request):
         * name -  - REQUIRED: label or title for the new  Domain
         * policy - policy title
         * parent - parent uri
-        
+
+    Example list domain url::
+
+        http://pid.emory.edu/domains/
     '''
     methods = ['GET', 'POST']
     
@@ -608,6 +615,10 @@ def domain(request, id):
         * name - label or title for the Domain
         * policy - policy title
         * parent - parent uri
+
+    Example domain url::
+
+        http://pid.emory.edu/domains/1
     '''
     # Look-Up object for PUT and GET
     if request.method == 'GET' or  request.method == 'PUT':
@@ -673,10 +684,10 @@ def domain(request, id):
 
 
 def pid_data(pid, request):
-    '''Generate a dictionary of data for a :class:`pidman.pid.models.Pid` for
+    '''Generate a dictionary of data for a :class:`~pidman.pid.models.Pid` for
     REST API dissemination.  Includes the REST resource URI for the Pid.
 
-    :param pid: :class:`pidman.pid.models.Pid` instance
+    :param pid: :class:`~pidman.pid.models.Pid` instance
     :param request: :class:`django.http.HttpRequest`, for generating absolute URIs
     :rtype: dict
     '''
@@ -713,10 +724,10 @@ def pid_data(pid, request):
     return data
 
 def target_data(target, request):
-    '''Generate a dictionary of data about a single :class:`pidman.pid.models.Target`
+    '''Generate a dictionary of data about a single :class:`~pidman.pid.models.Target`
     for REST API dissemination.  Includes the Target resource URI.
 
-    :param target: :class:`pidman.pid.models.Target` instance
+    :param target: :class:`~pidman.pid.models.Target` instance
     :param request: :class:`django.http.HttpRequest`, for generating absolute URI
     :rtype: dict
     '''
@@ -740,11 +751,11 @@ def target_data(target, request):
     return data
 
 def domain_data(domain, request):
-    '''Generate a dictionary of data about a single :class:`pidman.pid.models.Domain`
+    '''Generate a dictionary of data about a single :class:`~pidman.pid.models.Domain`
     and any collections that belong to it, for REST API dissemination.  Includes
     Domain resource URI.
 
-    :param domain: :class:`pidman.pid.models.Domain` instance
+    :param domain: :class:`~pidman.pid.models.Domain` instance
     :param request: :class:`django.http.HttpRequest`, for generating absolute URI
     :rtype: dict
     '''
