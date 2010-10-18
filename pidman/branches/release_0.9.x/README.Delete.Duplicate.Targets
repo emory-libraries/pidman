@@ -1,0 +1,27 @@
+Title: Delete duplicate targets/pid from pid and target table on dirac persis db.
+Date: October 9, 2009
+Location: dirac:/home/sconna2/del_dup_targets
+
+#!/bin/bash 
+pg_dump -a persis -f dirac_persis_data_only-20091009-predelete.sql
+echo "done all data dump - pre"
+pg_dump -data_only --column-inserts --no-owner --table=pid_pid persis > table_pid_pid-20091009-predelete.sql
+echo "done pid table dump - pre"
+pg_dump -data_only --column-inserts --no-owner --table=pid_target persis > table_pid_target-20091009-predelete.sql
+echo "done target table dump - pre"
+
+psql -f doi-del-target.sql persis > results.txt
+echo "done delete doi targets"
+psql -f moml-del-target.sql persis >> results.txt
+echo "done delete moml targets"
+psql -f doi-del-pid.sql persis >> results.txt
+echo "done delete doi pids"
+psql -f moml-del-pid.sql persis >> results.txt
+echo "done delete moml pids"
+
+pg_dump -a persis -f dirac_persis_data_only-20091009-postdelete.sql
+echo "done all data dump - post"
+pg_dump -data_only --column-inserts --no-owner --table=pid_pid persis > table_pid_pid-20091009-postdelete.sql
+echo "done pid table dump - post"
+pg_dump -data_only --column-inserts --no-owner --table=pid_target persis > table_pid_target-20091009-postdelete.sql
+echo "done target table dump - post"
