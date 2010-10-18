@@ -37,25 +37,38 @@ The component applications of this project are:
 
 :mod:`~pidman.pid`
 ------------------
-Core application to represent pid objects and build central behaviors for them.
+
+Core application to represent pid objects and build central behaviors
+for them.  All (non-scripted) management and editing is handled
+through the Django Admin interface.
 
 :mod:`~pidman.pidauth`
 ----------------------
-Unused: initially to allow for intended for per-domain permissions, but not implemented.
+
+Unused: initially to allow for intended for per-domain permissions,
+but not implemented.
 
 :mod:`~pidman.resolver`
 -----------------------
-Resolve ARK and PURLs to their Target URLs.
+
+Public-facing resolver that redirects ARK and PURLs URLs to their
+Target URLs; also provides
+
 
 :mod:`~pidman.rest_api`
 -----------------------
-Provides a REST API for selected pid functions such as create, edit and delete
-model objects from `pidman.pid.models`.
+
+Provides a REST API for selected pid functions such as create, edit
+and delete model objects from :mod:`pidman.pid.models`.
 
 :mod:`~pidman.soap_api`
 -----------------------
-Provides a limited SOAP API for creating ARKs and PURLs.  Deprecated; new projects
-should use the REST API instead.
+
+Provides a limited SOAP API for creating ARKs and PURLs and updating
+ARK and PURL target URIs.  Designed to be backwards-compatible (as
+much as possible) with the SOAP API of the previous, Rails-based,
+incarnation of this PID Manager application. **Deprecated**; new
+projects should use the REST API instead.
 
 
 
