@@ -1,5 +1,5 @@
-Release 0.9
------------
+Release 0.9.0
+-------------
 Date: October 2010
 
 New REST API for accessing, creating, and updating Pids and Domains,
@@ -27,7 +27,12 @@ with the following features:
   etc. via REST.
 
 
-As of this release, the SOAP API be considered deprecated.
+As of this release, the SOAP API should be considered deprecated.
+
+Deployment Notes
+^^^^^^^^^^^^^^^^
+* The REST api uses Basic Authentication.  When running under Apache with mod_wsgi,
+  add this configuration setting: ``WSGIPassAuthorization On``
 
 
 Release 0.8.3
@@ -37,8 +42,8 @@ Date: September 2010
 * Changed eulcore external to https://svn.library.emory.edu/svn/python-eulcore/trunk/src/eulcore
 * Removed south external (This means south will have to be installed on the system.  See README)
 
-**Deploy Instructions**
-
+Deployment Notes
+^^^^^^^^^^^^^^^^
 * Make sure externals are updated
 * run syncdb
 * run migrations
@@ -63,8 +68,8 @@ Date: March 2010
   eulcore.django.ldap.emory.EmoryLDAPBackend
 * Removed dependency on Noid.pm
 
-**Deploy Instructions**
-
+Deployment Notes
+^^^^^^^^^^^^^^^^
 * export a copy of the database using pg_dump
 * make a copy of the entire persis directory in case we have to put it back quickly
 * svn revert any modified files
@@ -76,7 +81,7 @@ Date: March 2010
     $ python ./manage.py migrate
 * Restart apache
 
-Release 0.70
+Release 0.7.0
 ------------
 Date: October 6, 2009
 SVN revision: 274
@@ -84,8 +89,8 @@ SVN revision: 274
 Comment: The solution to fix the broken migration is done in this deployment.
 Migrations are removed and then replaced with newly created migrations.
 
-**Deploy Instructions**
-
+Deployment Notes
+^^^^^^^^^^^^^^^^
 *Part One:*
 
 Make sure you are using django South version 0.6.1.
