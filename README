@@ -86,6 +86,10 @@ To verify installation execute without errors::
 
     $ pidman/manage.py test
 
+When running under Apache and mod_wsgi, configure
+``WSGIPassAuthorization On`` (required for Basic Authentication in the
+REST API).
+
 
 Unit Tests
 ----------
