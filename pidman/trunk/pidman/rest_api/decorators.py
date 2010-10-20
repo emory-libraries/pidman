@@ -16,8 +16,9 @@ def basic_authentication(view_method):
     @wraps(view_method)
     def view_decorator(request, *args, **kwargs):
         auth_info = request.META.get('HTTP_AUTHORIZATION', None)
-        if auth_info and auth_info.startswith('Basic '):
-            basic_info = auth_info.lstrip('Basic ')
+        basic = 'Basic '
+        if auth_info and auth_info.startswith(basic):
+            basic_info = auth_info[len(basic):]
             u, p = basic_info.decode('base64').split(':')
             request.user = authenticate(username=u, password=p)
         else:
