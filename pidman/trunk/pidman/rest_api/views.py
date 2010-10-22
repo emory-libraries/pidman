@@ -455,6 +455,15 @@ def search_pids(request):
         * type - purl or ark
         * pid - exact pid value
         * target - exact target uri
+
+    Additional arguments for paging through results can also be included in the
+    POST params and are as follows:
+
+        * count - Number of records to return per page of results.  Default is
+                  10.
+        * page - Page number of the results set to return.  Defaults to 1 and if
+                 out of range values are passed it defaults to the first or last
+                 page as appropriate.
         
     '''
     # Only build searches on the following params.
@@ -462,7 +471,7 @@ def search_pids(request):
         'domain': 'domain__name__iexact',
         'type': 'type__iexact',
         'pid': 'pid__iexact',
-        'target': 'target__uri__exact',
+        'target': 'target__uri__contains',
     }
 
     query = {} # Initialize the query dict
@@ -483,8 +492,6 @@ def search_pids(request):
 
     # Return the queryset or default to list of all pids ordered by last update
     pid_list = Pid.objects.filter(**query).order_by('updated_at')
-    if not query:
-        pid_list = Pid.objects.all().order_by('updated_at')
 
     # pagination code based on the django documentation for same
     # Make sure page and count are set to default values if empty and are int
