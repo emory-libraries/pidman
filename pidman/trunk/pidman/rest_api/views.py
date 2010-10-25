@@ -1,5 +1,6 @@
 import json
 from urlparse import urlparse
+from urllib import urlencode
 
 from django.contrib.admin.models import LogEntry, ADDITION, CHANGE, DELETION
 from django.contrib.contenttypes.models import ContentType
@@ -10,7 +11,7 @@ from django.core.paginator import Paginator, InvalidPage, EmptyPage
 from django.core.urlresolvers import reverse, resolve
 from django.core.serializers.json import DjangoJSONEncoder
 from django.shortcuts import get_object_or_404
-from django.http import HttpResponse, HttpResponseNotAllowed, HttpResponseBadRequest, HttpResponseForbidden
+from django.http import HttpResponse, HttpResponseNotAllowed, HttpResponseBadRequest, HttpResponseForbidden, Http404
 
 from eulcore.django.http import HttpResponseUnauthorized
 
@@ -62,6 +63,15 @@ def _log_rest_action(request, object, action, msg):
         change_message = msg,
         action_flag = action,
     )
+
+def _paged_results_set(queryset):
+    """
+    This takes a queryset and warps it in a return that includings paging
+    information for a more complete and informative results set.
+
+    :param queryset: The django query to pass through the paginator.
+    
+    """
 
 @basic_authentication
 def pid(request, noid, type):
@@ -464,8 +474,25 @@ def search_pids(request):
         * page - Page number of the results set to return.  Defaults to 1 and if
                  out of range values are passed it defaults to the first or last
                  page as appropriate.
+
+    Results are returns in JSON format in a Results Set format as follows:
+
+        * results_count - Total number of objecs in results.
+        * max_results_per_page - Number of result objects per page.
+        * page_count - total number of pages.
+        * current_page_number - Current page number.
+        * first_page_link - URL to first page.
+        * last_page_link - URL to last page.
+        * next_page_link - URL to next page or None if no next page.
+        * prev_page_link - URL to previous page or None of no previous page.
+        * results - list of PIDs returned in request.
         
     '''
+    # This holds a set of params to be carried forward for paging.
+    # It also provides scrubbing for nonsense params so they aren't carried
+    # foward.
+    pagequery = {}
+    
     # Only build searches on the following params.
     valid_search_params = {
         'domain': 'domain__name__iexact',
@@ -474,17 +501,19 @@ def search_pids(request):
         'target': 'target__uri__contains',
     }
 
-    query = {} # Initialize the query dict
+    query = {} # Initialize the query dict to use for searching
 
     # Create the param searches as dict values
     for param in valid_search_params:
         if request.GET.has_key(param):
-            query[valid_search_params[param]] = request.GET.get(param)
+            pagequery[param] = request.GET.get(param)
+            query[valid_search_params[param]] = pagequery[param]
 
     # Qualifier is handled somewhat differently in that it might be empty.
     # Add either an isnull search or exact search to the query dict as needed.
     if request.GET.has_key('qualifier'):
         qualifier = request.GET.get('qualifier')
+        pagequery['qualifier'] = qualifier
         if qualifier == '':
             query['target__qualifier__isnull'] = 'True'
         elif len(qualifier) > 0:
@@ -492,31 +521,73 @@ def search_pids(request):
 
     # Return the queryset or default to list of all pids ordered by last update
     pid_list = Pid.objects.filter(**query).order_by('updated_at')
+    if not pid_list:
+        json_data = json_serializer.encode({})
+        return HttpResponse(json_data, mimetype='application/json')
+
 
     # pagination code based on the django documentation for same
     # Make sure page and count are set to default values if empty and are int
     try:
-        page = int(request.GET.get('page', 1))
+        pagenumber = int(request.GET.get('page', 1))
     except ValueError:
-        page = 1
+        pagenumber = 1
     try:
         count = int(request.GET.get('count', 10))
     except ValueError:
         count = 10
 
+    pagequery["page"] = pagenumber
+    pagequery["count"] = count
+
     # Setup paging of results on the queryset.
     paginator = Paginator(pid_list, count)
 
-    # If page request (9999) is out of range, deliver last page of results.
+    # Throw some errors if wonky page requests are sent.
     try:
-        pids = paginator.page(page)
+        page = paginator.page(pagenumber)
     except (EmptyPage, InvalidPage):
-        pids = paginator.page(paginator.num_pages)
+        raise Http404 # If our requesting something out of bounds then raise 404
 
-    # Get a list of pids converted to dicts for json converstion
-    pids = [pid_data(pid, request) for pid in pids.object_list]
+    # PAGING AND RESULTS
+    # Build a results set with information about the results set as well as
+    # include the results set.
+    results_set = {
+        "results_count": paginator.count,
+        "max_results_per_page": count,
+        "page_count": paginator.num_pages,
+        "current_page_number": page.number,
+        "first_page_link": None,
+        "last_page_link": None,
+        "next_page_link": None,
+        "prev_page_link": None,
+    }
 
-    json_data = json_serializer.encode(pids)
+    baseurl = reverse("rest_api:search-pids") # Set for convienence
+
+    # Build a First Page link.
+    pagequery["page"] = page.start_index()
+    results_set["first_page_link"] = '%s?%s' % (baseurl, urlencode(pagequery))
+
+    # Build a Last Page link.
+    pagequery["page"] = page.end_index()
+    results_set["last_page_link"] = '%s?%s' % (baseurl, urlencode(pagequery))
+
+    # Build a Next Page Link.
+    if page.has_next():
+        pagequery["page"] = page.number + 1
+        results_set["next_page_link"] = '%s?%s' % (baseurl, urlencode(pagequery))
+
+    # Build a Previous Page link.
+    if page.has_previous():
+        pagequery["page"] = page.number - 1
+        results_set["prev_page_link"] = '%s?%s' % (baseurl, urlencode(pagequery))
+
+    # Finnally add the actual results to the result set.
+    results_set["results"] = [pid_data(pid, request) for pid in page.object_list]
+
+    # Serialize it all as JSON and return it.
+    json_data = json_serializer.encode(results_set)
     return HttpResponse(json_data, mimetype='application/json')
 
 @basic_authentication
