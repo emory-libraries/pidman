@@ -532,6 +532,9 @@ class RestApiTestCase(TransactionTestCase):
         # test again for case insensativity
         _test_search_results({'domain': 'LSDI'}, 1)
 
+        # SIMPLE DOMAIN URI SEARCH
+        _test_search_results({'domain_uri': 'http://pid.emory.edu/domains/2/'}, 1)
+
         # SIMPLE TARGET SEARCH
         _test_search_results({'target': 'http://domokun.library.emory.edu:8080/fedora/get/emory:8crx1/'}, 2)
 
@@ -554,11 +557,11 @@ class RestApiTestCase(TransactionTestCase):
         expected, actual = 404, response.status_code
         self.failUnlessEqual(expected, actual, "Expected status code %s but returned %s for %s" % (expected, actual, url))
 
-        # Nonsense page reqeuests should not do well either.
+        # Nonsense page reqeuests should return 404.
         encoded_args = urllib.urlencode( {'count': 2, 'page': 'toast'})
         url = '%s?%s' % (base_url, encoded_args)
         response = self.client.get(url)
-        expected, actual = 400, response.status_code
+        expected, actual = 404, response.status_code
         self.failUnlessEqual(expected, actual, "Expected status code %s but returned %s for %s" % (expected, actual, url))
 
 
