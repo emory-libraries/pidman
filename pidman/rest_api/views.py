@@ -91,11 +91,14 @@ def pid(request, noid, type):
     On PUT, update a PURL or ARK.  Update values should be in the request body
     as JSON.  The following values are supported:
     
-        * domain - domain, in URI resource format, e.g. http://pid.emory.edu/domain/1        
+        * domain - domain, in URI resource format, e.g.
+          http://pid.emory.edu/domain/1/
         * name - label or title
         * external_system_id - external system name
-        * external_system_key - key or identifier in the specified external system
-        * policy - policy by name (to specify a different policy from the default domain policy)
+        * external_system_key - key or identifier in the specified external
+          system
+        * policy - policy by name (to specify a different policy from the
+          default domain policy)
 
     Updating target information (resolve URI, active, proxy) is not currently
     supported via PUT on the Ark or Purl that the target belongs to.
@@ -352,7 +355,7 @@ def create_pid(request, type):
 
     Supported POST parameters:
         * domain - REQUIRED; domain should be in URI resource format, e.g.
-          http://pid.emory.edu/domain/1
+          http://pid.emory.edu/domain/1/
         * target_uri - REQUIRED; URL that the new ARK or PURL should resolve to
         * name - label or title for the new pid
         * external_system_id - external system name
@@ -462,6 +465,7 @@ def search_pids(request):
     querystring values for searching are:
 
         * domain - exact domain uri for pid
+        * domain_uri - uri for domain
         * type - purl or ark
         * pid - exact pid value
         * target - exact target uri
@@ -509,6 +513,13 @@ def search_pids(request):
             pagequery[param] = request.GET.get(param)
             query[valid_search_params[param]] = pagequery[param]
 
+    # Searching for domains by uri requires getting the domain object.
+    if request.GET.has_key('domain_uri'):
+        domain_uri = request.GET.get('domain_uri')
+        pagequery['domain_uri'] = domain_uri
+        if domain_uri:
+            query['domain'] = _domain_from_uri(domain_uri)
+
     # Qualifier is handled somewhat differently in that it might be empty.
     # Add either an isnull search or exact search to the query dict as needed.
     if request.GET.has_key('qualifier'):
@@ -531,7 +542,7 @@ def search_pids(request):
     try:
         pagenumber = int(request.GET.get('page', 1))
     except ValueError:
-        pagenumber = 1
+        raise Http404 # if we get nonsense for the requested page return 404
     try:
         count = int(request.GET.get('count', 10))
     except ValueError:
@@ -690,6 +701,7 @@ def domain(request, id):
 
     On PUT, update Domain.  Update values should be in the request body
     as JSON.  The following values are supported:
+    
         * name - label or title for the Domain
         * policy - policy title
         * parent - parent uri
@@ -697,6 +709,7 @@ def domain(request, id):
     Example domain url::
 
         http://pid.emory.edu/domains/1
+        
     '''
     # Look-Up object for PUT and GET
     if request.method == 'GET' or  request.method == 'PUT':
@@ -768,6 +781,7 @@ def pid_data(pid, request):
     :param pid: :class:`~pidman.pid.models.Pid` instance
     :param request: :class:`django.http.HttpRequest`, for generating absolute URIs
     :rtype: dict
+    
     '''
     data = {
         'uri': request.build_absolute_uri(reverse('rest_api:pid',
@@ -865,7 +879,7 @@ def _domain_from_uri(domain_uri):
     instance.  Raises a :class:`BadRequest` if the URI cannot be parsed, cannot
     be resolved as a domain URI, or if the requested domain does not exist.
 
-    :param domain_uri: domain resource URI, e.g. http://pid.emory.edu/domain/1
+    :param domain_uri: domain resource URI, e.g. http://pid.emory.edu/domain/1/
     :rtype: :class:`pidman.pid.models.Domain`
     '''
     # domain should be passed in as resource URI
