@@ -507,42 +507,63 @@ class RestApiTestCase(TransactionTestCase):
         # Set the base url to search all pids from.
         base_url = reverse('rest_api:search-pids')
 
-        def _test_search(searchdict, expcount):
+        def _test_search_results(searchdict, expcount, expcode=200):
             # Tests status code for searches to ensure no errors.
             encoded_args = urllib.urlencode(searchdict)
             url = '%s?%s' % (base_url, encoded_args)
             response = self.client.get(url)
-            expected, actual = 200, response.status_code
+            expected, actual = expcode, response.status_code
             data = json.loads(response.content)
             self.failUnlessEqual(expected, actual, "Expected status code %s but returned %s for %s" % (expected, actual, url))
-            self.failUnlessEqual(expcount, len(data), "Expected %s but found %s pids for query %s" % (expcount, len(data), url))
+            if expcount is not 0:
+                actcount = len(data['results'])
+                self.failUnlessEqual(expcount, actcount, "Expected %s but found %s pids for query %s" % (expcount, actcount, url))
 
         # DEFAULT LIST RETURN
-        _test_search({}, 3)
+        _test_search_results({}, 3)
 
         # SIMPLE PID SEARCH
         # construct a simple search for a single pid.
-        _test_search({'pid': '124tw'}, 1)
+        _test_search_results({'pid': '124tw'}, 1)
 
         # SIMPLE DOMAIN SEARCH
         # construct a simple domain search
-        _test_search({'domain': 'lsdi'}, 1)
+        _test_search_results({'domain': 'lsdi'}, 1)
         # test again for case insensativity
-        _test_search({'domain': 'LSDI'}, 1)
+        _test_search_results({'domain': 'LSDI'}, 1)
+
+        # SIMPLE DOMAIN URI SEARCH
+        _test_search_results({'domain_uri': 'http://pid.emory.edu/domains/2/'}, 1)
 
         # SIMPLE TARGET SEARCH
-        _test_search({'target': 'http://domokun.library.emory.edu:8080/fedora/get/emory:8crx1/'}, 2)
+        _test_search_results({'target': 'http://domokun.library.emory.edu:8080/fedora/get/emory:8crx1/'}, 2)
 
         # TEST MULTIPLE VALUES
-        _test_search({'domain': 'making of modern law', 'type': 'purl'}, 1)
+        _test_search_results({'domain': 'making of modern law', 'type': 'purl'}, 1)
         # this should return none
-        _test_search({'domain': 'making of modern law', 'type': 'ark'}, 0)
+        _test_search_results({'domain': 'making of modern law', 'type': 'ark'}, 0)
 
         # TEST PAGING
-        _test_search({'count': 1}, 1) # 3 total objects across 3 pages
-        _test_search({'count': 2}, 2) # 3 total objects across 2 pages.
-        _test_search({'count': 2, 'page': 2}, 1) # page 2 of above should have 1
-        _test_search({'count': 2, 'page': 200}, 1) # page 200 of above should also have 1 and default to actual last page
+        _test_search_results({'count': 1}, 1) # 3 total objects across 3 pages
+        _test_search_results({'count': 2}, 2) # 3 total objects across 2 pages.
+        _test_search_results({'count': 2, 'page': 2}, 1) # page 2 of above should have 1
+        
+        # Test various conditions where errors are expected instead of results.
+        
+        # Out of range page requests should return 404 Errors
+        encoded_args = urllib.urlencode( {'count': 2, 'page': 200})
+        url = '%s?%s' % (base_url, encoded_args)
+        response = self.client.get(url)
+        expected, actual = 404, response.status_code
+        self.failUnlessEqual(expected, actual, "Expected status code %s but returned %s for %s" % (expected, actual, url))
+
+        # Nonsense page reqeuests should return 404.
+        encoded_args = urllib.urlencode( {'count': 2, 'page': 'toast'})
+        url = '%s?%s' % (base_url, encoded_args)
+        response = self.client.get(url)
+        expected, actual = 404, response.status_code
+        self.failUnlessEqual(expected, actual, "Expected status code %s but returned %s for %s" % (expected, actual, url))
+
 
     def test_update_pid_permissions(self):
         update_pid = reverse('rest_api:pid', kwargs={'noid': self.purl.pid, 'type': 'purl'})
