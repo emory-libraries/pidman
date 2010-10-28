@@ -1,3 +1,40 @@
+'''
+This module provides REST API access for Create, Read, Update, and limited Delete
+on :class:`~pidman.pid.models.Pid`, :class:`~pidman.pid.models.Domain`, and
+:class:`~pidman.pid.models.Target` objects.
+
+Currently, the only supported format is JSON.
+
+* Domains:
+ - **/domains/**
+
+   + use GET to list information about all domains
+   + use POST to create a new domain - see :meth:`domains` for options
+   
+ - **/domains/#/** (where # is an domain id number)
+
+   + use GET to retrieve a single domain by id number
+   + PUT data in json format to update an existing domain - see :meth:`domain`
+
+* Pids and Targets
+ - **/ark/** or **/purl/** - POST to create a new ark or purl; see :meth:`create_pid`
+ - **/ark/8g3sq** or **/purl/127zr** - pid by type and noid
+
+   + GET to retrieve information about an existing ARK or PURL and associated targets
+   + PUT data in json to update pid info - see :meth:`pid`
+
+ - **/purl/127zr/** or **/ark/8g3sq/** or **/ark/8g3sq/qualifier**
+
+   + GET to retrieve information about a single target by qualifier; use trailing
+     slash after the pid for unqualified target (only target for a PURL)
+   + PUT to update an existing target OR create a new ARK target, see :meth:`target`
+   + DELETE to remove a target (ARK only)
+
+ - **/pids/?** - search pids; see :meth:`search_pids` for supported search terms
+
+-------------------
+'''
+
 import json
 from urlparse import urlparse
 from urllib import urlencode
@@ -91,13 +128,13 @@ def pid(request, noid, type):
     On PUT, update a PURL or ARK.  Update values should be in the request body
     as JSON.  The following values are supported:
     
-        * domain - domain, in URI resource format, e.g.
-          http://pid.emory.edu/domain/1/
-        * name - label or title
-        * external_system_id - external system name
-        * external_system_key - key or identifier in the specified external
+        * **domain** - domain, in URI resource format, e.g.
+          http://pid.emory.edu/domains/1/
+        * **name** - label or title
+        * **external_system_id** - external system name
+        * **external_system_key** - key or identifier in the specified external
           system
-        * policy - policy by name (to specify a different policy from the
+        * **policy** - policy by name (to specify a different policy from the
           default domain policy)
 
     Updating target information (resolve URI, active, proxy) is not currently
@@ -355,7 +392,7 @@ def create_pid(request, type):
 
     Supported POST parameters:
         * domain - REQUIRED; domain should be in URI resource format, e.g.
-          http://pid.emory.edu/domain/1/
+          http://pid.emory.edu/domains/1/
         * target_uri - REQUIRED; URL that the new ARK or PURL should resolve to
         * name - label or title for the new pid
         * external_system_id - external system name
@@ -363,14 +400,14 @@ def create_pid(request, type):
         * policy - policy by name (if this pid needs a different policy from its
           domain)
         * proxy - proxy to use when resolving target url; specify by name
-        * qualifier - target should be created with the specified target;**ARK only**
+        * qualifier - target should be created with the specified target; **ARK only**
 
     :param type: type of pid to create - ark or purl
 
     Example create urls::
 
         http://pid.emory.edu/ark/ - create a new ARK
-        http://pid.emory.edu/prl/ - create a new PURL
+        http://pid.emory.edu/purl/ - create a new PURL
 
     '''
     if request.method == 'POST':
@@ -614,7 +651,7 @@ def domains(request):
     and the content of the response will be an explanatory message.
 
     Supported POST parameters:
-        * name -  - REQUIRED: label or title for the new  Domain
+        * name - REQUIRED: label or title for the new  Domain
         * policy - policy title
         * parent - parent uri
 
@@ -708,7 +745,7 @@ def domain(request, id):
 
     Example domain url::
 
-        http://pid.emory.edu/domains/1
+        http://pid.emory.edu/domains/1/
         
     '''
     # Look-Up object for PUT and GET
@@ -879,7 +916,7 @@ def _domain_from_uri(domain_uri):
     instance.  Raises a :class:`BadRequest` if the URI cannot be parsed, cannot
     be resolved as a domain URI, or if the requested domain does not exist.
 
-    :param domain_uri: domain resource URI, e.g. http://pid.emory.edu/domain/1/
+    :param domain_uri: domain resource URI, e.g. http://pid.emory.edu/domains/1/
     :rtype: :class:`pidman.pid.models.Domain`
     '''
     # domain should be passed in as resource URI
