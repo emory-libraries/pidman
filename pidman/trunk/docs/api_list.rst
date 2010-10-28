@@ -60,29 +60,15 @@ views
 rest_api
 --------
 
-This module provides REST API access for CRUD calls on :class:`~pidman.pid.models.Pid`,
-:class:`~pidman.pid.models.Domain`, and :class:`~pidman.pid.models.Target` objects.
-
 .. automodule:: pidman.rest_api
    :members:
 
-decorators
-^^^^^^^^^^
+.. automodule:: pidman.rest_api.views
+   :members:
 
 .. automodule:: pidman.rest_api.decorators
    :members:
 
-models
-^^^^^^
-
-.. automodule:: pidman.rest_api.models
-   :members:
-
-views
-^^^^^
-
-.. automodule:: pidman.rest_api.views
-   :members:
 
 soap_api
 --------
