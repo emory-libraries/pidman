@@ -6,6 +6,7 @@ on :class:`~pidman.pid.models.Pid`, :class:`~pidman.pid.models.Domain`, and
 Currently, the only supported format is JSON.
 
 * Domains:
+
  - **/domains/**
 
    + use GET to list information about all domains
@@ -16,7 +17,8 @@ Currently, the only supported format is JSON.
    + use GET to retrieve a single domain by id number
    + PUT data in json format to update an existing domain - see :meth:`domain`
 
-* Pids and Targets
+* Pids and Targets:
+
  - **/ark/** or **/purl/** - POST to create a new ark or purl; see :meth:`create_pid`
  - **/ark/8g3sq** or **/purl/127zr** - pid by type and noid
 
@@ -678,10 +680,16 @@ def domains(request):
             return HttpResponseForbidden()
 
         # create domain with provided name
+
+        # Note: request.POST['name'] != 'None'  is not a mistake.
+        # Aparently somewhere along the line None values are converted to
+        # the string "None". This means that a doman can not be created with
+        # the name "None" if we want to check for None values in the post.
+
         domain_opts = {} # options used to create the domain
 
         try:
-            if 'name' in request.POST and request.POST['name'].strip():
+            if 'name' in request.POST and request.POST['name'].strip() and request.POST['name'] != 'None':
                 domain_opts['name'] = request.POST['name']
             else:
                 raise BadRequest('name is required')
@@ -692,7 +700,7 @@ def domains(request):
 
         #get parent if parent is in POST
         try:
-            if 'parent' in request.POST and request.POST['parent'].strip():
+            if 'parent' in request.POST and request.POST['parent'].strip() and request.POST['parent'] != 'None':
                 domain_opts['parent'] =  _domain_from_uri(request.POST['parent'])
         except BadRequest as err:
             return HttpResponse("Error: Parent %s does not exists" % request.POST['parent'], status=400)   #400 = Bad Request
@@ -700,7 +708,7 @@ def domains(request):
 
         #get policy if policy is in POST
         try:
-            if 'policy' in request.POST and request.POST['policy'].strip():
+            if 'policy' in request.POST and request.POST['policy'].strip() and request.POST['policy'] != 'None':
                     domain_opts['policy'] =  Policy.objects.get(title=request.POST['policy'])
         except ObjectDoesNotExist as err:
             return HttpResponse("Error: Policy %s does not exists" % request.POST['policy'], status=400)   #400 = Bad Request

@@ -28,6 +28,8 @@ def auth_header(username, password):
 
 ADMIN_AUTH = auth_header(*admin_credentials)
 
+# Note using TransactionTestCase here because some test / functions depend on the ability to rollback the transaction
+# See http://docs.djangoproject.com/en/1.2/topics/testing/#django.test.TransactionTestCase
 class RestApiTestCase(TransactionTestCase):
     fixtures = ['rest_pids.json']
 
@@ -878,8 +880,24 @@ class RestApiTestCase(TransactionTestCase):
         #name is required in post data
         response = self.client.post(domain_url, **ADMIN_AUTH)
         expected, got = 400, response.status_code
-        self.assertEqual(expected, got, "Expected status code %s (method not allowed) for GET to %s, got %s" \
+        self.assertEqual(expected, got, "Expected status code %s for post to %s, got %s" \
                 % (expected, domain_url, got))
+        expected, got = "Error: name is required", response.content
+        self.assertEqual(expected, got, "Expected %s got %s" % (expected, got))
+
+        #name exists but is blank
+        data = {"name" : ""}
+        response = self.client.post(domain_url, data, **ADMIN_AUTH)
+        expected, got = 400, response.status_code
+        self.assertEqual(expected, got, "Expected status code %s got %s" % (expected, got))
+        expected, got = "Error: name is required", response.content
+        self.assertEqual(expected, got, "Expected %s got %s" % (expected, got))
+
+        #name exists but is None
+        data = {"name" : None}
+        response = self.client.post(domain_url, data, **ADMIN_AUTH)
+        expected, got = 400, response.status_code
+        self.assertEqual(expected, got, "Expected status code %s got %s" % (expected, got))
         expected, got = "Error: name is required", response.content
         self.assertEqual(expected, got, "Expected %s got %s" % (expected, got))
 
