@@ -34,6 +34,14 @@ Currently, the only supported format is JSON.
 
  - **/pids/?** - search pids; see :meth:`search_pids` for supported search terms
 
+
+NOTE:  The or term **uri** is used throughout, and occurs as a key in several
+JSON returns to refer to the REST API location of the Domain, Pid, or Target
+object as a resource, which is distinct from the the **access_uri** (the address
+where a Purl, Ark, or Qualified Ark should be requested in order to resolve to
+the contents of that Purl or Ark) and the **target_uri** (the uri that a Purl or
+Ark will resolve to when requested via the access_uri).
+
 -------------------
 '''
 
@@ -140,7 +148,8 @@ def pid(request, noid, type):
           default domain policy)
 
     Updating target information (resolve URI, active, proxy) is not currently
-    supported via PUT on the Ark or Purl that the target belongs to.
+    supported via PUT on the Ark or Purl that the target belongs to; you must PUT
+    the new data to the target itself-- see :meth:`target`.
 
     '''
     methods = ['GET', 'PUT']
@@ -718,7 +727,9 @@ def domains(request):
             domain, created = Domain.objects.get_or_create(**domain_opts)
             if created:
                 status = 201 #201 = Created
-                msg = ""
+                # return the domain uri
+                msg = request.build_absolute_uri(reverse('rest_api:domain',
+                                    kwargs={'id': domain.id})),
 
                 #log the creation of a new Domain
                 _log_rest_action(request, domain, ADDITION, 'Added Domain:%s via rest api' % domain.__unicode__())
