@@ -1,5 +1,5 @@
 Overview
---------
+========
 
 This is a management application for maintaining, managing, and
 resolving PURLs (Permanent URLs) and ARKs (Archival Resource Keys).
@@ -14,7 +14,7 @@ specification
 
 
 Dependencies
-------------
+============
 
  * soaplib==0.8.1 -  http://pypi.python.org/pypi/soaplib
  * psycopg2    - currently requires postgres & psycopg2 for stored procedure
@@ -24,56 +24,43 @@ Dependencies
  * south==0.7.2
 
 Extensions
-----------
+==========
 We rely on a couple of externally-developed extensions. They need to be
 downloaded added to the python path. Extensions are listed in settings.py
 and annotated with where they can be downloaded. Put them into a directory
 and add that local path to the EXTENSION_DIRS in localsettings.py.
 
 Components
-----------
+==========
 
 The component applications of this project are:
 
 :mod:`~pidman.pid`
-^^^^^^^^^^^^^^^^^^
-
-Core application to represent pid objects and build central behaviors
-for them.  All (non-scripted) management and editing is handled
-through the Django Admin interface.
+------------------
+Core application to represent pid objects and build central behaviors for them.
 
 :mod:`~pidman.pidauth`
-^^^^^^^^^^^^^^^^^^^^^^
-
-Unused: initially to allow for intended for per-domain permissions,
-but not implemented.
+----------------------
+Unused: initially to allow for intended for per-domain permissions, but not implemented.
 
 :mod:`~pidman.resolver`
-^^^^^^^^^^^^^^^^^^^^^^^
-
-Public-facing resolver that redirects ARK and PURLs URLs to their
-Target URLs; also provides
-
+-----------------------
+Resolve ARK and PURLs to their Target URLs.
 
 :mod:`~pidman.rest_api`
-^^^^^^^^^^^^^^^^^^^^^^^
-
-Provides a REST API for selected pid functions such as create, edit
-and delete model objects from :mod:`pidman.pid.models`.
+-----------------------
+Provides a REST API for selected pid functions such as create, edit and delete
+model objects from `pidman.pid.models`.
 
 :mod:`~pidman.soap_api`
-^^^^^^^^^^^^^^^^^^^^^^^
-
-Provides a limited SOAP API for creating ARKs and PURLs and updating
-ARK and PURL target URIs.  Designed to be backwards-compatible (as
-much as possible) with the SOAP API of the previous, Rails-based,
-incarnation of this PID Manager application. **Deprecated**; new
-projects should use the REST API instead.
+-----------------------
+Provides a limited SOAP API for creating ARKs and PURLs.  Deprecated; new projects
+should use the REST API instead.
 
 
 
 Installation
-------------
+============
 Create PostGres database and grant privileges to user
 Copy pidman/localsettings-example.py to pidman/localsettings.py
 Configure localsettings
@@ -92,7 +79,7 @@ REST API).
 
 
 Unit Tests
-----------
+==========
 All unit tests should be run EXCEPT for the ones in linkcheck module.
 Currently they are not compatible with django 1.1.  To  run unit tests use the
 following command while in the pidman directory::

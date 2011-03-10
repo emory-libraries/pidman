@@ -9,13 +9,13 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.urlresolvers import reverse
 from django.http import HttpRequest
 from django.test import Client
-from django.test import TransactionTestCase
+from django.test import TestCase, TransactionTestCase
 from django.utils.encoding import force_unicode
 from pidman.pid.models import Domain
 from pidman.pid.models import Pid
 from pidman.rest_api.views import domain_data
 from pidman.rest_api.views import pid_data
-from pidman.rest_api.views import target_data, _domain_from_uri
+from pidman.rest_api.views import target_data
 
 # NOTE: developers using Firefox may find it helpful to install the JSONView plugin
 
@@ -28,8 +28,6 @@ def auth_header(username, password):
 
 ADMIN_AUTH = auth_header(*admin_credentials)
 
-# Note using TransactionTestCase here because some test / functions depend on the ability to rollback the transaction
-# See http://docs.djangoproject.com/en/1.2/topics/testing/#django.test.TransactionTestCase
 class RestApiTestCase(TransactionTestCase):
     fixtures = ['rest_pids.json']
 
@@ -868,13 +866,10 @@ class RestApiTestCase(TransactionTestCase):
         #Unless specified, tests are with a user with  sufficient permissions
         domain_url = reverse('rest_api:domains')
 
-        parent_id = 1
-        # parent uri
-        domain_uri_parent = 'http://testserver' + reverse('rest_api:domain', kwargs={'id' : parent_id})
-        # invalid parent
-        domain_uri_bad = 'http://testserver' + reverse('rest_api:domain', kwargs={'id': 100}) 
+        domain_uri_parent = 'http://testserver' + reverse('rest_api:domain', kwargs={'id' : 1}) #parent uri
+        domain_uri_bad = 'http://testserver' + reverse('rest_api:domain', kwargs={'id': 100}) #invalid parent
 
-        # delete is not allowed
+        #delete is not allowed
         response = self.client.delete(domain_url, **ADMIN_AUTH)
         expected, got = 405, response.status_code
         self.assertEqual(expected, got, "Expected status code %s (method not allowed) for DELETE to %s, got %s" \
@@ -883,28 +878,13 @@ class RestApiTestCase(TransactionTestCase):
         #name is required in post data
         response = self.client.post(domain_url, **ADMIN_AUTH)
         expected, got = 400, response.status_code
-        self.assertEqual(expected, got, "Expected status code %s for post to %s, got %s" \
+        self.assertEqual(expected, got, "Expected status code %s (method not allowed) for GET to %s, got %s" \
                 % (expected, domain_url, got))
         expected, got = "Error: name is required", response.content
         self.assertEqual(expected, got, "Expected %s got %s" % (expected, got))
 
-        # name exists but is blank
-        data = {"name" : ""}
-        response = self.client.post(domain_url, data, **ADMIN_AUTH)
-        expected, got = 400, response.status_code
-        self.assertEqual(expected, got, "Expected status code %s got %s" % (expected, got))
-        expected, got = "Error: name is required", response.content
-        self.assertEqual(expected, got, "Expected %s got %s" % (expected, got))
 
-        # name exists but is None
-        data = {"name" : None}
-        response = self.client.post(domain_url, data, **ADMIN_AUTH)
-        expected, got = 400, response.status_code
-        self.assertEqual(expected, got, "Expected status code %s got %s" % (expected, got))
-        expected, got = "Error: name is required", response.content
-        self.assertEqual(expected, got, "Expected %s got %s" % (expected, got))
-
-        # duplicate name can not be created even if policy and  parent changes
+        #duplicate name can not be created even if policy and  parent changes
         data = {"name" : "LSDI", 'policy' :"Not Guaranteed", 'parent' : domain_uri_parent}
         response = self.client.post(domain_url, data, **ADMIN_AUTH)
         expected, got = 400, response.status_code
@@ -912,14 +892,14 @@ class RestApiTestCase(TransactionTestCase):
         expected, got = "Error: Domain '%s' already exists" % (data['name']), response.content
         self.assertEqual(expected, got, "Expected %s got %s" % (expected, got))
 
-        # Try to create Domain with exactly the same values as an existing Domain - Should return 400
+        #Try to create Domain with exactly the same values as an existing Domain - Should return 400
         response = self.client.post(domain_url, {"name" : "LSDI", "policy" : "Permanent, Stable Content"}, **ADMIN_AUTH)
         expected, got = 400, response.status_code
         self.assertEqual(expected, got, "Expected status code %s got %s" % (expected, got))
         expected, got = "Error: Domain '%s' already exists" % (data['name']), response.content
         self.assertEqual(expected, got, "Expected %s got %s" % (expected, got))
 
-        # invalid parent
+        #invalid parent
         response = self.client.post(domain_url, {"name" : "New Domain 1", "parent" : domain_uri_bad}, **ADMIN_AUTH)
         expected, got = 400, response.status_code
         self.assertEqual(expected, got, "Expected status code %s got %s" % (expected, got))
@@ -934,41 +914,43 @@ class RestApiTestCase(TransactionTestCase):
         expected, got = "Error: Policy %s does not exists" % (data['policy']), response.content
         self.assertEqual(expected, got, "Expected %s got %s" % (expected, got))
 
-        # create a new domain
+        #New domain
         data = {"name" : "New Test Domain", "policy" : "Not Guaranteed", "parent" : domain_uri_parent}
         response = self.client.post(domain_url, data, **ADMIN_AUTH)
         expected, got = 201, response.status_code
         self.assertEqual(expected, got, "Expected status code %s got %s" % (expected, got))
-        # should return the uri of the newly-created domain
-        d = _domain_from_uri(response.content)
-        self.assert_(isinstance(d, Domain))
-        #make sure it was created with correct fields set
+
+        #make sure it was created and has correct fields set
+        parent_id = int(str.split(data['parent'], '/')[4])
+        d = Domain.objects.get(name=data['name'])
+        self.assertTrue(d.id, "id should exist for new Domain")
         self.assertEquals(parent_id, d.parent.id) #get the id from the uri and compare
         self.assertEqual(data['policy'], d.policy.title)
 
-        # Test that log entry was created
+         # Test that log entry was created
         self.assertLogEntryForObject(d)
 
-        # Try creating the "New Test" Doman again - Should return 400
+        #Try createing the "New Test" Doman again - Should return 400
         response = self.client.post(domain_url, data, **ADMIN_AUTH)
         expected, got = 400, response.status_code
         self.assertEqual(expected, got, "Expected status code %s got %s" % (expected, got))
         expected, got = "Error: Domain '%s' already exists" % (data['name']), response.content
         self.assertEqual(expected, got, "Expected %s got %s" % (expected, got))
 
-        # no credentials
+
+        #no credentials
         response = self.client.post(domain_url, {"name" : "New Test Domain 2"})
         expected, got = 401, response.status_code
         self.assertEqual(expected, got, "Expected status code %s because no user /pass was in post  got %s" % (expected, got))
 
-        # invalid credentials
+        #invalid credentials
         AUTH = auth_header('testuser', 'notmypassword')
         response = self.client.post(domain_url, {"name" : "New Test Domain 2"}, **AUTH)
         expected, got = 401, response.status_code
         self.assertEqual(expected, got, "Expected status code %s because of invalid user / pass got %s" % (expected, got))
 
 
-        # valid credentials but action not allowed
+         #valid credentials but action not allowed
         AUTH = auth_header(*user_credentials)
         response = self.client.post(domain_url, {"name" : "New Test Domain 2"}, **AUTH)
         expected, got = 403, response.status_code

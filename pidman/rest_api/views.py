@@ -6,7 +6,6 @@ on :class:`~pidman.pid.models.Pid`, :class:`~pidman.pid.models.Domain`, and
 Currently, the only supported format is JSON.
 
 * Domains:
-
  - **/domains/**
 
    + use GET to list information about all domains
@@ -17,8 +16,7 @@ Currently, the only supported format is JSON.
    + use GET to retrieve a single domain by id number
    + PUT data in json format to update an existing domain - see :meth:`domain`
 
-* Pids and Targets:
-
+* Pids and Targets
  - **/ark/** or **/purl/** - POST to create a new ark or purl; see :meth:`create_pid`
  - **/ark/8g3sq** or **/purl/127zr** - pid by type and noid
 
@@ -33,14 +31,6 @@ Currently, the only supported format is JSON.
    + DELETE to remove a target (ARK only)
 
  - **/pids/?** - search pids; see :meth:`search_pids` for supported search terms
-
-
-NOTE:  The or term **uri** is used throughout, and occurs as a key in several
-JSON returns to refer to the REST API location of the Domain, Pid, or Target
-object as a resource, which is distinct from the the **access_uri** (the address
-where a Purl, Ark, or Qualified Ark should be requested in order to resolve to
-the contents of that Purl or Ark) and the **target_uri** (the uri that a Purl or
-Ark will resolve to when requested via the access_uri).
 
 -------------------
 '''
@@ -148,8 +138,7 @@ def pid(request, noid, type):
           default domain policy)
 
     Updating target information (resolve URI, active, proxy) is not currently
-    supported via PUT on the Ark or Purl that the target belongs to; you must PUT
-    the new data to the target itself-- see :meth:`target`.
+    supported via PUT on the Ark or Purl that the target belongs to.
 
     '''
     methods = ['GET', 'PUT']
@@ -689,16 +678,10 @@ def domains(request):
             return HttpResponseForbidden()
 
         # create domain with provided name
-
-        # Note: request.POST['name'] != 'None'  is not a mistake.
-        # Aparently somewhere along the line None values are converted to
-        # the string "None". This means that a doman can not be created with
-        # the name "None" if we want to check for None values in the post.
-
         domain_opts = {} # options used to create the domain
 
         try:
-            if 'name' in request.POST and request.POST['name'].strip() and request.POST['name'] != 'None':
+            if 'name' in request.POST and request.POST['name'].strip():
                 domain_opts['name'] = request.POST['name']
             else:
                 raise BadRequest('name is required')
@@ -709,7 +692,7 @@ def domains(request):
 
         #get parent if parent is in POST
         try:
-            if 'parent' in request.POST and request.POST['parent'].strip() and request.POST['parent'] != 'None':
+            if 'parent' in request.POST and request.POST['parent'].strip():
                 domain_opts['parent'] =  _domain_from_uri(request.POST['parent'])
         except BadRequest as err:
             return HttpResponse("Error: Parent %s does not exists" % request.POST['parent'], status=400)   #400 = Bad Request
@@ -717,7 +700,7 @@ def domains(request):
 
         #get policy if policy is in POST
         try:
-            if 'policy' in request.POST and request.POST['policy'].strip() and request.POST['policy'] != 'None':
+            if 'policy' in request.POST and request.POST['policy'].strip():
                     domain_opts['policy'] =  Policy.objects.get(title=request.POST['policy'])
         except ObjectDoesNotExist as err:
             return HttpResponse("Error: Policy %s does not exists" % request.POST['policy'], status=400)   #400 = Bad Request
@@ -727,9 +710,7 @@ def domains(request):
             domain, created = Domain.objects.get_or_create(**domain_opts)
             if created:
                 status = 201 #201 = Created
-                # return the domain uri
-                msg = request.build_absolute_uri(reverse('rest_api:domain',
-                                    kwargs={'id': domain.id})),
+                msg = ""
 
                 #log the creation of a new Domain
                 _log_rest_action(request, domain, ADDITION, 'Added Domain:%s via rest api' % domain.__unicode__())
