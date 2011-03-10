@@ -1,0 +1,88 @@
+Overview
+========
+
+This is a management application for maintaining, managing, and
+resolving PURLs (Permanent URLs) and ARKs (Archival Resource Keys).
+Together these resources allow the assignment of unique persistent
+identifiers.
+
+You can find more information on `ARKs
+<http://en.wikipedia.org/wiki/Archival_Resource_Key>`_ and `PURLs
+<http://purl.oclc.org/docs/index.html>`_ or view the complete `ARK
+specification
+<https://confluence.ucop.edu/download/attachments/16744455/arkspec.txt?version=1>`_
+
+
+Dependencies
+============
+
+ * soaplib==0.8.1 -  http://pypi.python.org/pypi/soaplib
+ * psycopg2    - currently requires postgres & psycopg2 for stored procedure
+ * python-ldap
+ * python-lxml - http://codespeak.net/lxml/installation.html
+ * django 1.2+
+ * south==0.7.2
+
+Extensions
+==========
+We rely on a couple of externally-developed extensions. They need to be
+downloaded added to the python path. Extensions are listed in settings.py
+and annotated with where they can be downloaded. Put them into a directory
+and add that local path to the EXTENSION_DIRS in localsettings.py.
+
+Components
+==========
+
+The component applications of this project are:
+
+:mod:`~pidman.pid`
+------------------
+Core application to represent pid objects and build central behaviors for them.
+
+:mod:`~pidman.pidauth`
+----------------------
+Unused: initially to allow for intended for per-domain permissions, but not implemented.
+
+:mod:`~pidman.resolver`
+-----------------------
+Resolve ARK and PURLs to their Target URLs.
+
+:mod:`~pidman.rest_api`
+-----------------------
+Provides a REST API for selected pid functions such as create, edit and delete
+model objects from `pidman.pid.models`.
+
+:mod:`~pidman.soap_api`
+-----------------------
+Provides a limited SOAP API for creating ARKs and PURLs.  Deprecated; new projects
+should use the REST API instead.
+
+
+
+Installation
+============
+Create PostGres database and grant privileges to user
+Copy pidman/localsettings-example.py to pidman/localsettings.py
+Configure localsettings
+Execute the following::
+
+    $ pidman/manage.py syncdb
+    $ pidman/manage.py migrate
+    
+To verify installation execute without errors::
+
+    $ pidman/manage.py test
+
+When running under Apache and mod_wsgi, configure
+``WSGIPassAuthorization On`` (required for Basic Authentication in the
+REST API).
+
+
+Unit Tests
+==========
+All unit tests should be run EXCEPT for the ones in linkcheck module.
+Currently they are not compatible with django 1.1.  To  run unit tests use the
+following command while in the pidman directory::
+
+    $ python ./manage.py test auth admin contenttypes sessions sites soap_api
+    $ pid pidauth resolver usage_stats rest_api
