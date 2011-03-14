@@ -33,6 +33,7 @@ Deployment Notes
 ^^^^^^^^^^^^^^^^
 * The REST api uses Basic Authentication.  When running under Apache with mod_wsgi,
   add this configuration setting: ``WSGIPassAuthorization On``
+* Now requires python module mimeparse.  ``easy_install mimeparse``
 
 
 Release 0.8.3
