@@ -1,7 +1,0 @@
-erc:
-what:   {{ pid.name }}
-where:  {{ pid.primary_target_uri }}
-{% if policy %}erc-support:
-what:	{{ policy }}
-when:	{{ policy.created_at|date:"Ymd" }}
-{% endif %}
