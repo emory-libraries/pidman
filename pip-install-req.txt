@@ -1,6 +1,7 @@
 soaplib==0.8.1
 python-ldap
-lxml
+lxml        # eulcore
 django==1.2.5
 south==0.7.2
 psycopg2==2.4.1 # >=2.4.2 and django 1.2.5 don't get along as of 20110718
+mimeparse   # eulcore 
