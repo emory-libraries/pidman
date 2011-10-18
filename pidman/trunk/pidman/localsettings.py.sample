@@ -36,13 +36,6 @@ SECRET_KEY = ''
 PID_RESOLVER_URL = 'http://pidtest.library.emory.edu'
 PID_ARK_NAAN = '25593'
 
-# If you're running under apache, this will need to be the absolute path of
-# any templates directories. If you're just running with manage.py (e.g., in
-# dev/testing), then it can be relative paths. 
-TEMPLATE_DIRS = (
-    'templates',
-)
-
 EXTENSION_DIRS = (
     # This works for manage.py, but running under apache requires an
     # absolute path.
