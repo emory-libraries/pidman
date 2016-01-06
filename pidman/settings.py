@@ -60,15 +60,12 @@ INSTALLED_APPS = (
     'django.contrib.admin',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
-    'django.contrib.sites',  
+    'django.contrib.sites',
 #    'django.contrib.history',
-
-    #'eulcore', # https://svn.library.emory.edu/svn/django-eulcore/
-    'eulcore.django.emory_ldap',
+    'eullocal.django.emory_ldap',
     'south', # http://south.aeracode.org/
     'linkcheck', #http://code.google.com/p/django-linkcheck/
-
-    'pidman.soap_api',    
+    'pidman.soap_api',
     'pidman.pid',
     'pidman.pidauth',
     'pidman.resolver',
@@ -80,7 +77,7 @@ AUTH_PROFILE_MODULE = 'emory_ldap.EmoryLDAPUserProfile'
 
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
-    'eulcore.django.emory_ldap.backends.EmoryLDAPBackend'
+    'eullocal.django.emory_ldap.backends.EmoryLDAPBackend'
     #'pidman.ldapext.PidmanLDAPBackend',
     #'eulcore.ldap.auth.backends.LDAPBackend'
 )
@@ -131,13 +128,3 @@ try:
 except ImportError:
     pass
 
-EXTENSION_DIRS = (
-    path.join(BASE_DIR, '../external/django-modules'),
-)
-
-import sys
-try:
-    sys.path.extend(EXTENSION_DIRS)
-except NameError:
-    pass # EXTENSION_DIRS not defined. This is OK; we just won't use it.
-del sys

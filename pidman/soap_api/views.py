@@ -1,5 +1,5 @@
 from django.contrib.auth import authenticate
-from eulcore.django.soap.app import DjangoSoapApp, soapmethod, soap_types
+from eullocal.django.soap.app import DjangoSoapApp, soapmethod, soap_types
 from pidman.pid.models import Pid, Target, Proxy, ExtSystem, Domain, parse_resolvable_url
 
 ERR_NOT_AUTHORIZED = 'request canceled: not authorized'
@@ -17,7 +17,7 @@ def create_pid(domain_id, user, name, type, uri, qualifier='', proxy_id=None,
         for the new :class:`~pidman.pid.models.Pid`
     '''
     d = Domain.objects.get(pk=domain_id)
-                    
+
     # if external_system is specified, find ExtSystem by name
     if (external_system_name):
         extsys = ExtSystem.objects.get(name__exact=external_system_name)
@@ -41,7 +41,7 @@ def create_pid(domain_id, user, name, type, uri, qualifier='', proxy_id=None,
     # if qualifier is None, must be set to '' for primary target to be found properly
     if (qualifier == None):
         qualifier = ''
-    t = p.target_set.create(qualify=qualifier, uri=uri, proxy=proxy)        
+    t = p.target_set.create(qualify=qualifier, uri=uri, proxy=proxy)
     return t
 
 # added new create_pid method to include active flag
@@ -49,7 +49,7 @@ def create_pid(domain_id, user, name, type, uri, qualifier='', proxy_id=None,
 def create_pid_active(domain_id, user, name, type, uri, qualifier='', proxy_id=None,
     active=True, external_system_name=None, external_system_key=None, **kwargs):
     d = Domain.objects.get(pk=domain_id)
-                    
+
     # if external_system is specified, find ExtSystem by name
     if (external_system_name):
         extsys = ExtSystem.objects.get(name__exact=external_system_name)
@@ -70,19 +70,19 @@ def create_pid_active(domain_id, user, name, type, uri, qualifier='', proxy_id=N
         proxy = Proxy.objects.get(pk=proxy_id)
     else:
         proxy = None
-        
+
     # if qualifier is None, must be set to '' for primary target to be found properly
     if (qualifier == None):
         qualifier = ''
-              
-    t = p.target_set.create(qualify=qualifier, uri=uri, proxy=proxy, active=active)        
+
+    t = p.target_set.create(qualify=qualifier, uri=uri, proxy=proxy, active=active)
     return t
 
 class PersistentIdentifierService(DjangoSoapApp):
 
     # FIXME: what is the proper namespace to use? needs to match rails app
     #__tns__ = 'urn:ActionWebService'
-    
+
     @soapmethod(soap_types.String,  # username
                 soap_types.String,  # password
                 soap_types.String,  # uri
@@ -98,7 +98,7 @@ class PersistentIdentifierService(DjangoSoapApp):
                     external_system, external_system_key):
         '''Create a new ARK with a single target. Returns the resolvable form
         of the full ARK, with any qualifier that was specified.
-        
+
         :param username: user login
         :param password: user password
         :param uri: target URI for the new ARK
@@ -120,7 +120,7 @@ class PersistentIdentifierService(DjangoSoapApp):
         t = create_pid(type="Ark", user=user, uri=uri, name=name, qualifier=qualifier,
             domain_id=domain_id, proxy_id=proxy_id, external_system_name=external_system,
             external_system_key=external_system_key)
-        
+
         # return the resolvable url for the target that was just created
         return t.get_resolvable_url()
 
@@ -135,7 +135,7 @@ class PersistentIdentifierService(DjangoSoapApp):
     def AddArkTarget(self, username, password, noid, qualifier, uri, proxy_id):
         '''Add a new :class:`~pidman.pid.models.Target` to an existing ARK and
         return the resolvable url for the new target.
-        
+
         :param username: user login
         :param password: user password
         :param noid: NOID portion of the ARK for the :class:`~pidman.pid.models.Pid`
@@ -148,10 +148,10 @@ class PersistentIdentifierService(DjangoSoapApp):
         user = authenticate(username=username, password=password)
         if user is None:
             raise Exception(ERR_NOT_AUTHORIZED)
-            
+
         # This is a fix, to make a null and empty string.
         if (qualifier is None):
-            qualifier = ''            
+            qualifier = ''
 
         p = Pid.objects.get(pid__exact=noid)
         if (proxy_id):
@@ -163,10 +163,10 @@ class PersistentIdentifierService(DjangoSoapApp):
         # should cause an error (and does - violates db constraint)
         # MAY want to catch this and return a nicer/more readable error...
         t = p.target_set.create(qualify=qualifier, uri=uri, proxy=proxy)
-        
+
         # NOTE: adding a target via soap does not currently set pid editor & updated_at values
         # (this appears to be the same as the behavior of rails app)
-        
+
         # return the resolvable url for the target that was just created
         return t.get_resolvable_url()
 
@@ -215,12 +215,12 @@ class PersistentIdentifierService(DjangoSoapApp):
     def EditTarget(self, username, password, purl, uri):
         '''Update the target for an existing ARK or PURL and return the PURL or
         qualified ARK that was updated.
-        
+
         :param username: user login
         :param password: user password
         :param purl: full, URL resolvable form of the PURL, ARK, or qualified
             ARK to be updated
-        :param uri: updated URI 
+        :param uri: updated URI
         '''
         user = authenticate(username=username, password=password)
         if user is None:
@@ -229,12 +229,12 @@ class PersistentIdentifierService(DjangoSoapApp):
         # NOTE that purl parameter is full purl OR full ark (could be a qualified ark)
 
         # parse purl/ark into component parts in order to find the appropriate target
-        info = parse_resolvable_url(purl)        
-        t = Target.objects.filter(noid__exact=info['noid']).filter(qualify__exact=info['qualifier']).get()        
+        info = parse_resolvable_url(purl)
+        t = Target.objects.filter(noid__exact=info['noid']).filter(qualify__exact=info['qualifier']).get()
         t.uri = uri
         # FIXME: update editor/modified date?
         t.save()
-        
+
         # return the resolvable url for the target that was just updated
         return t.get_resolvable_url()
 
@@ -262,7 +262,7 @@ class PersistentIdentifierService(DjangoSoapApp):
         t = create_pid_active(type="Ark", user=user, uri=uri, name=name, qualifier=qualifier,
             domain_id=domain_id, proxy_id=proxy_id, active=active, external_system_name=external_system,
             external_system_key=external_system_key)
-        
+
         # return the resolvable url for the target that was just created
         return t.get_resolvable_url()
 
@@ -292,10 +292,10 @@ class PersistentIdentifierService(DjangoSoapApp):
         # should cause an error (and does - violates db constraint)
         # MAY want to catch this and return a nicer/more readable error...
         t = p.target_set.create(qualify=qualifier, uri=uri, proxy=proxy, active=active)
-        
+
         # NOTE: adding a target via soap does not currently set pid editor & updated_at values
         # (this appears to be the same as the behavior of rails app)
-        
+
         # return the resolvable url for the target that was just created
         return t.get_resolvable_url()
 
@@ -339,12 +339,12 @@ class PersistentIdentifierService(DjangoSoapApp):
         # NOTE that purl parameter is full purl OR full ark (could be a qualified ark)
 
         # parse purl/ark into component parts in order to find the appropriate target
-        info = parse_resolvable_url(purl)        
-        t = Target.objects.filter(noid__exact=info['noid']).filter(qualify__exact=info['qualifier']).get()        
+        info = parse_resolvable_url(purl)
+        t = Target.objects.filter(noid__exact=info['noid']).filter(qualify__exact=info['qualifier']).get()
         t.active = active
         # FIXME: update editor/modified date?
         t.save()
-        
+
         # return the resolvable url for the target that was just updated
         return t.get_resolvable_url()
 

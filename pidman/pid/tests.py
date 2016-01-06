@@ -5,7 +5,7 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.test import TestCase
 
-from linkcheck.utils import find as find_links
+# from linkcheck.utils import find as find_links
 from pidman.pid.ark_utils import normalize_ark, valid_qualifier, invalid_qualifier_characters
 from pidman.pid.models import Pid, Target, Domain, Policy, parse_resolvable_url, mint_noid
 from pidman.pid.noid import encode_noid, decode_noid
@@ -16,12 +16,12 @@ class MintNoidTestCase(TestCase):
     def test_generate_noid(self):
         noid = mint_noid()
         self.assertNotEqual(None, noid, "value returned by mint_noid should not be None")
-        self.assert_(re.compile("^[a-z0-9]+$").match(noid), 
+        self.assert_(re.compile("^[a-z0-9]+$").match(noid),
                      "generated noid '" + noid + "' matches expected pattern")
 
 class PidTestCase(TestCase):
     fixtures = ['pids.json']
-    
+
     def setUp(self):
         # dependent objects to use for creating test pids
         self.domain = Domain(name="test domain")
@@ -29,26 +29,26 @@ class PidTestCase(TestCase):
         self.user = User(username="piduser")
         self.user.set_password("pidpass")
         self.user.save()
-        
+
         # test pids: one ark & one purl
         self.ark = Pid(name="testark", domain=self.domain, creator=self.user,
             editor=self.user, type="Ark")
-        self.ark.save()        
+        self.ark.save()
         self.purl = Pid(name="testpurl", domain=self.domain, creator=self.user,
             editor=self.user, type="Purl")
-        self.purl.save()        
+        self.purl.save()
 
     def tearDown(self):
         self.domain.delete()
         self.user.delete()
         self.ark.delete()
-        self.purl.delete()        
+        self.purl.delete()
 
-    def test_is_valid__purl(self):        
+    def test_is_valid__purl(self):
         self.assert_(self.purl.is_valid(), "purl with no targets is valid")
         self.purl.target_set.create(uri="some.uri")
         self.assert_(self.purl.is_valid(), "purl with single unqualified target is valid")
-        self.purl.primary_target().qualify = "qual"        
+        self.purl.primary_target().qualify = "qual"
         self.assertRaises(Exception, self.purl.is_valid, "purl with single qualified target is invalid")
         self.purl.target_set.get().qualify = ""
         self.purl.target_set.create(qualify='q',uri="no.uri")
@@ -72,8 +72,8 @@ class PidTestCase(TestCase):
         # url when there is no target
         self.assertEqual('', self.purl.url(), "url for purl with no target should be '', got " + self.purl.url())
         # now add a target
-        self.purl.target_set.create(uri="some.uri") 
-        self.assertEqual(settings.PID_RESOLVER_URL + "/" + self.purl.pid, self.purl.url(), 
+        self.purl.target_set.create(uri="some.uri")
+        self.assertEqual(settings.PID_RESOLVER_URL + "/" + self.purl.pid, self.purl.url(),
                          "url for purl with target should be " + settings.PID_RESOLVER_URL + "/" +
                          self.purl.pid + ", got " + self.purl.url())
 
@@ -81,7 +81,7 @@ class PidTestCase(TestCase):
         # url when there is no target
         self.assertEqual('', self.ark.url(), "url for ark with no target should be '', got " + self.ark.url())
         # add a qualified target (no unqualified/primary target)
-        self.ark.target_set.create(qualify="q", uri="http://ti.ny")        
+        self.ark.target_set.create(qualify="q", uri="http://ti.ny")
         self.assertEqual(settings.PID_RESOLVER_URL + "/ark:/" + settings.PID_ARK_NAAN + "/" +
                          self.ark.pid + "/q", self.ark.url(), "url for ark with no primary target should be " +
                          settings.PID_RESOLVER_URL + "/ark:/" + settings.PID_ARK_NAAN + "/" +
@@ -117,12 +117,12 @@ class PidTestCase(TestCase):
 
         p = Policy.objects.get(title__exact='Inactive Policy')
         self.assertEquals(pid.get_policy(), p)
-        
+
     def test_url_link(self):
         self.purl.target_set.create(uri="some.uri")
         url = settings.PID_RESOLVER_URL + "/" + self.purl.pid
-        self.assert_(re.compile('^<a [^>]*href=[\'"]' + url + '[\'"]>' + url + '</a>$').match(self.purl.url_link()), 
-                     "url link for purl with target should match pattern for link with " 
+        self.assert_(re.compile('^<a [^>]*href=[\'"]' + url + '[\'"]>' + url + '</a>$').match(self.purl.url_link()),
+                     "url link for purl with target should match pattern for link with "
                      + url + ", got " + self.purl.url_link())
 
 class TargetTestCase(TestCase):
@@ -151,7 +151,7 @@ class TargetTestCase(TestCase):
         self.purl.delete()
         self.proxy.delete()
 
-    def test_get_resolvable_url(self):        
+    def test_get_resolvable_url(self):
         t = self.ark.target_set.create(uri="some.uri")
         # test against expected ark url from settings in config file
         base_ark = settings.PID_RESOLVER_URL + "/ark:/" + settings.PID_ARK_NAAN
@@ -162,11 +162,11 @@ class TargetTestCase(TestCase):
         self.assertEqual(base_ark + "/" + self.ark.pid + "/?", t.get_resolvable_url())
         t.qualify = "some/long/qualifier.txt"
         self.assertEqual(base_ark + "/" + self.ark.pid + "/some/long/qualifier.txt", t.get_resolvable_url())
-        
-        t = self.purl.target_set.create(uri="some.uri")
-        self.assertEqual(settings.PID_RESOLVER_URL + "/" + self.purl.pid, t.get_resolvable_url())       
 
-    def test_token_replacement(self):        
+        t = self.purl.target_set.create(uri="some.uri")
+        self.assertEqual(settings.PID_RESOLVER_URL + "/" + self.purl.pid, t.get_resolvable_url())
+
+    def test_token_replacement(self):
         self.ark.target_set.create(uri="http://some.url/with/" + settings.PID_REPLACEMENT_TOKEN)
         self.assertEqual("http://some.url/with/" + self.ark.pid, self.ark.primary_target().uri)
 
@@ -233,7 +233,7 @@ class parse_resolvable_urlTestCase(TestCase):
         self.assertEqual("??", p['qualifier'])
 
 class ark_utilsTestCase(TestCase):
-    
+
     def test_normalize_ark(self):
         # examples here are from the character repertoires section of ARK spec
         n = normalize_ark("65-4-xz-321")
@@ -276,9 +276,9 @@ class LinkCheck_DisplayMethods(TestCase):
         #fixtures cannot consistantly copy the relationship between targets and linkcheck_links
         #due to the reliance on the django_content_types table which cannot be copied
         #therefore we will call linkcheck.find to build the relationship
-        find_links()
+        # find_links()
 
-        
+
         self.assertEquals(pid.show_target_linkcheck_status(), "<span style='font-weight: bold; color: green;'>All Targets Resolve</span>")
 
         pid = Pid.objects.get(pk=2)
@@ -296,7 +296,7 @@ class Count_Target_Hit(TestCase):
     def test_no_count_hits(self):
         t = Target.objects.get(noid='rkx', qualify="")
         self.assertEquals(t.hit_count(), 0)
-        
+
     def test_count_hits(self):
         createTargetAccessLog(noid='rkx', qualifier="",
             ip='170.140.215.175', timestamp='19/Aug/2009:11:29:14 -0400', referrer=None,

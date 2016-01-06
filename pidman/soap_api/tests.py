@@ -4,7 +4,7 @@ import unittest
 from django.contrib.auth.models import User
 from django.test import TestCase
 from django.test.client import Client
-from eulcore.django.soap.testclient import DjangoSoapTestServiceClient
+from eullocal.django.soap.testclient import DjangoSoapTestServiceClient
 from pidman.pid.models import Pid, Target, ExtSystem, Proxy, Domain
 from pidman.soap_api.views import PersistentIdentifierService
 from soaplib.serializers.primitive import Fault
@@ -16,7 +16,7 @@ class PidServiceTestCase(TestCase):
 
         # dependent objects to use for creating test pids
         self.domain = Domain(name="test domain")
-        self.domain.save()        
+        self.domain.save()
         self.user = User(username="soapuser")
         self.user.set_password("soappass")
         self.user.save()
@@ -34,26 +34,26 @@ class PidServiceTestCase(TestCase):
             editor=self.user, type="Purl")
         self.purl.save()
         self.purl.target_set.create(uri="http://tiny.url")
-        
+
 
         # expected pattern for generated arks
         self.arkpattern = re.compile('^https?://[a-z.]+/ark:/[0-9]+/[a-z0-9]+(/.*)?$')
         self.purlpattern = re.compile('^https?://[a-z.]+/[a-z0-9]+$')
 
-    def testGenerateArk(self):        
+    def testGenerateArk(self):
         ark = self.soapclient.GenerateArk("soapuser", "soappass", "http://django.com",
             "sample ark document", None, self.domain.id, None, None, None)
         # should return full, resolvable ark that was generated
-        self.assert_(ark != '', "GenerateArk returns non-blank ark")        
+        self.assert_(ark != '', "GenerateArk returns non-blank ark")
         self.assert_(self.arkpattern.match(ark),
                      "generated ark '" + ark + "'matches expected pattern")
-    
+
         # strip off the noid portion and inspect created ark in the db
         base_ark, slash, noid = ark.rpartition('/')
         p = Pid.objects.get(pid__exact=noid)
         self.assert_(isinstance(p, Pid), "found pid in db by noid")
-        self.assertEqual("Ark", p.type)       
-        self.assertEqual(self.domain.id, p.domain.id)        
+        self.assertEqual("Ark", p.type)
+        self.assertEqual(self.domain.id, p.domain.id)
         self.assert_(isinstance(p.primary_target(), Target), "found primary target")
         self.assertEqual("http://django.com", p.primary_target_uri())
         # external system & proxy not set
@@ -84,14 +84,14 @@ class PidServiceTestCase(TestCase):
         # optional name - null should be converted to empty string
         ark = self.soapclient.GenerateArk("soapuser", "soappass", "http://django.com",
             None, None, self.domain.id, None, None, None)
-        # should return full, resolvable ark that was generated        
+        # should return full, resolvable ark that was generated
         self.assert_(self.arkpattern.match(ark),
                      "generated ark with null name '" + ark + "'matches expected pattern")
-        
+
         # not authenticated: legacy implementation returns soapfault with error string
         self.assertRaises(Fault,
                 self.soapclient.GenerateArk, "soapuser", "badpass", "http://django.com",
-                "sample ark document", None, self.domain.id, None, None, None)        
+                "sample ark document", None, self.domain.id, None, None, None)
         # bad domain id
         self.assertRaises(Fault,
             self.soapclient.GenerateArk, "soapuser", "soappass", "http://django.com",
@@ -118,11 +118,11 @@ class PidServiceTestCase(TestCase):
 
     def testAddTarget_unqualified(self):
         # generate a qualified ark
-        ark = self.soapclient.GenerateArk("soapuser", "soappass", "http://google.com/reader", 
-            "qualified ark", 'abc', self.domain.id, None, None, None)        
+        ark = self.soapclient.GenerateArk("soapuser", "soappass", "http://google.com/reader",
+            "qualified ark", 'abc', self.domain.id, None, None, None)
 
-        # extract out the noid 
-        base_ark, slash, qfy = ark.rpartition('/')       
+        # extract out the noid
+        base_ark, slash, qfy = ark.rpartition('/')
         base_ark, slash, noid = base_ark.rpartition('/')
 
         # then add unqualified target
@@ -134,9 +134,9 @@ class PidServiceTestCase(TestCase):
 
     def testAddTarget_noauth(self):
         # not authenticated: legacy implementation returns soapfault with error string
-        self.assertRaises(Fault, 
+        self.assertRaises(Fault,
             self.soapclient.AddArkTarget, "soapuser", "badpass",
-            self.ark.pid, "another_qualifier", "http://some.url", None)        
+            self.ark.pid, "another_qualifier", "http://some.url", None)
 
     def testAddTarget_duplicatequal(self):
         self.soapclient.AddArkTarget("soapuser", "soappass", self.ark.pid, "q", "http://some.url", None)
@@ -179,8 +179,8 @@ class PidServiceTestCase(TestCase):
         # not authenticated: legacy implementation returns soapfault with error string
         self.assertRaises(Fault,
             self.soapclient.GeneratePurl, "soapuser", "badpass", "http://pid.url",
-            "sample purl document", self.domain.id, None, None, None)        
-        
+            "sample purl document", self.domain.id, None, None, None)
+
 
     def testEditTarget(self):
         purl = self.soapclient.EditTarget("soapuser", "soappass",
@@ -214,11 +214,11 @@ class PidServiceTestCase(TestCase):
         self.assertEqual("http://other.url", target.uri)
 
          # not authenticated: legacy implementation returns soapfault with error string
-        self.assertRaises(Fault, 
+        self.assertRaises(Fault,
             self.soapclient.EditTarget, "soapuser", "badpass",
-            self.ark.primary_target().get_resolvable_url(), "http://some.other.url")        
+            self.ark.primary_target().get_resolvable_url(), "http://some.other.url")
 
-        # attempting to edit non-existent qualified ark target should fail        
+        # attempting to edit non-existent qualified ark target should fail
         self.assertRaises(Fault, self.soapclient.EditTarget, "soapuser", "soappass",
             self.ark.primary_target().get_resolvable_url() + "/bad_qual", "http://new.url")
 
@@ -231,25 +231,25 @@ class PidServiceTestCase(TestCase):
     def testWsdl(self):
         c = Client()
         resp = c.get('/persis_api/service.wsdl', **{'wsgi.url_scheme': 'http'})
-        # NOTE: soaplib needs wsgi.url_scheme to be set in request environment        
+        # NOTE: soaplib needs wsgi.url_scheme to be set in request environment
         # how to check that wsdl file seems to be valid? is this even necessary/useful?
         self.assert_(resp.content != '')
 
 	# added new soap_api view method to include active flag
-    def testGenerateArkActive(self):        
+    def testGenerateArkActive(self):
         ark = self.soapclient.GenerateArkActive("soapuser", "soappass", "http://django.com",
             "sample ark document", None, self.domain.id, None, True, None, None)
         # should return full, resolvable ark that was generated
-        self.assert_(ark != '', "GenerateArk returns non-blank ark")        
+        self.assert_(ark != '', "GenerateArk returns non-blank ark")
         self.assert_(self.arkpattern.match(ark),
                      "generated ark '" + ark + "'matches expected pattern")
-    
+
         # strip off the noid portion and inspect created ark in the db
         base_ark, slash, noid = ark.rpartition('/')
         p = Pid.objects.get(pid__exact=noid)
         self.assert_(isinstance(p, Pid), "found pid in db by noid")
-        self.assertEqual("Ark", p.type)       
-        self.assertEqual(self.domain.id, p.domain.id)        
+        self.assertEqual("Ark", p.type)
+        self.assertEqual(self.domain.id, p.domain.id)
         self.assert_(isinstance(p.primary_target(), Target), "found primary target")
         self.assertEqual("http://django.com", p.primary_target_uri())
         # external system & proxy not set
@@ -280,14 +280,14 @@ class PidServiceTestCase(TestCase):
         # optional name - null should be converted to empty string
         ark = self.soapclient.GenerateArkActive("soapuser", "soappass", "http://django.com",
             None, None, self.domain.id, None, True, None, None)
-        # should return full, resolvable ark that was generated        
+        # should return full, resolvable ark that was generated
         self.assert_(self.arkpattern.match(ark),
                      "generated ark with null name '" + ark + "'matches expected pattern")
-        
+
         # not authenticated: legacy implementation returns soapfault with error string
         self.assertRaises(Fault,
                 self.soapclient.GenerateArkActive, "soapuser", "badpass", "http://django.com",
-                "sample ark document", None, self.domain.id, None, True, None, None)        
+                "sample ark document", None, self.domain.id, None, True, None, None)
         # bad domain id
         self.assertRaises(Fault,
             self.soapclient.GenerateArkActive, "soapuser", "soappass", "http://django.com",
@@ -316,7 +316,7 @@ class PidServiceTestCase(TestCase):
         self.assert_(isinstance(target[0], Target))
         self.assertEqual(1, len(target))
         self.assertEqual(True, target[0].active)
-        
+
 	# added new soap_api view method to include active flag
     def testGeneratePurlActive(self):
         purl = self.soapclient.GeneratePurlActive("soapuser", "soappass", "http://pid.url",
@@ -344,12 +344,12 @@ class PidServiceTestCase(TestCase):
         self.assertEqual("ocm12345", p.ext_system_key)
         self.assertEqual(self.proxy.id, p.primary_target().proxy.id)
         self.assertEqual(True, p.primary_target().active)
-        
+
         # not authenticated: legacy implementation returns soapfault with error string
         self.assertRaises(Fault,
             self.soapclient.GeneratePurlActive, "soapuser", "badpass", "http://pid.url",
-            "sample purl document", self.domain.id, None, True, None, None)        
-        
+            "sample purl document", self.domain.id, None, True, None, None)
+
 	# added new soap_api view method to include active flag
     def testEditTargetActive(self):
         purl = self.soapclient.EditTargetActive("soapuser", "soappass",
