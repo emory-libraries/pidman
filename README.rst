@@ -23,13 +23,6 @@ Dependencies
  * django 1.2+
  * south==0.7.2
 
-Extensions
-----------
-We rely on a couple of externally-developed extensions. They need to be
-downloaded added to the python path. Extensions are listed in settings.py
-and annotated with where they can be downloaded. Put them into a directory
-and add that local path to the EXTENSION_DIRS in localsettings.py.
-
 Components
 ----------
 
@@ -69,33 +62,3 @@ ARK and PURL target URIs.  Designed to be backwards-compatible (as
 much as possible) with the SOAP API of the previous, Rails-based,
 incarnation of this PID Manager application. **Deprecated**; new
 projects should use the REST API instead.
-
-
-
-Installation
-------------
-Create PostGres database and grant privileges to user
-Copy pidman/localsettings-example.py to pidman/localsettings.py
-Configure localsettings
-Execute the following::
-
-    $ pidman/manage.py syncdb
-    $ pidman/manage.py migrate
-    
-To verify installation execute without errors::
-
-    $ pidman/manage.py test
-
-When running under Apache and mod_wsgi, configure
-``WSGIPassAuthorization On`` (required for Basic Authentication in the
-REST API).
-
-
-Unit Tests
-----------
-All unit tests should be run EXCEPT for the ones in linkcheck module.
-Currently they are not compatible with django 1.1.  To  run unit tests use the
-following command while in the pidman directory::
-
-    $ python ./manage.py test auth admin contenttypes sessions sites soap_api
-    $ pid pidauth resolver usage_stats rest_api
