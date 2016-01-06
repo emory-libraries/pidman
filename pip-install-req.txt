@@ -3,7 +3,7 @@ python-ldap
 lxml        # eulcore
 django==1.2.5
 south==0.7.2
-psycopg2==2.4.1 # >=2.4.2 and django 1.2.5 don't get along as of 20110718
+MySQL-python  # possibly optional, if we can make sqlite3 work?
 mimeparse   # eulcore
 # oldest available version of eullocal
 https://wilson.library.emory.edu/jenkins/job/eullocal-0.17.x/lastSuccessfulBuild/artifact/eullocal/dist/eullocal-0.17.0-pre.tar.gz
