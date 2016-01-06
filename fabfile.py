@@ -29,10 +29,11 @@ def test():
     if os.path.exists('test-results'):
         shutil.rmtree('test-results')
 
-    local('python pidman/manage.py test --with-coverage --cover-package=%(project)s --cover-xml --with-xunit' \
-        % env)
+    # sample command once we convert to django-nose
+    # local('python pidman/ test --with-coverage --cover-package=%(project)s --cover-xml --with-xunit' \
+    local('python pidman/manage.py test')
     # convert .coverage file to coverage.xml
-    local('coverage xml')
+    # local('coverage xml')
 
 @task
 def doc():

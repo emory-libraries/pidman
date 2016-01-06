@@ -6,12 +6,12 @@
 PID Manager Documentation
 =========================
 
-.. include:: ../README
+.. include:: ../README.rst
 
 Version History
 ===============
 
-.. include:: ../CHANGELOG
+.. include:: ../CHANGELOG.rst
 
 Contents:
 
