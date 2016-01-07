@@ -1,5 +1,6 @@
 import os
 import re
+import unittest
 
 from django.conf import settings
 from django.contrib.auth.models import User
@@ -263,6 +264,7 @@ class ark_utilsTestCase(TestCase):
         self.assertEqual(['^', '~'], invalid_qualifier_characters('45ae^0u~f'))
         self.assertEqual(['^~', ':;'], invalid_qualifier_characters('ab^~cde:;f'))
 
+@unittest.skip
 class LinkCheck_DisplayMethods(TestCase):
     fixtures = ['linkcheck.json']
 

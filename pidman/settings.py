@@ -40,13 +40,14 @@ ADMIN_MEDIA_PREFIX = '/media/'
 TEMPLATE_LOADERS = (
     'django.template.loaders.filesystem.load_template_source',
     'django.template.loaders.app_directories.load_template_source',
-#     'django.template.loaders.eggs.load_template_source',
+#    'django.template.loaders.eggs.load_template_source',
 )
 
 MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware'
 )
 
 ROOT_URLCONF = 'pidman.urls'
@@ -54,6 +55,8 @@ ROOT_URLCONF = 'pidman.urls'
 TEMPLATE_DIRS = (
     path.join(BASE_DIR, 'templates'),
 )
+
+
 
 INSTALLED_APPS = (
     'django.contrib.auth',
@@ -69,7 +72,7 @@ INSTALLED_APPS = (
     'pidman.pid',
     'pidman.pidauth',
     'pidman.resolver',
-    'pidman.usage_stats',
+    # 'pidman.usage_stats',
     'pidman.rest_api',
 )
 
@@ -79,7 +82,6 @@ AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
     'eullocal.django.emory_ldap.backends.EmoryLDAPBackend'
     #'pidman.ldapext.PidmanLDAPBackend',
-    #'eulcore.ldap.auth.backends.LDAPBackend'
 )
 
 # SOUTH MIGRATIONS SETTINGS
