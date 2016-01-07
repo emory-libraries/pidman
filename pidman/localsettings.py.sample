@@ -36,10 +36,3 @@ SECRET_KEY = ''
 PID_RESOLVER_URL = 'http://pidtest.library.emory.edu'
 PID_ARK_NAAN = '25593'
 
-EXTENSION_DIRS = (
-    # This works for manage.py, but running under apache requires an
-    # absolute path.
-
-    '../external/django-modules',
-)
-
