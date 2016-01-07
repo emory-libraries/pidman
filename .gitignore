@@ -1,3 +1,4 @@
 *.pyc
 pidman/localsettings.py
 test-results
+docs/_build
