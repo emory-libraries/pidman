@@ -31,7 +31,7 @@ def test():
 
     # sample command once we convert to django-nose
     # local('python pidman/ test --with-coverage --cover-package=%(project)s --cover-xml --with-xunit' \
-    local('python pidman/manage.py test')
+    local('python manage.py test pidman')
     # convert .coverage file to coverage.xml
     # local('coverage xml')
 
@@ -163,7 +163,7 @@ def configure_site():
 
     with cd('%(remote_path)s/%(build_dir)s' % env):
         with prefix('source env/bin/activate'):
-            sudo('python pidman/manage.py collectstatic --noinput' % env,
+            sudo('python manage.py collectstatic --noinput' % env,
                  user=env.remote_acct)
             # make static files world-readable
             sudo('chmod -R a+r `env DJANGO_SETTINGS_MODULE=\'%(project)s.settings\' python -c \'from django.conf import settings; print settings.STATIC_ROOT\'`' % env,
@@ -183,9 +183,7 @@ def syncdb():
     '''Remotely run syncdb and migrate after deploy and configuration.'''
     with cd('%(remote_path)s/%(build_dir)s' % env):
         with prefix('source env/bin/activate'):
-            sudo('python pidman/manage.py syncdb --noinput' % env,
-                 user=env.remote_acct)
-            sudo('python pidman/manage.py migrate --noinput' % env,
+            sudo('python manage.py migrate --noinput' % env,
                  user=env.remote_acct)
 
 

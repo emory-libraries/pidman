@@ -8,9 +8,6 @@ from django.contrib.contenttypes import generic
 from django.core.urlresolvers import reverse
 from django.db import connection, models
 
-from linkcheck import Linklist
-from linkcheck.models import Link as LinkCheckLink
-
 from pidman.pid.ark_utils import normalize_ark, valid_qualifier, qualifier_allowed_characters
 from pidman.pid.noid import encode_noid, decode_noid
 from django.core.exceptions import ValidationError
@@ -150,33 +147,30 @@ class Pid(models.Model):
     def next_autoincrement(cls):
         # TODO: use cursor as context manager once we get to a newer
         # version of django where that is supported
-        cursor = connection.cursor()
+        with connection.cursor() as cursor:
 
-        # TODO: use cursor.db.alias and new-style db config once we
-        # get to a newer version of django
+            db_backend = settings.DATABASES[cursor.db.alias]['ENGINE']
+            # for mysql, query for the next auto-increment value
+            if db_backend.endswith('.mysql'):
+                cursor.execute("SELECT Auto_increment FROM information_schema.tables WHERE table_name='%s';" % \
+                    cls._meta.db_table)
+                row = cursor.fetchone()
+                next_autoincrement = row[0]
 
-        # for mysql, query for the next auto-increment value
-        if settings.DATABASE_ENGINE == 'mysql':
-            cursor.execute("SELECT Auto_increment FROM information_schema.tables WHERE table_name='%s';" % \
-                cls._meta.db_table)
-            row = cursor.fetchone()
-            next_autoincrement = row[0]
+            # for sqlite, get the largest current pid, use decode_noid to
+            # reverse that to the corresponding integer, and add one
+            # NOTE: this is not ideal, because if pids are deleted from the
+            # database, we could end up generating noids that have already
+            # been used.
+            elif db_backend.endswith('.sqlite3'):
+                cursor.execute("SELECT MAX(pid) FROM pid_pid;")
+                row = cursor.fetchone()
+                if row[0] is None:
+                    next_autoincrement = 1
+                else:
+                    next_autoincrement = decode_noid(row[0]) + 1
 
-        # for sqlite, get the largest current pid, use decode_noid to
-        # reverse that to the corresponding integer, and add one
-        # NOTE: this is not ideal, because if pids are deleted from the
-        # database, we could end up generating noids that have already
-        # been used.
-        if settings.DATABASE_ENGINE == 'sqlite3':
-            cursor.execute("SELECT MAX(pid) FROM pid_pid;")
-            row = cursor.fetchone()
-            if row[0] is None:
-                next_autoincrement = 1
-            else:
-                next_autoincrement = decode_noid(row[0]) + 1
-
-        cursor.close()
-        return next_autoincrement
+            return next_autoincrement
 
     def natural_key(self):
         return (self.pid,)
@@ -275,38 +269,6 @@ class Pid(models.Model):
         return self.name[:50]
     truncated_name.short_description = "Name"
 
-    def show_target_linkcheck_status(self):
-        num_passed = 0
-        num_failed = 0
-        num_unchecked = 0
-
-        for t in self.target_set.all():
-            try:
-                if t.linkcheck_link.get().url.last_checked == None:
-                    num_unchecked = num_unchecked + 1
-
-                if t.linkcheck_link.get().url.status == True:
-                    num_passed = num_passed + 1
-                else:
-                    num_failed = num_failed + 1
-
-            except: #if target link does not exist the url was not tested
-                num_unchecked = num_unchecked + 1
-
-        total = len(self.target_set.all())
-
-        if total == 0:
-            return "<span style='font-weight: bold;'>No Targets</span>"
-        elif num_unchecked > 0:
-            return "<span style='font-weight: bold; color: blue;'>%(unchecked)d of %(total)d Targets Unchecked</span>" % {'unchecked': num_unchecked, 'total': total}
-        elif num_failed > 0:
-            return "<span style='font-weight: bold; color: red;'>%(fail)d of %(total)d Targets Fail</span>" % {'fail': num_failed, 'total': total}
-        else:
-            return "<span style='font-weight: bold; color: green;'>All Targets Resolve</span>"
-
-    show_target_linkcheck_status.short_description = "Target Status"
-    show_target_linkcheck_status.allow_tags = True
-
     def get_policy(self):
         '''Return the :class:`Policy` for this pid.  If this pid is not active,
         this method automatically returns the inactive Policy.  If the pid has
@@ -334,6 +296,9 @@ class Pid(models.Model):
         return active
     is_active.short_description = "Active ?"
     is_active.allow_tags = True
+
+# FIXME: invalid arks can probably be removed, since the system
+# shouldn't allow creating invalid arks anymore
 
 # proxy model & custom manager - find ARKs that have target qualifiers with invalid characters
 class InvalidArkManager(PidManager):
@@ -391,7 +356,6 @@ class Target(models.Model):
     uri = models.CharField(max_length=2048)
     qualify = models.CharField("Qualifier", max_length=255, null=False, blank=True, default='')
     proxy = models.ForeignKey(Proxy, blank=True, null=True)
-    linkcheck_link = generic.GenericRelation(LinkCheckLink)
     active = models.BooleanField(default=True)
 
     objects = TargetManager()
@@ -456,16 +420,6 @@ class Target(models.Model):
     def get_absolute_url(self):
         return self.get_resolvable_url()
 
-    def linkcheck_status(self):
-        lc_u = self.linkcheck_link.get().url
-        return "<span style='font-size: +1; font-weight: bold; color: %(color)s;'>%(message)s</span>" % {'color':lc_u.colour, 'message':lc_u.get_message}
-
-
-class TargetLinkCheck(Linklist):
-    model = Target # The model this relates to
-    html_fields = [] # fields in the model that contain HTML fragments
-    url_fields = ['uri',] # fields in the model that contain raw url fields
-    image_fields = [] # fields in the model that contain raw image fields
 
 def parse_resolvable_url(urlstring):
     '''Parse a PURL, ARK, or qualified ARK in resolvable url form.

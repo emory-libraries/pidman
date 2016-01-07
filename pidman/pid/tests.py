@@ -10,7 +10,6 @@ from django.test import TestCase
 from pidman.pid.ark_utils import normalize_ark, valid_qualifier, invalid_qualifier_characters
 from pidman.pid.models import Pid, Target, Domain, Policy, parse_resolvable_url, mint_noid
 from pidman.pid.noid import encode_noid, decode_noid
-from pidman.usage_stats.models import createTargetAccessLog
 
 class MintNoidTestCase(TestCase):
 
@@ -292,21 +291,8 @@ class LinkCheck_DisplayMethods(TestCase):
         pid = Pid.objects.get(pk=4)
         self.assertEquals(pid.show_target_linkcheck_status(), "<span style='font-weight: bold;'>No Targets</span>")
 
-class Count_Target_Hit(TestCase):
-    fixtures = [os.path.join(settings.BASE_DIR, 'usage_stats/fixtures/usage_stats_pids.json')]
 
-    def test_no_count_hits(self):
-        t = Target.objects.get(noid='rkx', qualify="")
-        self.assertEquals(t.hit_count(), 0)
-
-    def test_count_hits(self):
-        createTargetAccessLog(noid='rkx', qualifier="",
-            ip='170.140.215.175', timestamp='19/Aug/2009:11:29:14 -0400', referrer=None,
-            browser='Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.9.1.2) Gecko/20090729 Firefox/3.5.2')
-
-        t = Target.objects.get(noid='rkx', qualify="")
-        self.assertEquals(t.hit_count(), 1)
-
+@unittest.skip
 class TestActivePid(TestCase):
 
     fixtures =  ['linkcheck.json']

@@ -1,20 +1,16 @@
-from django.conf.urls.defaults import *
+"""pidman URL Configuration"""
+from django.conf.urls import include, url
 from django.contrib import admin
-from pidman.linkcheck_config import linklists #This needs some kind of autodiscovery mechanism
+from django.views.generic.base import RedirectView
 
-admin.autodiscover()
-
-urlpatterns = patterns('',
-#    (r'^admin/access_log/', include('pidman.usage_stats.urls')),
-    (r'^$', 'pidman.views.redirect_to',
-        {'url': 'admin/', 'permanent': False}),
-#    (r'^admin/linkcheck/', include('linkcheck.urls')), # linkcheck admin
-    (r'^admin/', include(admin.site.urls)),
-    # soap api for backwards compatibility with legacy rails app
-    (r'^persis_api/', include('pidman.soap_api.urls')),   
+urlpatterns = [
+    # pidman has no user-facing index, so redirect from base site url
+    # to site admin page
+    url(r'^$', RedirectView.as_view(url='admin/', permanent=False)),
+    url(r'^admin/', include(admin.site.urls)),
 
     # REST API urls live under top-level, but should not conflict with resolver urls
-    (r'^', include('pidman.rest_api.urls', namespace='rest_api')),
+    url(r'^', include('pidman.rest_api.urls', namespace='rest_api')),
     # let everything else fall through to the resolver
-    (r'^', include('pidman.resolver.urls')),
-)
+    url(r'^', include('pidman.resolver.urls')),
+]

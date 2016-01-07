@@ -1,11 +1,3 @@
-soaplib==0.8.1
-python-ldap
-lxml        # eulcore
-django==1.2.5
-south==0.7.2
-MySQL-python  # possibly optional, if we can make sqlite3 work?
-mimeparse   # eulcore
-# oldest available version of eullocal
+django>=1.8,<1.9
 https://wilson.library.emory.edu/jenkins/job/eullocal-0.17.x/lastSuccessfulBuild/artifact/eullocal/dist/eullocal-0.17.0-pre.tar.gz
 eulcommon
-django-linkcheck==0.6.0  # older version for older django version compatibility
