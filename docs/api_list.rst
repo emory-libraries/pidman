@@ -33,24 +33,12 @@ admin
 .. automodule:: pidman.pid.admin
    :members:
 
-pidauth
--------
-
-.. automodule:: pidman.pidauth
-   :members:
-
-models
-^^^^^^
-
-.. automodule:: pidman.pidauth.models
-   :members:
-
 resolver
 --------
 
 .. automodule:: pidman.resolver
    :members:
-   
+
 views
 ^^^^^
 
@@ -68,19 +56,3 @@ rest_api
 
 .. automodule:: pidman.rest_api.decorators
    :members:
-
-
-soap_api
---------
-
-.. automodule:: pidman.soap_api
-   :members:
-
-views
-^^^^^
-
-.. automodule:: pidman.soap_api.views
-   :members:
-
-.. autoclass:: pidman.soap_api.views.PersistentIdentifierService
-    :members:

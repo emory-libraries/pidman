@@ -2,10 +2,10 @@
 #
 
 # Putting the project source on the python path.
-export PYTHONPATH=..:../external/django-modules:../pidman
+export PYTHONPATH:=$(PYTHONPATH):.:..
 # sphinx needs django settings while loading eulcore.django.* to introspect
 # those modules for autodocs
-export DJANGO_SETTINGS_MODULE=doc_djangosettings
+export DJANGO_SETTINGS_MODULE=pidman.settings
 
 # You can set these variables from the command line.
 SPHINXOPTS    =
