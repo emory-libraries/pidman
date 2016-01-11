@@ -3,7 +3,9 @@ from django.contrib import admin
 from django import forms
 from django.forms.models import ModelForm, ModelChoiceField
 from django.forms import ValidationError
+
 from pidman.pid.ark_utils import normalize_ark, invalid_qualifier_characters
+
 
 class TargetInlineForm(ModelForm):
     """Base Target inline form for use in editing ARKs and PURLs."""
@@ -25,6 +27,9 @@ class TargetInline(admin.TabularInline):
     # no max, default number of extra fields
     form = TargetInlineForm
     can_delete = True      # allow ARK target deletion (e.g., qualifiers)
+
+# NOTE: should be possible to extend inline template here
+# to display link status - last checked / message / etc
 
 class PurlTargetInline(TargetInline):
     verbose_name_plural  = "Target"
@@ -63,8 +68,8 @@ class PidAdmin(admin.ModelAdmin):
     # note: including pid for link to edit page, since name is optional and not always present
     # including dates in list display for sorting purposes
     # sort columns by: type, domain/collection, name, (pid url?), date created/modified ascending/descending
-    list_display = ('pid', 'truncated_name', 'type', 'created_at', 'updated_at', "domain", "primary_target_uri",
-    	"is_active")
+    list_display = ('pid', 'truncated_name', 'type', 'created_at', 'updated_at',
+        "domain", "primary_target_uri", "is_active", 'linkcheck_status')
     # filters: collection/domain, creator/user, type (ark/purl), date ranges (created or modified)
     list_filter = ['type',  'domain', 'creator', 'created_at', 'updated_at']
     form = PidAdminForm
@@ -87,6 +92,11 @@ class PidAdmin(admin.ModelAdmin):
 
     # by default, use purl target inline; if saved as an ark, will use TargetInline
     inlines = [PurlTargetInline]
+
+    class Media:
+        css = {
+            "all": ("css/font-awesome.min.css",)
+        }
 
     def get_inline_instances(self, request, obj=None):
         inlines = list(self.inlines)  # make a new copy of inline config
