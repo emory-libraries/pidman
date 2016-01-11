@@ -30,10 +30,10 @@ def test():
         shutil.rmtree('test-results')
 
     # sample command once we convert to django-nose
-    # local('python pidman/ test --with-coverage --cover-package=%(project)s --cover-xml --with-xunit' \
-    local('python manage.py test pidman')
+    local('python manage.py test --with-coverage --cover-package=%(project)s --cover-xml --with-xunit' \
+        % env)
     # convert .coverage file to coverage.xml
-    # local('coverage xml')
+    local('coverage xml')
 
 @task
 def doc():

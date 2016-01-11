@@ -22,7 +22,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # Application definition
 
-INSTALLED_APPS = (
+INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -34,7 +34,7 @@ INSTALLED_APPS = (
     'pidman.pid',
     'pidman.resolver',
     'pidman.rest_api',
-)
+]
 
 MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -101,4 +101,22 @@ except ImportError:
         'stuff blows up, try copying localsettings-sample.py to ' + \
         'localsettings.py and setting appropriately for your environment.'
     pass
+
+
+# add django-nose to installed apps when available (for development)
+django_nose = None
+try:
+    # NOTE: errors if DATABASES is not configured (in some cases),
+    # so this must be done after importing localsettings
+    import django_nose
+except ImportError:
+    pass
+
+if django_nose is not None:
+    INSTALLED_APPS.append('django_nose')
+    TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
+    # NOSE_PLUGINS = [
+        # ...
+    # ]
+    # NOSE_ARGS = ['--with-eulfedorasetup']
 

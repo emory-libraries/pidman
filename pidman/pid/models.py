@@ -4,7 +4,6 @@ import urlparse
 
 from django.conf import settings
 from django.contrib.auth.models import User
-from django.contrib.contenttypes import generic
 from django.core.urlresolvers import reverse
 from django.db import connection, models, transaction
 
@@ -124,7 +123,7 @@ class Pid(models.Model):
     '''Pid: an ARK or a PURL, with associated :class:`Target` instance(s).'''
     pid = models.CharField(unique=True, max_length=255, editable=False)
     # NOTE: previously, pid value was set using a default=mint_noid;
-    # now, to use sequence cleanly, noid is only set when saving a new Pid
+    # now, to use sequence cleanly, noid is only Cleanset when saving a new Pid
     domain = models.ForeignKey(Domain)
     name = models.CharField(max_length=1023, blank=True)
     # external system & key - identifier in another system, e.g. EUCLID control key
