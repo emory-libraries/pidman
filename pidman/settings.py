@@ -29,6 +29,7 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'sequences.apps.SequencesConfig',
     'eullocal.django.emory_ldap',
     'pidman.pid',
     'pidman.resolver',

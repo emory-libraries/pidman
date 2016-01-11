@@ -8,16 +8,9 @@ from django.test import TestCase
 
 # from linkcheck.utils import find as find_links
 from pidman.pid.ark_utils import normalize_ark, valid_qualifier, invalid_qualifier_characters
-from pidman.pid.models import Pid, Target, Domain, Policy, parse_resolvable_url, mint_noid
+from pidman.pid.models import Pid, Target, Domain, Policy, parse_resolvable_url
 from pidman.pid.noid import encode_noid, decode_noid
 
-class MintNoidTestCase(TestCase):
-
-    def test_generate_noid(self):
-        noid = mint_noid()
-        self.assertNotEqual(None, noid, "value returned by mint_noid should not be None")
-        self.assert_(re.compile("^[a-z0-9]+$").match(noid),
-                     "generated noid '" + noid + "' matches expected pattern")
 
 class PidTestCase(TestCase):
     fixtures = ['pids.json']
@@ -43,6 +36,13 @@ class PidTestCase(TestCase):
         self.user.delete()
         self.ark.delete()
         self.purl.delete()
+
+    def test_mint_noid(self):
+        noid = Pid.mint_noid()
+        self.assertNotEqual(None, noid, "value returned by mint_noid should not be None")
+        self.assert_(re.compile("^[a-z0-9]+$").match(noid),
+                     "generated noid '" + noid + "' matches expected pattern")
+
 
     def test_is_valid__purl(self):
         self.assert_(self.purl.is_valid(), "purl with no targets is valid")

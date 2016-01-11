@@ -6,15 +6,13 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.contenttypes import generic
 from django.core.urlresolvers import reverse
-from django.db import connection, models
+from django.db import connection, models, transaction
+
+from sequences import get_next_value
 
 from pidman.pid.ark_utils import normalize_ark, valid_qualifier, qualifier_allowed_characters
 from pidman.pid.noid import encode_noid, decode_noid
 from django.core.exceptions import ValidationError
-
-def mint_noid():
-    '''Generate a new NOID (Nice Opaque IDentifier).'''
-    return encode_noid(Pid.next_autoincrement())
 
 
 class ExtSystemManager(models.Manager):
@@ -124,7 +122,9 @@ class PidManager(models.Manager):
 
 class Pid(models.Model):
     '''Pid: an ARK or a PURL, with associated :class:`Target` instance(s).'''
-    pid = models.CharField(unique=True, max_length=255, editable=False, default=mint_noid)
+    pid = models.CharField(unique=True, max_length=255, editable=False)
+    # NOTE: previously, pid value was set using a default=mint_noid;
+    # now, to use sequence cleanly, noid is only set when saving a new Pid
     domain = models.ForeignKey(Domain)
     name = models.CharField(max_length=1023, blank=True)
     # external system & key - identifier in another system, e.g. EUCLID control key
@@ -138,42 +138,24 @@ class Pid(models.Model):
     updated_at = models.DateTimeField("Date Updated", auto_now=True)
     policy = models.ForeignKey(Policy, blank=True, null=True)
 
+    SEQUENCE_NAME = 'pid_noid'
+
     objects = PidManager()
 
     def __unicode__(self):
         return self.pid + ' ' + self.name
 
-    @classmethod
-    def next_autoincrement(cls):
-        # TODO: use cursor as context manager once we get to a newer
-        # version of django where that is supported
-        with connection.cursor() as cursor:
-
-            db_backend = settings.DATABASES[cursor.db.alias]['ENGINE']
-            # for mysql, query for the next auto-increment value
-            if db_backend.endswith('.mysql'):
-                cursor.execute("SELECT Auto_increment FROM information_schema.tables WHERE table_name='%s';" % \
-                    cls._meta.db_table)
-                row = cursor.fetchone()
-                next_autoincrement = row[0]
-
-            # for sqlite, get the largest current pid, use decode_noid to
-            # reverse that to the corresponding integer, and add one
-            # NOTE: this is not ideal, because if pids are deleted from the
-            # database, we could end up generating noids that have already
-            # been used.
-            elif db_backend.endswith('.sqlite3'):
-                cursor.execute("SELECT MAX(pid) FROM pid_pid;")
-                row = cursor.fetchone()
-                if row[0] is None:
-                    next_autoincrement = 1
-                else:
-                    next_autoincrement = decode_noid(row[0]) + 1
-
-            return next_autoincrement
-
     def natural_key(self):
         return (self.pid,)
+
+    @classmethod
+    def next_sequence_value(cls):
+        return get_next_value(cls.SEQUENCE_NAME)
+
+    @classmethod
+    def mint_noid(cls):
+        '''Generate a new NOID (Nice Opaque IDentifier).'''
+        return encode_noid(cls.next_sequence_value())
 
     def primary_target(self):
         '''Return the  primary target for this pid (the only target for a PURL,
@@ -250,9 +232,21 @@ class Pid(models.Model):
         Custom save method to ensure that pid and noid for all associated
         :class:`Target` instances are kept in sync.
         '''
-        if (self.is_valid()):
-            super(Pid, self).save(force_insert=force_insert, force_update=force_update, *args, **kwargs)
-            #keep pid and noid in sync
+        # don't save invalid records
+        # NOTE: should this add logging or an exception, instead of failing silently?
+        if self.is_valid():
+            # if primary key is not set, we are saving a new pid
+            # - mint a new noid based in our pid sequence
+            if self.pk is None:
+                with transaction.atomic():
+                    self.pid = Pid.mint_noid()
+                    super(Pid, self).save(force_insert=force_insert,
+                         force_update=force_update, *args, **kwargs)
+            else:
+                super(Pid, self).save(force_insert=force_insert,
+                     force_update=force_update, *args, **kwargs)
+
+            # keep pid and noid in sync
             targets = self.target_set.all()
             targets.update(noid=self.pid)
 

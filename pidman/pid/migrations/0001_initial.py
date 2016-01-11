@@ -38,7 +38,7 @@ class Migration(migrations.Migration):
             name='Pid',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('pid', models.CharField(default=pidman.pid.models.mint_noid, unique=True, max_length=255, editable=False)),
+                ('pid', models.CharField(unique=True, max_length=255, editable=False)),
                 ('name', models.CharField(max_length=1023, blank=True)),
                 ('ext_system_key', models.CharField(max_length=1023, null=True, verbose_name=b'External system key', blank=True)),
                 ('created_at', models.DateTimeField(auto_now_add=True, verbose_name=b'Date Created')),
