@@ -30,6 +30,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'sequences.apps.SequencesConfig',
+    'mptt',
     'eullocal.django.emory_ldap',
     'pidman.pid',
     'pidman.resolver',
