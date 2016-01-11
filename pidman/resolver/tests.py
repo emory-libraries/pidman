@@ -40,10 +40,6 @@ class ResolverTestCase(unittest.TestCase):
         self.ark.delete()
         self.user.delete()
         self.domain.delete()
-
-
-
-
         self.policy.delete()
 
     def test_resolve_purl(self):
