@@ -326,9 +326,9 @@ class Pid(models.Model):
 
         tag = '<i style="color:%(color)s" class="fa fa-%(icon)s" title="%(title)s"></i>' \
             % status
-        if link_status == False:
-            tag = '<a href="%s?filters=show_invalid">%s</a>' % (reverse('linkcheck:linkcheck_report'), tag)
-            # tag = '<a href="/admin/linkcheck/?filters=show_invalid">%s</a>' % tag
+        if 'filter' in status:
+            tag = '<a href="%s?filters=%s">%s</a>' % \
+                (reverse('linkcheck:linkcheck_report'), status['filter'], tag)
         return tag
     linkcheck_status.short_description = 'URL Status'
     linkcheck_status.allow_tags = True
@@ -336,9 +336,12 @@ class Pid(models.Model):
 
 LINKCHECK_STATUS = {
     'no_urls': {'color': 'black', 'icon': 'ban', 'title': 'No URLs'},
-    'ok': {'color': 'green', 'icon': 'check', 'title': 'All URLs ok'},
-    'alert': {'color': 'red', 'icon': 'exclamation-triangle', 'title': 'Some errors'},
-    'unknown': {'color': 'blue', 'icon': 'question-circle', 'title': 'Unchecked'},
+    'ok': {'color': 'green', 'icon': 'check', 'title': 'All URLs ok',
+            'filter': 'show_valid'},
+    'alert': {'color': 'red', 'icon': 'exclamation-triangle', 'title': 'Some errors',
+            'filter': 'show_invalid'},
+    'unknown': {'color': 'blue', 'icon': 'question-circle', 'title': 'Unchecked',
+            'filter': 'show_unchecked'},
 }
 
 # linkcheck todo: link to linkcheck report from main admin page
