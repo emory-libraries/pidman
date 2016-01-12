@@ -3,6 +3,8 @@ from django.contrib import admin
 from django import forms
 from django.forms.models import ModelForm, ModelChoiceField
 from django.forms import ValidationError
+
+from pidman.admin import admin_site
 from pidman.pid.ark_utils import normalize_ark, invalid_qualifier_characters
 
 class TargetInlineForm(ModelForm):
@@ -195,9 +197,9 @@ class DomainAdmin(admin.ModelAdmin):
         qs = super(DomainAdmin, self).queryset(request)
         return qs.filter(parent=None)
 
-admin.site.register(Pid, PidAdmin)
-admin.site.register(Proxy, ProxyAdmin)
-admin.site.register(ExtSystem, ExtSystemAdmin)
-admin.site.register(InvalidArk, InvalidArkAdmin)
-admin.site.register(Policy, PolicyAdmin)
-admin.site.register(Domain, DomainAdmin)
+admin_site.register(Pid, PidAdmin)
+admin_site.register(Proxy, ProxyAdmin)
+admin_site.register(ExtSystem, ExtSystemAdmin)
+admin_site.register(InvalidArk, InvalidArkAdmin)
+admin_site.register(Policy, PolicyAdmin)
+admin_site.register(Domain, DomainAdmin)
