@@ -2,3 +2,4 @@ django>=1.8,<1.9c
 https://wilson.library.emory.edu/jenkins/job/eullocal-0.17.x/lastSuccessfulBuild/artifact/eullocal/dist/eullocal-0.17.0-pre.tar.gz
 eulcommon
 django-sequences
+django-linkcheck

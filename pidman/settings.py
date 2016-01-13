@@ -29,7 +29,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'sequences.apps.SequencesConfig',
+    'linkcheck',
+    'sequences',
+    # 'sequences.apps.SequencesConfig',
     'eullocal.django.emory_ldap',
     'pidman.pid',
     'pidman.resolver',
@@ -91,7 +93,6 @@ STATIC_URL = '/static/'
 
 # if this token is in target URI it will be replaced with the noid after it is minted
 PID_REPLACEMENT_TOKEN = "{%PID%}"
-
 
 try:
     from localsettings import *

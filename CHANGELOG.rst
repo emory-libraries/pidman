@@ -6,6 +6,8 @@ Release 1.0
 * SOAP API has been removed.
 * Pid noid sequence is now generated with django-sequences and is
   database agnostic (postgres is no longer required).
+* Pid target uri is now a URLField instead of a CharField.
+* Updated and refined django-linkcheck integration.
 * Updated to use django-nose as unit test runner.
 * Django admin site now customized using a local AdminSite instead of
   extending admin templates.

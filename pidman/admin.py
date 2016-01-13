@@ -5,6 +5,7 @@ import sequences
 class PidmanAdminSite(AdminSite):
     site_header = 'Persistent Identifier Manager'
     site_title = 'PID Manager Adminstration'
+    index_template = 'admin/pidman_index.html'
 
 admin_site = PidmanAdminSite()
 # NOTE: admin autodiscover doesn't work with custom admin sites,

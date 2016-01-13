@@ -4,10 +4,12 @@ import urlparse
 
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.contrib.contenttypes.fields import GenericRelation
 from django.core.urlresolvers import reverse
 from django.db import connection, models, transaction
 
 from sequences import get_next_value
+from linkcheck.models import Link
 
 from pidman.pid.ark_utils import normalize_ark, valid_qualifier, qualifier_allowed_characters
 from pidman.pid.noid import encode_noid, decode_noid
@@ -289,6 +291,60 @@ class Pid(models.Model):
         return active
     is_active.short_description = "Active ?"
     is_active.allow_tags = True
+    is_active.boolean = True
+
+    def target_linkcheck_status(self):
+        # true - all ok
+        # false - any not ok
+        # none - any unknown / unchecked
+
+        # get all linkcheck status for all target urls
+        # linkcheck status is true for ok, false for error
+        link_status = self.target_set.all().values_list('linkcheck__url__status',
+                                                        flat=True)
+        # if the number of statuses doesn't match the number of targets,
+        # then return None for unknown/unchecked
+        if self.target_set.count() != len(link_status):
+            return None
+        else:
+            # ok if all are true, otherwise there are some errors
+            return all(link_status)
+
+    def linkcheck_status(self):
+        # move to target for reuse?
+        link_status = None
+        if self.target_set.exists():
+            link_status = self.target_linkcheck_status()
+            if link_status is None:
+                status = LINKCHECK_STATUS['unknown']
+            elif link_status:
+                status = LINKCHECK_STATUS['ok']
+            else:
+                status = LINKCHECK_STATUS['alert']
+        else:
+            status = LINKCHECK_STATUS['no_urls']
+
+        tag = '<i style="color:%(color)s" class="fa fa-%(icon)s" title="%(title)s"></i>' \
+            % status
+        if 'filter' in status:
+            tag = '<a href="%s?filters=%s">%s</a>' % \
+                (reverse('linkcheck:linkcheck_report'), status['filter'], tag)
+        return tag
+    linkcheck_status.short_description = 'URL Status'
+    linkcheck_status.allow_tags = True
+
+
+LINKCHECK_STATUS = {
+    'no_urls': {'color': 'black', 'icon': 'ban', 'title': 'No URLs'},
+    'ok': {'color': 'green', 'icon': 'check', 'title': 'All URLs ok',
+            'filter': 'show_valid'},
+    'alert': {'color': 'red', 'icon': 'exclamation-triangle', 'title': 'Some errors',
+            'filter': 'show_invalid'},
+    'unknown': {'color': 'blue', 'icon': 'question-circle', 'title': 'Unchecked',
+            'filter': 'show_unchecked'},
+}
+
+# linkcheck todo: link to linkcheck report from main admin page
 
 # FIXME: invalid arks can probably be removed, since the system
 # shouldn't allow creating invalid arks anymore
@@ -346,10 +402,14 @@ class Target(models.Model):
     '''
     pid = models.ForeignKey(Pid)
     noid = models.CharField(max_length=255, editable=False)
-    uri = models.CharField(max_length=2048)
+    # NOTE: previously uri was a charfield, because URLField was only
+    # introduced in Django 1.5.
+    uri = models.URLField(max_length=2048)
     qualify = models.CharField("Qualifier", max_length=255, null=False, blank=True, default='')
     proxy = models.ForeignKey(Proxy, blank=True, null=True)
     active = models.BooleanField(default=True)
+
+    linkcheck = GenericRelation(Link)
 
     objects = TargetManager()
 
@@ -412,6 +472,9 @@ class Target(models.Model):
     # needed by linkcheck admin
     def get_absolute_url(self):
         return self.get_resolvable_url()
+
+    # def link_status(self):
+
 
 
 def parse_resolvable_url(urlstring):
