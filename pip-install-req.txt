@@ -1,11 +1,4 @@
-soaplib==0.8.1
-python-ldap
-lxml        # eulcore
-django==1.2.5
-south==0.7.2
-psycopg2==2.4.1 # >=2.4.2 and django 1.2.5 don't get along as of 20110718
-mimeparse   # eulcore
-# oldest available version of eullocal
+django>=1.8,<1.9c
 https://wilson.library.emory.edu/jenkins/job/eullocal-0.17.x/lastSuccessfulBuild/artifact/eullocal/dist/eullocal-0.17.0-pre.tar.gz
 eulcommon
-django-linkcheck==0.6.0  # older version for older django version compatibility
+django-sequences

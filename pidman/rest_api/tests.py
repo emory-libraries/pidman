@@ -40,7 +40,7 @@ class RestApiTestCase(TransactionTestCase):
     ark_qual = 'PDF'
 
     # regex for isoformat dates
-    isodate_re = re.compile('^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(.\d{6})?$')
+    isodate_re = re.compile('^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(.\d{6}|[+-]\d{2}:\d{2})?$')
     noid_pattern = '[a-z0-9]+'  # very simplified noid regex
     purl_regex = re.compile('^%s/%s$' % (settings.PID_RESOLVER_URL, noid_pattern))
     ark_regex = re.compile('^%s/ark:/%s/%s(/.*)$' % (settings.PID_RESOLVER_URL,
@@ -79,7 +79,7 @@ class RestApiTestCase(TransactionTestCase):
         self.assert_(data, "Response content successfully loaded as JSON")
         self.assert_(data['uri'].endswith(purl_url),
                     "PURL resource URI present in response")
-                 
+
         # bogus purl - 404
         purl_url = reverse('rest_api:pid', kwargs={'noid': 'bogus','type': 'purl'})
         response = self.client.get(purl_url)
@@ -201,7 +201,7 @@ class RestApiTestCase(TransactionTestCase):
 
 
     def test_create_purl(self):
-        create_purl = reverse('rest_api:create-pid', kwargs={'type': 'purl'})                
+        create_purl = reverse('rest_api:create-pid', kwargs={'type': 'purl'})
 
         # create a purl with bare minimum data options: domain + target
         domain_id = 1
@@ -233,7 +233,7 @@ class RestApiTestCase(TransactionTestCase):
             'Authenticated user is set as pid creator')
         self.assertEqual('testadmin', pid.editor.username,
             'Authenticated user is set as pid editor')
-            
+
         # Test that log entry was created
         self.assertLogEntryForObject(pid)
         # Assert log for target creation as well.
@@ -310,12 +310,14 @@ class RestApiTestCase(TransactionTestCase):
         self.assertContains(response, 'Error: Could not resolve domain URI',
                 status_code=400, msg_prefix='Response indicates domain URI resolve error')
         # valid url but not a domain URI
-        response = self.client.post(create_purl, {'target_uri': 'foo', 
-                                    'domain': 'http://bar.com/'}, **ADMIN_AUTH)
+        non_domain_uri = 'http://bar.com/'
+        response = self.client.post(create_purl, {'target_uri': 'foo',
+                                    'domain': non_domain_uri}, **ADMIN_AUTH)
         expected, got = 400, response.status_code
         self.assertEqual(expected, got,
                 "Expected status code %s (bad request) for non-domain URI to %s, got %s" \
                 % (expected, create_purl, got))
+        # self.assertContains(response, 'Error: Could not resolve domain URI %s' % non_domain_uri,
         self.assertContains(response, 'Error: Could not resolve domain URI into a domain',
                 status_code=400, msg_prefix='Response indicates domain URI resolve error')
         # - invalid domain id
@@ -371,7 +373,7 @@ class RestApiTestCase(TransactionTestCase):
         self.assertContains(response, "Error: Purl targets can not have qualifiers",
                 status_code=400, msg_prefix='Response indicates purl+qualifier error')
 
-    
+
     def test_create_ark(self):
         create_ark = reverse('rest_api:create-pid', kwargs={'type': 'ark'})
         # create a purl with bare minimum data options: domain + target
@@ -417,14 +419,14 @@ class RestApiTestCase(TransactionTestCase):
     def test_create_pid_permissions(self):
         create_pid = reverse('rest_api:create-pid', kwargs={'type': 'purl'})
         # test authorization
-        
+
         # - no credentials
         response = self.client.post(create_pid, {})
         expected, got = 401, response.status_code
         self.assertEqual(expected, got,
                 "Expected status code %s (unauthorized) for %s with no credentials, got %s" \
                 % (expected, create_pid, got))
-        
+
         # - invalid credentials
         AUTH = auth_header('testuser', 'notmypassword')
         response = self.client.post(create_pid, {}, **AUTH)
@@ -549,9 +551,9 @@ class RestApiTestCase(TransactionTestCase):
         _test_search_results({'count': 1}, 1) # 3 total objects across 3 pages
         _test_search_results({'count': 2}, 2) # 3 total objects across 2 pages.
         _test_search_results({'count': 2, 'page': 2}, 1) # page 2 of above should have 1
-        
+
         # Test various conditions where errors are expected instead of results.
-        
+
         # Out of range page requests should return 404 Errors
         encoded_args = urllib.urlencode( {'count': 2, 'page': 200})
         url = '%s?%s' % (base_url, encoded_args)
@@ -785,7 +787,7 @@ class RestApiTestCase(TransactionTestCase):
                 "Expected status code %s (OK) for DELETE on %s (nonexistent target), got %s" \
                 % (expected, target_uri, got))
 
-    def test_delete_target_permissions(self):        
+    def test_delete_target_permissions(self):
         target_uri = reverse('rest_api:ark-target', kwargs={'noid': self.ark.pid,
                              'qualifier': 'PDF'})
         # - no credentials
@@ -872,7 +874,7 @@ class RestApiTestCase(TransactionTestCase):
         # parent uri
         domain_uri_parent = 'http://testserver' + reverse('rest_api:domain', kwargs={'id' : parent_id})
         # invalid parent
-        domain_uri_bad = 'http://testserver' + reverse('rest_api:domain', kwargs={'id': 100}) 
+        domain_uri_bad = 'http://testserver' + reverse('rest_api:domain', kwargs={'id': 100})
 
         # delete is not allowed
         response = self.client.delete(domain_url, **ADMIN_AUTH)
@@ -999,7 +1001,7 @@ class RestApiTestCase(TransactionTestCase):
                 % (expected, got))
 
         #PUT with wrong content type
-        response = self.client.put(domain_url, '', content_type='text/plain', **ADMIN_AUTH)
+        response = self.client.put(domain_url, '', CONTENT_TYPE='text/plain', **ADMIN_AUTH)
         expected, got = 400, response.status_code
         self.assertEqual(expected, got, "Expected status code %s got %s" \
                 % (expected, got))
@@ -1042,9 +1044,9 @@ class RestApiTestCase(TransactionTestCase):
         expected, got = 200, response.status_code
         self.assertEqual(expected, got, "Expected status code %s got %s" \
                 % (expected, got))
-        
+
         #check the values in the DB
-        parent_id = int(str.split(data['parent'], '/')[4])
+        parent_id = int(data['parent'].split('/')[4])
         d = Domain.objects.get(id=1)
         self.assertEqual(d.name, data['name']);
         self.assertEqual(d.parent.id, parent_id) # get parent id from uri and compare
@@ -1052,12 +1054,12 @@ class RestApiTestCase(TransactionTestCase):
 
         #Check the values in the JSON object that is returned
         obj = json.loads(response.content)
-	self.assertEqual(obj['name'], data['name']);
-	self.assertEqual(obj['policy'], data['policy']);
-	self.assertEqual(obj['domain'], data['parent'])
+        self.assertEqual(obj['name'], data['name']);
+        self.assertEqual(obj['policy'], data['policy']);
+        self.assertEqual(obj['domain'], data['parent'])
 
-	#check for log entry
-	self.assertLogEntryForObject(d)
+        #check for log entry
+        self.assertLogEntryForObject(d)
 
         #no credentials
         response = self.client.put(domain_url, {"name" : "New Test Domain 2"})
@@ -1076,14 +1078,14 @@ class RestApiTestCase(TransactionTestCase):
         response = self.client.put(domain_url, {"name" : "New Test Domain 2"}, **AUTH)
         expected, got = 403, response.status_code
         self.assertEqual(expected, got, "Expected status code %s because user is not allowed to create a Domain got %s" % (expected, got))
-        
+
 
     # *** utility methods ***
 
-    def test_pid_data(self):        
+    def test_pid_data(self):
         data = pid_data(self.purl, self.request)
         self.assert_('name' not in data,
-            'name not included in pid data when pid name is blank')        
+            'name not included in pid data when pid name is blank')
         # this purl has an explicit policy
         data = pid_data(self.inactive_purl, self.request)
         self.assertEqual(self.inactive_purl.policy.title, data['policy'],
@@ -1095,7 +1097,7 @@ class RestApiTestCase(TransactionTestCase):
         self.assertEqual('EUCLID', data['external_system']['id'],
             'external system listed by system name and not db id')
         # confirm dates are ISO format
-        
+
         self.assert_(self.isodate_re.match(data['created']),
             "date created should be in ISO format - %s should match regular expression %s" %\
             (data['created'], self.isodate_re.pattern))
@@ -1139,7 +1141,7 @@ class RestApiTestCase(TransactionTestCase):
 
         # domain with subdomain
         gencoll = Domain.objects.get(name='General purchased collections')
-        data = domain_data(gencoll, self.request)        
+        data = domain_data(gencoll, self.request)
         self.assert_(data['collections'],
             'domain with subdomains should have collections listed in data')
 

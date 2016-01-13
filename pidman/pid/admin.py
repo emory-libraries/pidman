@@ -3,17 +3,16 @@ from django.contrib import admin
 from django import forms
 from django.forms.models import ModelForm, ModelChoiceField
 from django.forms import ValidationError
-from pidman.pid.ark_utils import normalize_ark, invalid_qualifier_characters
 
-from django.conf.urls.defaults import *
-import linkcheck.views
-import pidman.usage_stats.views
+from pidman.admin import admin_site
+from pidman.pid.ark_utils import normalize_ark, invalid_qualifier_characters
 
 class TargetInlineForm(ModelForm):
     """Base Target inline form for use in editing ARKs and PURLs."""
     class Meta:
         model = Target
-        
+        fields = ('qualify', 'uri', 'proxy', 'active')
+
     def clean_qualify(self):
         # check for any characters not allowed in the qualifier
         invalid_chars = invalid_qualifier_characters(self.cleaned_data["qualify"])
@@ -39,8 +38,8 @@ class PurlTargetInline(TargetInline):
 class DomainChoiceField(ModelChoiceField):
     # generate a list of domains with grouped collections for building select
     cached = None
-    
-    @property    
+
+    @property
     def _choices(self):
         # If a ModelChoiceField has a '_choices' attribute, it is used instead
         # of the model queryset.
@@ -53,12 +52,13 @@ class DomainChoiceField(ModelChoiceField):
                 # with a label and choices, so that collections are clearly
                 # labeled by the domain that they belong to.
                 yield ( d.name + ' collections',
-                        [ (c.id, c.name) for c in d.collections.all() ] )                        
-    
+                        [ (c.id, c.name) for c in d.collections.all() ] )
+
 class PidAdminForm(ModelForm):
-    domain = DomainChoiceField(queryset=Domain.objects, cache_choices=True)    
+    domain = DomainChoiceField(queryset=Domain.objects, cache_choices=True)
     class Meta:
         model = Pid
+        exclude = []
 
 class PidAdmin(admin.ModelAdmin):
     # browse display: type (ark/purl), domain/collection, name/description, and pid url (not target url)
@@ -66,11 +66,11 @@ class PidAdmin(admin.ModelAdmin):
     # including dates in list display for sorting purposes
     # sort columns by: type, domain/collection, name, (pid url?), date created/modified ascending/descending
     list_display = ('pid', 'truncated_name', 'type', 'created_at', 'updated_at', "domain", "primary_target_uri",
-    	"show_target_linkcheck_status", "is_active")
+    	"is_active")
     # filters: collection/domain, creator/user, type (ark/purl), date ranges (created or modified)
     list_filter = ['type',  'domain', 'creator', 'created_at', 'updated_at']
     form = PidAdminForm
-    
+
     # now possible in django 1.1 - fields to use here?
     #list_editable = ('name', 'domain')
     date_hierarchy = 'created_at'
@@ -90,33 +90,40 @@ class PidAdmin(admin.ModelAdmin):
     # by default, use purl target inline; if saved as an ark, will use TargetInline
     inlines = [PurlTargetInline]
 
+    def get_inline_instances(self, request, obj=None):
+        inlines = list(self.inlines)  # make a new copy of inline config
+        if obj is not None and obj.type == 'Ark':
+            inlines[0] = TargetInline
+
+        return [inline(self.model, self.admin_site) for inline in inlines]
+
+
     # when adding a new object, restrict targets to purl type until saved and type is set
-    def add_view(self, request, form_url='', extra_context=None):
-        self.inline_instances[0] = PurlTargetInline(self.model, self.admin_site)
-        self.fieldsets = (self.fieldset_pidtype, self.fieldset_pidinfo)
-        return super(PidAdmin, self).add_view(request, form_url, extra_context)
+    # def add_view(self, request, form_url='', extra_context=None):
+    #     self.fieldsets = (self.fieldset_pidtype, self.fieldset_pidinfo)
+    #     return super(PidAdmin, self).add_view(request, form_url, extra_context)
 
     # overriding change_view to set target inline based on pid type,
     # and to disallow changing pid type
-    def change_view(self, request, object_id, extra_context=None):
-        # fieldset is pidinfo only (not allowing users to edit pid type after pid creation)
-        self.fieldsets = (self.fieldset_pidinfo,)
+    # def change_view(self, request, object_id, extra_context=None):
+    #     # fieldset is pidinfo only (not allowing users to edit pid type after pid creation)
+    #     self.fieldsets = (self.fieldset_pidinfo,)
 
-        try:
-            obj = Pid.objects.get(pk=object_id)
-            if (obj.type == "Ark"):
-                # for Arks, use default target inline (no max, edit qualifiers)
-                self.inline_instances[0] = TargetInline(self.model, self.admin_site)            
-            if (obj.type == "Purl"):
-                # customized target inline for purls (max =1, no qualifiers)
-                self.inline_instances[0] = PurlTargetInline(self.model, self.admin_site)
-        except Exception:
-            pass        
-            
-        return super(PidAdmin, self).change_view(request, object_id, extra_context)
+    #     try:
+    #         obj = Pid.objects.get(pk=object_id)
+    #         if (obj.type == "Ark"):
+    #             # for Arks, use default target inline (no max, edit qualifiers)
+    #             self.inline_instances[0] = TargetInline(self.model, self.admin_site)
+    #         if (obj.type == "Purl"):
+    #             # customized target inline for purls (max =1, no qualifiers)
+    #             self.inline_instances[0] = PurlTargetInline(self.model, self.admin_site)
+    #     except Exception:
+    #         pass
+
+    #     return super(PidAdmin, self).change_view(request, object_id, extra_context)
 
     # set creator and editor to current user before saving
-    def save_model(self, request, obj, form, change):    
+    def save_model(self, request, obj, form, change):
         obj.editor = request.user
         if not (change):
             obj.creator = request.user
@@ -126,14 +133,12 @@ class PidAdmin(admin.ModelAdmin):
     def has_delete_permission(self, request, obj=None):
         return False
 
-    def get_urls(self):
-        # FIXME: these would make more sense on a custom AdminSite rather than here...
-        urls = super(PidAdmin, self).get_urls()
-        my_urls = patterns('',
-           (r'^linkcheck/', self.admin_site.admin_view(linkcheck.views.report)),
-            (r'^access_log/', self.admin_site.admin_view(pidman.usage_stats.views.export)),
-        )
-        return my_urls + urls
+    # def get_urls(self):
+    #     # FIXME: these would make more sense on a custom AdminSite rather than here...
+    #     urls = super(PidAdmin, self).get_urls()
+    #     my_urls = patterns('',
+    #     )
+    #     return my_urls + urls
 
 class InvalidArkAdmin(PidAdmin):
     # disallow adding invalid ark - makes no sense
@@ -152,10 +157,11 @@ class PolicyAdmin(admin.ModelAdmin):
 
 class DomainAdminForm(forms.ModelForm):
     # restrict list of domains allowed to be parents to those domains without a parent (1 level deep only)
-    # FIXME: is there any way to exclude current domain from this list? no access to instance id here    
+    # FIXME: is there any way to exclude current domain from this list? no access to instance id here
     parent = ModelChoiceField(queryset=Domain.objects.filter(parent=None).all(), required=False)
     class Meta:
         model = Domain
+        exclude = []
 
     def clean_parent(self):
         parent = self.cleaned_data["parent"]
@@ -180,7 +186,7 @@ class CollectionInline(admin.TabularInline):
     model = Domain
     verbose_name = "Collection"
     verbose_name_plural = "Collections"
-    
+
 class DomainAdmin(admin.ModelAdmin):
     form = DomainAdminForm
     list_display = ('name', 'num_collections', 'num_pids')
@@ -191,9 +197,9 @@ class DomainAdmin(admin.ModelAdmin):
         qs = super(DomainAdmin, self).queryset(request)
         return qs.filter(parent=None)
 
-admin.site.register(Pid, PidAdmin)
-admin.site.register(Proxy, ProxyAdmin)
-admin.site.register(ExtSystem, ExtSystemAdmin)
-admin.site.register(InvalidArk, InvalidArkAdmin)
-admin.site.register(Policy, PolicyAdmin)
-admin.site.register(Domain, DomainAdmin)
+admin_site.register(Pid, PidAdmin)
+admin_site.register(Proxy, ProxyAdmin)
+admin_site.register(ExtSystem, ExtSystemAdmin)
+admin_site.register(InvalidArk, InvalidArkAdmin)
+admin_site.register(Policy, PolicyAdmin)
+admin_site.register(Domain, DomainAdmin)

@@ -182,7 +182,7 @@ them from being resolved.'''
                                  % (request.META['CONTENT_TYPE'], content_type))
 
             # parse the request body as JSON
-            data = json.loads(request.raw_post_data)
+            data = json.loads(request.body)
 
             # TODO: figure out how to take advantage of overlap in create_pid logic
 
@@ -240,7 +240,7 @@ them from being resolved.'''
     # common logic for GET and successful PUT: return pid info as JSON
     if request.method == 'GET' or request.method == 'PUT':
         json_data = json_serializer.encode(pid_data(pid, request))
-        return HttpResponse(json_data, mimetype='application/json')
+        return HttpResponse(json_data, content_type='application/json')
 
 
     # if request method is not GET or PUT, return 405 method not allowed
@@ -317,7 +317,7 @@ def target(request, noid, type, qualifier):
                 raise BadRequest("Unsupported content type '%s'; please use a supported format: %s" \
                                  % (request.META['CONTENT_TYPE'], content_type))
             # parse the request body as JSON
-            data = json.loads(request.raw_post_data)
+            data = json.loads(request.body)
             # TODO: figure out how to take advantage of overlap in create_pid logic
 
             # update any target properties that are specified
@@ -363,7 +363,7 @@ def target(request, noid, type, qualifier):
                                         kwargs={'noid': target.noid,
                                                 'type': target.pid.type.lower()}))
         json_data = json_serializer.encode(data)
-        return HttpResponse(json_data, mimetype='application/json', status=status)
+        return HttpResponse(json_data, content_type='application/json', status=status)
 
     # ARK targets can be deleted; PURLs have only one target-- not allowing deletion
     if request.method == 'DELETE' and type == 'ark':
@@ -582,7 +582,7 @@ def search_pids(request):
     pid_list = Pid.objects.filter(**query).order_by('updated_at')
     if not pid_list:
         json_data = json_serializer.encode({})
-        return HttpResponse(json_data, mimetype='application/json')
+        return HttpResponse(json_data, content_type='application/json')
 
 
     # pagination code based on the django documentation for same
@@ -647,7 +647,7 @@ def search_pids(request):
 
     # Serialize it all as JSON and return it.
     json_data = json_serializer.encode(results_set)
-    return HttpResponse(json_data, mimetype='application/json')
+    return HttpResponse(json_data, content_type='application/json')
 
 @basic_authentication
 def domains(request):
@@ -677,7 +677,7 @@ def domains(request):
         domains = Domain.objects.filter(parent=None)
         data = [domain_data(d, request) for d in domains]
         json_data = json_serializer.encode(data)
-        return HttpResponse(json_data, mimetype='application/json')
+        return HttpResponse(json_data, content_type='application/json')
 
     elif request.method == 'POST':
         #Validate permissions
@@ -783,12 +783,13 @@ def domain(request, id):
         # content should be posted in request body as JSON
         content_type = 'application/json'
         try:
-
-       	    if request.META['CONTENT_TYPE'] != content_type:
-        	raise BadRequest("Unsupported content type '%s'; please use a supported format: %s" \
-                                 % (request.META['CONTENT_TYPE'], content_type))
+            # NOTE: should be using HTTP_ACCEPT here; content-type
+            # is for responses only
+            if request.META.get('CONTENT_TYPE', None) != content_type:
+                raise BadRequest("Unsupported content type '%s'; please use a supported format: %s" \
+                                 % (request.META.get('CONTENT_TYPE', ''), content_type))
             # parse the request body as JSON
-            data = json.loads(request.raw_post_data)
+            data = json.loads(request.body)
 
             if len(data) == 0:
                 raise BadRequest("No Parameters Passed")
@@ -821,7 +822,7 @@ def domain(request, id):
     #return Domain object for both GET or PUT
     if request.method == 'GET' or request.method == 'PUT':
         json_data = json_serializer.encode(domain_data(domain, request))
-        return HttpResponse(json_data, mimetype='application/json')
+        return HttpResponse(json_data, content_type='application/json')
 
     # if request method is not GET or PUT, return 405 method not allowed
     return HttpResponseNotAllowed(['GET', 'PUT'])

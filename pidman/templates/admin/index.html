@@ -1,6 +1,6 @@
 {% extends "admin/base_site.html" %}
 {% load i18n %}
-{% load admin_tags %}
+{# {% load admin_tags %} #}
 
 {% block extrastyle %}{{ block.super }}<link rel="stylesheet" type="text/css" href="{% load adminmedia %}{% admin_media_prefix %}css/dashboard.css" />{% endblock %}
 
@@ -42,7 +42,7 @@
         </table>
         </div>
     {% endfor %}
-    {% show_usage_log_links %}
+    {# {% show_usage_log_links %} #}
 {% else %}
     <p>{% trans "You don't have permission to edit anything." %}</p>
 {% endif %}

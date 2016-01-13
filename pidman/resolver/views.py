@@ -1,5 +1,5 @@
 from django.http import HttpResponseRedirect
-from django.shortcuts import get_object_or_404, render_to_response
+from django.shortcuts import get_object_or_404, render
 from pidman.pid.models import Target, Pid
 from pidman.pid.ark_utils import normalize_ark
 
@@ -21,7 +21,7 @@ def resolve_ark(request, naan, noid, qual=''):
     full_path = request.get_full_path()
     # if last letter is ? then metadata or preservation commitment should be displayed
     # NOTE: REQUEST_URI is *ONLY* available when running under mod_wsgi,
-    # and full path only includes ? if there is a query string. 
+    # and full path only includes ? if there is a query string.
     # See README file for more details.
     if qual == '' and full_path[-1] == "?" or ('REQUEST_URI' in request.META.keys()
         and request.META['REQUEST_URI'][-1] == "?"):
@@ -30,7 +30,7 @@ def resolve_ark(request, naan, noid, qual=''):
 
 def resolve_pid(noid, qual=''):
     '''Common functionality for resolving PURLs and ARKs.
-    
+
     Retrive the :class:`Target` requested, prefix the :class:`Proxy` transform
     to the target URL if a proxy is defined, and then redirect to the target URL.
     '''
@@ -53,9 +53,8 @@ def ark_metadata(request, noid):
         policy = pid.get_policy()
     else:
         policy = None
-        
-    return render_to_response("resolver/about",
-                              {"pid": pid, "policy" : policy},
-                              mimetype="text/plain")
+
+    return render(request, "resolver/about",
+        {"pid": pid, "policy" : policy}, content_type="text/plain")
 
 
