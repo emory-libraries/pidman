@@ -72,15 +72,14 @@ class PidAdmin(admin.ModelAdmin):
     list_display = ('pid', 'truncated_name', 'type', 'created_at', 'updated_at',
         "domain", "primary_target_uri", "is_active", 'linkcheck_status')
     # filters: collection/domain, creator/user, type (ark/purl), date ranges (created or modified)
-    list_filter = ['type',  'domain', 'creator', 'created_at', 'updated_at']
+    list_filter = ['type', 'domain', 'ext_system', 'creator', 'created_at',
+        'updated_at']
     form = PidAdminForm
 
     # now possible in django 1.1 - fields to use here?
     #list_editable = ('name', 'domain')
     date_hierarchy = 'created_at'
-    search_fields = ['name', 'pid', 'ext_system_key', 'creator__username',
-        'creator__first_name', 'creator__last_name', 'editor__username',
-        'editor__first_name', 'editor__last_name', 'target__uri']
+    search_fields = ['name', 'pid', 'ext_system_key', 'target__uri']
     # keep pid type in a separate fieldset in order to suppress it on edit
     fieldset_pidtype = ('Pid Type', {
             'fields': ('type',),
