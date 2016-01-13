@@ -72,9 +72,20 @@ Upgrade Notes
 
     # fake content type initial migration (depedency for many other models)
     $ python manage.py migrate contenttypes --fake-initial
-    # migrate new content types
-    $ python manage.py migrate sequences
+    # run migrations for new apps
+    $ python manage.py migrate sequences linkcheck
     # migrate all other existing models, faking initial migrations
     $ python manage.py migrate --fake-initial
+
+* Configure a linkcheck **SITE_DOMAIN** in ``localsettings.py`` and
+  schedule a cron job to run the linkcheck manage command to enable
+  periodic link checking on Pid targets::
+
+      python manage.py checklinks --limit [maximum number of links to check]
+
+  By default, linkcheck will recheck urls once a week, but that can be
+  configured in ``localsettings.py``.  See the
+  `django-linkcheck settings documentation <https://github.com/DjangoAdminHackers/django-linkcheck#settings>`_ for details.
+
 
 

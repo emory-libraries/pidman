@@ -94,9 +94,6 @@ STATIC_URL = '/static/'
 # if this token is in target URI it will be replaced with the noid after it is minted
 PID_REPLACEMENT_TOKEN = "{%PID%}"
 
-LINKCHECK_SITE_DOMAINS = ['library.emory.edu']
-SITE_DOMAIN = ['localhost']
-
 try:
     from localsettings import *
 except ImportError:
