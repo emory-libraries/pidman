@@ -344,27 +344,6 @@ LINKCHECK_STATUS = {
             'filter': 'show_unchecked'},
 }
 
-# linkcheck todo: link to linkcheck report from main admin page
-
-# FIXME: invalid arks can probably be removed, since the system
-# shouldn't allow creating invalid arks anymore
-
-# proxy model & custom manager - find ARKs that have target qualifiers with invalid characters
-class InvalidArkManager(PidManager):
-    def get_query_set(self):
-        return super(InvalidArkManager, self).get_query_set().filter(target__qualify__regex=r'[^' +
-            ''.join(qualifier_allowed_characters) + ']')
-
-class InvalidArk(Pid):
-    '''Filtered set of :class:`Pid` instances that filters on invalid qualifiers.
-    This model was created to make it easy to find and correct any invalid Pids
-    that were added before ARK validation was added to the application.  Meant for
-    access/update use only in the Django Admin interface.
-    '''
-    objects = InvalidArkManager()
-    class Meta:
-        proxy = True
-
 class ProxyManager(models.Manager):
     def get_by_natural_key(self, name):
         return self.get(name=name)

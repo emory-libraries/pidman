@@ -1,4 +1,4 @@
-from pidman.pid.models import ExtSystem, Pid, Proxy, Target, InvalidArk, Policy, Domain
+from pidman.pid.models import ExtSystem, Pid, Proxy, Target, Policy, Domain
 from django.contrib import admin
 from django import forms
 from django.forms.models import ModelForm, ModelChoiceField
@@ -148,11 +148,6 @@ class PidAdmin(admin.ModelAdmin):
     #     )
     #     return my_urls + urls
 
-class InvalidArkAdmin(PidAdmin):
-    # disallow adding invalid ark - makes no sense
-    def has_add_permission(self, request):
-        return False
-
 
 class ExtSystemAdmin(admin.ModelAdmin):
     list_display = ('name', 'key_field', 'updated_at')
@@ -208,6 +203,5 @@ class DomainAdmin(admin.ModelAdmin):
 admin_site.register(Pid, PidAdmin)
 admin_site.register(Proxy, ProxyAdmin)
 admin_site.register(ExtSystem, ExtSystemAdmin)
-admin_site.register(InvalidArk, InvalidArkAdmin)
 admin_site.register(Policy, PolicyAdmin)
 admin_site.register(Domain, DomainAdmin)
