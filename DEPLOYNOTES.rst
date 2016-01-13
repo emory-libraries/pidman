@@ -87,5 +87,10 @@ Upgrade Notes
   configured in ``localsettings.py``.  See the
   `django-linkcheck settings documentation <https://github.com/DjangoAdminHackers/django-linkcheck#settings>`_ for details.
 
+0.9
+---
+
+* The REST api uses Basic Authentication.  When running under Apache
+  with mod_wsgi, use this configuration setting: ``WSGIPassAuthorization On``
 
 
