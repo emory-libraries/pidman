@@ -3,4 +3,4 @@ pidman/localsettings.py
 test-results
 docs/_build
 nosetests.xml
-coverage.xml
+.coverage
