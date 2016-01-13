@@ -1,3 +1,18 @@
+Release 1.0
+-----------
+
+* Upgraded to Django 1.8; South migrations have been converted to
+  Django migrations.
+* SOAP API has been removed.
+* Pid noid sequence is now generated with django-sequences and is
+  database agnostic (postgres is no longer required).
+* Updated to use django-nose as unit test runner.
+* Django admin site now customized using a local AdminSite instead of
+  extending admin templates.
+* Unused usage statistics code has been removed (to be revisited in a
+  future version).
+* Unused pidman.pidauth has been removed.
+
 Release 0.9.0
 -------------
 Date: October 2010
@@ -16,7 +31,7 @@ with the following features:
   ARK via REST.
 * An authenticated user can create a new Domain or Subdomain by
   POSTing the metadata for the requested Domain.
-* An authenticated user can update metadata for an existing Domain. 
+* An authenticated user can update metadata for an existing Domain.
 * An authenticated user can remove an ARK qualifier via HTTP delete.
 * When a user attempts to delete an unqualified ARK or PURL, the ARK
   or PURL is not removed and the user gets an error response.
