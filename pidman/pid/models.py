@@ -4,11 +4,13 @@ import urlparse
 
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.contrib.contenttypes.fields import GenericRelation
 from django.core.urlresolvers import reverse
 from django.db import connection, models, transaction
 
 from mptt.models import MPTTModel, TreeForeignKey
 from sequences import get_next_value
+from linkcheck.models import Link
 
 from pidman.pid.ark_utils import normalize_ark, valid_qualifier, qualifier_allowed_characters
 from pidman.pid.noid import encode_noid, decode_noid
@@ -171,14 +173,14 @@ class Pid(models.Model):
         :return: :class:`Target`
         '''
         try:
-            t = self.target_set.filter(qualify='')
-            if len(t):
-                return t[0]
+            return self.target_set.filter(qualify='').first()
         except Target.DoesNotExist:
             return None
 
     # make primary target uri easily accessible
     def primary_target_uri(self):
+        '''Return the resolvable URL for the primary :class:`Target` associated
+        with this pid.'''
         target = self.primary_target()
         if target:
             return target.uri
@@ -207,25 +209,16 @@ class Pid(models.Model):
             return "<a target='_blank' href='%(url)s'>%(url)s</a>" % {'url': url}
         else:
             return ''
-    url_link.short_description = "Url"
+    url_link.short_description = "URL"
     url_link.allow_tags = True
 
-    def primary_uri(self):
-        '''Return the resolvable URL for the primary :class:`Target` associated
-        with this pid.'''
-        target = self.primary_target()
-        if target:
-            return target.get_resolvable_url()
-        else:
-	    return ''
-
     def is_valid(self):
-        if (self.type == "Purl"):
-            if (self.target_set.count() > 1):
+        if self.type == "Purl":
+            if self.target_set.count() > 1:
                 raise Exception("Purls may only have one target")
-            if (self.target_set.count() and self.target_set.get().qualify != ''):
+            if self.target_set.count() and self.target_set.get().qualify != '':
                 raise Exception("Purl target may not have qualifiers")
-        if (self.type == "Ark"):
+        if self.type == "Ark":
             # note: this should be caught because of unique_together setting,
             # but there seems to be a bug with admin inlines
             quals = self.target_set.values_list("qualify")
@@ -283,39 +276,79 @@ class Pid(models.Model):
             return self.domain.get_policy()
 
     def is_active(self):
-        '''Determine if this Pid is active.  A Pid isconsidered active if
+        '''Determine if this Pid is active.  A Pid is considered active if
         **any** of its associated :class:`Target` instances are active.
 
         :return: boolean
         '''
-        active = False
         # consider active if any targets are active
-        for t in self.target_set.all():
-            if t.active == True:
-                active = True
-
-        return active
+        return self.target_set.filter(active=True).exists()
     is_active.short_description = "Active ?"
     is_active.allow_tags = True
+    is_active.boolean = True
 
-# FIXME: invalid arks can probably be removed, since the system
-# shouldn't allow creating invalid arks anymore
+    def target_linkcheck_status(self):
+        '''Determine summary linkcheck status for target(s) associated
+        with this pid.  Return values:
+            - None : unknown or unchecked; returns None if any associated
+              targets have not been checked *or* if the Pid has
+              no associated targets
+            - True: all target URIs have been checked and are ok
+            - False: any target URIs have been checked and errored
+        '''
+        # true - all ok
+        # false - any not ok
+        # none - any unknown / unchecked
 
-# proxy model & custom manager - find ARKs that have target qualifiers with invalid characters
-class InvalidArkManager(PidManager):
-    def get_query_set(self):
-        return super(InvalidArkManager, self).get_query_set().filter(target__qualify__regex=r'[^' +
-            ''.join(qualifier_allowed_characters) + ']')
+        # if a pid has no targets, consider it unchecked
+        if not self.target_set.exists():
+            return None
 
-class InvalidArk(Pid):
-    '''Filtered set of :class:`Pid` instances that filters on invalid qualifiers.
-    This model was created to make it easy to find and correct any invalid Pids
-    that were added before ARK validation was added to the application.  Meant for
-    access/update use only in the Django Admin interface.
-    '''
-    objects = InvalidArkManager()
-    class Meta:
-        proxy = True
+        # get all linkcheck status for all target urls
+        # linkcheck status is true for ok, false for error
+        link_status = self.target_set.all().values_list('linkcheck__url__status',
+                                                        flat=True)
+        # if the number of statuses doesn't match the number of targets,
+        # then return None for unknown/unchecked
+        if self.target_set.count() != len(link_status):
+            return None
+        else:
+            # ok if all are true, otherwise there are some errors
+            return all(link_status)
+
+    def linkcheck_status(self):
+        # move to target for reuse?
+        link_status = None
+        if self.target_set.exists():
+            link_status = self.target_linkcheck_status()
+            if link_status is None:
+                status = LINKCHECK_STATUS['unknown']
+            elif link_status:
+                status = LINKCHECK_STATUS['ok']
+            else:
+                status = LINKCHECK_STATUS['alert']
+        else:
+            status = LINKCHECK_STATUS['no_urls']
+
+        tag = '<i style="color:%(color)s" class="fa fa-%(icon)s" title="%(title)s"></i>' \
+            % status
+        if 'filter' in status:
+            tag = '<a href="%s?filters=%s">%s</a>' % \
+                (reverse('linkcheck:linkcheck_report'), status['filter'], tag)
+        return tag
+    linkcheck_status.short_description = 'URL Status'
+    linkcheck_status.allow_tags = True
+
+
+LINKCHECK_STATUS = {
+    'no_urls': {'color': 'black', 'icon': 'ban', 'title': 'No URLs'},
+    'ok': {'color': 'green', 'icon': 'check', 'title': 'All URLs ok',
+            'filter': 'show_valid'},
+    'alert': {'color': 'red', 'icon': 'exclamation-triangle', 'title': 'Some errors',
+            'filter': 'show_invalid'},
+    'unknown': {'color': 'blue', 'icon': 'question-circle', 'title': 'Unchecked',
+            'filter': 'show_unchecked'},
+}
 
 class ProxyManager(models.Manager):
     def get_by_natural_key(self, name):
@@ -354,10 +387,14 @@ class Target(models.Model):
     '''
     pid = models.ForeignKey(Pid)
     noid = models.CharField(max_length=255, editable=False)
-    uri = models.CharField(max_length=2048)
+    # NOTE: previously uri was a charfield, because URLField was only
+    # introduced in Django 1.5.
+    uri = models.URLField(max_length=2048)
     qualify = models.CharField("Qualifier", max_length=255, null=False, blank=True, default='')
     proxy = models.ForeignKey(Proxy, blank=True, null=True)
     active = models.BooleanField(default=True)
+
+    linkcheck = GenericRelation(Link)
 
     objects = TargetManager()
 
@@ -420,6 +457,9 @@ class Target(models.Model):
     # needed by linkcheck admin
     def get_absolute_url(self):
         return self.get_resolvable_url()
+
+    # def link_status(self):
+
 
 
 def parse_resolvable_url(urlstring):

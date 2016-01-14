@@ -42,3 +42,8 @@ SECRET_KEY = ''
 PID_RESOLVER_URL = 'http://pid.example.com'
 PID_ARK_NAAN = '12345'
 
+# django-linkcheck settings for internal links; for more options, see
+# https://github.com/DjangoAdminHackers/django-linkcheck#settings
+SITE_DOMAIN = ['localhost']
+# LINKCHECK_SITE_DOMAINS = ['example.com']
+
