@@ -768,11 +768,11 @@ def domain(request, id):
 
     '''
     # Look-Up object for PUT and GET
-    if request.method == 'GET' or  request.method == 'PUT':
-	domain = get_object_or_404(Domain, id__exact=id)
+    if request.method == 'GET' or request.method == 'PUT':
+        domain = get_object_or_404(Domain, id__exact=id)
 
     if request.method == 'PUT':
-        #Validate permissions
+        # Validate permissions
         if not request.user.is_authenticated():
             # 401 unauthorized - not logged in or invalid credentials
             return HttpResponseUnauthorized(BASIC_AUTH_REALM)
@@ -783,8 +783,6 @@ def domain(request, id):
         # content should be posted in request body as JSON
         content_type = 'application/json'
         try:
-            # NOTE: should be using HTTP_ACCEPT here; content-type
-            # is for responses only
             if request.META.get('CONTENT_TYPE', None) != content_type:
                 raise BadRequest("Unsupported content type '%s'; please use a supported format: %s" \
                                  % (request.META.get('CONTENT_TYPE', ''), content_type))
@@ -794,23 +792,23 @@ def domain(request, id):
             if len(data) == 0:
                 raise BadRequest("No Parameters Passed")
 
-            #set new values and save
+            # set new values and save
             if 'name' in data:
                 domain.name = data['name']
             if 'parent' in data and data['parent']:
-                    try:
-                        domain.parent =  _domain_from_uri(data['parent'])
-                    except ObjectDoesNotExist:
-                        raise BadRequest("Parent Domani '%s' not found" % data['parent'])
+                try:
+                    domain.parent = _domain_from_uri(data['parent'])
+                except ObjectDoesNotExist:
+                    raise BadRequest("Parent domain '%s' not found" % data['parent'])
             else:
-                domain.parent =  None
+                domain.parent = None
             if 'policy' in data and data['policy']:
-                    try:
-                        domain.policy =  Policy.objects.get(title=data['policy'])
-                    except ObjectDoesNotExist:
-                        raise BadRequest("Policy '%s' not found" % data['policy'])
+                try:
+                    domain.policy = Policy.objects.get(title=data['policy'])
+                except ObjectDoesNotExist:
+                    raise BadRequest("Policy '%s' not found" % data['policy'])
             else:
-                domain.policy =  None
+                domain.policy = None
 
             domain.save()
             _log_rest_action(request, domain, CHANGE, 'Updated Domain: %s via rest api' % domain.__unicode__())
@@ -819,7 +817,7 @@ def domain(request, id):
             # return a response with status code 400, Bad Request
             return HttpResponseBadRequest('Error: %s' % err)
 
-    #return Domain object for both GET or PUT
+    # return Domain object for both GET or PUT
     if request.method == 'GET' or request.method == 'PUT':
         json_data = json_serializer.encode(domain_data(domain, request))
         return HttpResponse(json_data, content_type='application/json')

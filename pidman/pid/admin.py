@@ -42,8 +42,7 @@ class PurlTargetInline(TargetInline):
     fields = ('uri', 'proxy', 'active')
 
 class PidAdminForm(ModelForm):
-    domain = TreeNodeChoiceField(queryset=Domain.objects.all(),
-        level_indicator=u'+--')
+    domain = TreeNodeChoiceField(queryset=Domain.objects.all())
     class Meta:
         model = Pid
         exclude = []
@@ -115,53 +114,51 @@ class PolicyAdmin(admin.ModelAdmin):
     list_display = ('commitment', 'created_at')
 
 class DomainAdminForm(forms.ModelForm):
-    # restrict list of domains allowed to be parents to those domains without a parent (1 level deep only)
-    # FIXME: is there any way to exclude current domain from this list? no access to instance id here
-    parent = TreeNodeChoiceField(queryset=Domain.objects.all(), required=False)
-    # parent = ModelChoiceField(queryset=Domain.objects.filter(parent=None).all(), required=False)
+    # restrict list of domains allowed to be parents to those domains
+    # without a parent (1 level deep only)
+    parent = TreeNodeChoiceField(queryset=Domain.objects.filter(parent__isnull=True),
+        required=False)
     class Meta:
         model = Domain
         exclude = []
 
-    # def clean_parent(self):
-    #     parent = self.cleaned_data["parent"]
-    #     if parent:
-    #         # check parent id - cannot point to self
-    #         if parent.id == self.instance.id:
-    #            raise ValidationError("Not permitted: a domain can not be its own parent");
-    #         # restrict hierarchy to one level
-    #         elif parent.parent:
-    #             raise ValidationError("Domain hierarchy restricted to depth of 1; " +
-    #                             parent.name + " is a collection of " + parent.parent.name)
-    #     return parent
+    def clean_parent(self):
+        print 'clean parent data = ', self.cleaned_data
+        parent = self.cleaned_data["parent"]
+        if parent:
+            # check parent id - cannot point to self
+            if parent.id == self.instance.id:
+                print 'raising ValidationError for self parent'
+                raise ValidationError("Not permitted: a domain can not be its own parent",
+                   code='invalid')
+            # restrict hierarchy to one level
+            elif parent.parent:
+                raise ValidationError("Domain hierarchy restricted to depth of 1; " +
+                                parent.name + " is a collection of " + parent.parent.name,
+                                code='invalid')
+        return self.cleaned_data
 
     def clean(self):
-        #raise ValidationError(self.cleaned_data)
-        print self.cleaned_data
         # policy is optional by default, but top-level domains must have one (can't inherit from parent)
-        if not self.cleaned_data['parent'] and not self.cleaned_data['policy']:
+        if not self.cleaned_data.get('parent', None) and not self.cleaned_data['policy']:
            raise ValidationError("Policy is required for top-level domains");
         return self.cleaned_data
 
 class CollectionInline(admin.TabularInline):
     model = Domain
     verbose_name = "Domain"
-    verbose_name_plural = "Subdomains"
-    parent = TreeNodeChoiceField(queryset=Domain.objects.all(),
-        level_indicator=u'+--')
+    verbose_name_plural = "Collections"
+    # parent = TreeNodeChoiceField(queryset=Domain.objects.all(),
+        # level_indicator=u'+--')
 
 class DomainAdmin(MPTTModelAdmin):
     form = DomainAdminForm
     mptt_level_indent = 20
 
-    list_display = ('name', 'num_pids', 'get_policy', 'subdomain_count')
+    list_display = ('name', 'num_pids', 'subdomain_count', 'show_policy')
     inlines = [CollectionInline]
     list_filter = ['level']
 
-    # # extend queryset to limit list view to top-level domains
-    # def queryset(self, request):
-    #     qs = super(DomainAdmin, self).queryset(request)
-    #     return qs.filter(parent=None)
 
 admin_site.register(Pid, PidAdmin)
 admin_site.register(Proxy, ProxyAdmin)

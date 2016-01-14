@@ -8,8 +8,13 @@ January 2016
 * Pid noid sequence is now generated with django-sequences and is
   database agnostic (postgres is no longer required).
 * Pid target uri is now a URLField instead of a CharField.
-* Updated and refined django-linkcheck integration.
-* Updated to use django-nose as unit test runner.
+* Domain/collection hierarchy now handled with
+  `django-mptt <http://django-mptt.github.io/django-mptt/>`_.
+* Updated and refined
+  `django-linkcheck <https://github.com/DjangoAdminHackers/django-linkcheck>`_
+  integration.
+* Updated to use `django-nose <https://django-nose.readthedocs.org/en/latest/>`_
+  as unit test runner.
 * Django admin site now customized using a local AdminSite instead of
   extending admin templates.
 * Unused usage statistics code has been removed (to be revisited in a

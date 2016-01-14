@@ -4,6 +4,14 @@ from __future__ import unicode_literals
 from django.db import migrations, models
 import mptt.fields
 
+from pidman.pid.models import Domain
+
+
+def rebuild_hierarchy(apps, schema_editor):
+    # use mptt to (re)build hierarchy based on parent relationship
+    # per https://github.com/django-mptt/django-mptt/issues/173
+    Domain.objects.rebuild()
+
 
 class Migration(migrations.Migration):
 
@@ -41,4 +49,6 @@ class Migration(migrations.Migration):
             name='parent',
             field=mptt.fields.TreeForeignKey(related_name='collections', blank=True, to='pid.Domain', null=True),
         ),
+        migrations.RunPython(rebuild_hierarchy, migrations.RunPython.noop)
     ]
+
