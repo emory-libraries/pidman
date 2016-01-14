@@ -33,7 +33,7 @@ class TargetInline(admin.TabularInline):
 # to display link status - last checked / message / etc
 
 class PurlTargetInline(TargetInline):
-    verbose_name_plural  = "Target"
+    verbose_name_plural = "Target"
     max_num = 1
     can_delete = False      # do not allow PURL target deletion (only one target)
     fields = ('uri', 'proxy', 'active')
@@ -55,8 +55,8 @@ class DomainChoiceField(ModelChoiceField):
                 # This is interpreted by the select wigdet as an option group
                 # with a label and choices, so that collections are clearly
                 # labeled by the domain that they belong to.
-                yield ( d.name + ' collections',
-                        [ (c.id, c.name) for c in d.collections.all() ] )
+                yield (d.name + ' collections',
+                        [(c.id, c.name) for c in d.collections.all()])
 
 class PidAdminForm(ModelForm):
     domain = DomainChoiceField(queryset=Domain.objects, cache_choices=True)
@@ -99,36 +99,15 @@ class PidAdmin(admin.ModelAdmin):
         }
 
     def get_inline_instances(self, request, obj=None):
+        # get target inline class based on the object
+        # when adding a new object, restrict targets to purl type until saved
+        # once the object is saved, display purl or ark target inline
+        # edit form based on pid type
         inlines = list(self.inlines)  # make a new copy of inline config
         if obj is not None and obj.type == 'Ark':
             inlines[0] = TargetInline
 
         return [inline(self.model, self.admin_site) for inline in inlines]
-
-
-    # when adding a new object, restrict targets to purl type until saved and type is set
-    # def add_view(self, request, form_url='', extra_context=None):
-    #     self.fieldsets = (self.fieldset_pidtype, self.fieldset_pidinfo)
-    #     return super(PidAdmin, self).add_view(request, form_url, extra_context)
-
-    # overriding change_view to set target inline based on pid type,
-    # and to disallow changing pid type
-    # def change_view(self, request, object_id, extra_context=None):
-    #     # fieldset is pidinfo only (not allowing users to edit pid type after pid creation)
-    #     self.fieldsets = (self.fieldset_pidinfo,)
-
-    #     try:
-    #         obj = Pid.objects.get(pk=object_id)
-    #         if (obj.type == "Ark"):
-    #             # for Arks, use default target inline (no max, edit qualifiers)
-    #             self.inline_instances[0] = TargetInline(self.model, self.admin_site)
-    #         if (obj.type == "Purl"):
-    #             # customized target inline for purls (max =1, no qualifiers)
-    #             self.inline_instances[0] = PurlTargetInline(self.model, self.admin_site)
-    #     except Exception:
-    #         pass
-
-    #     return super(PidAdmin, self).change_view(request, object_id, extra_context)
 
     # set creator and editor to current user before saving
     def save_model(self, request, obj, form, change):
@@ -140,13 +119,6 @@ class PidAdmin(admin.ModelAdmin):
     #disallow delete of Pids set targets to inactive instead
     def has_delete_permission(self, request, obj=None):
         return False
-
-    # def get_urls(self):
-    #     # FIXME: these would make more sense on a custom AdminSite rather than here...
-    #     urls = super(PidAdmin, self).get_urls()
-    #     my_urls = patterns('',
-    #     )
-    #     return my_urls + urls
 
 
 class ExtSystemAdmin(admin.ModelAdmin):

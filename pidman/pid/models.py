@@ -165,14 +165,14 @@ class Pid(models.Model):
         :return: :class:`Target`
         '''
         try:
-            t = self.target_set.filter(qualify='')
-            if len(t):
-                return t[0]
+            return self.target_set.filter(qualify='').first()
         except Target.DoesNotExist:
             return None
 
     # make primary target uri easily accessible
     def primary_target_uri(self):
+        '''Return the resolvable URL for the primary :class:`Target` associated
+        with this pid.'''
         target = self.primary_target()
         if target:
             return target.uri
@@ -201,25 +201,16 @@ class Pid(models.Model):
             return "<a target='_blank' href='%(url)s'>%(url)s</a>" % {'url': url}
         else:
             return ''
-    url_link.short_description = "Url"
+    url_link.short_description = "URL"
     url_link.allow_tags = True
 
-    def primary_uri(self):
-        '''Return the resolvable URL for the primary :class:`Target` associated
-        with this pid.'''
-        target = self.primary_target()
-        if target:
-            return target.get_resolvable_url()
-        else:
-	    return ''
-
     def is_valid(self):
-        if (self.type == "Purl"):
-            if (self.target_set.count() > 1):
+        if self.type == "Purl":
+            if self.target_set.count() > 1:
                 raise Exception("Purls may only have one target")
-            if (self.target_set.count() and self.target_set.get().qualify != ''):
+            if self.target_set.count() and self.target_set.get().qualify != '':
                 raise Exception("Purl target may not have qualifiers")
-        if (self.type == "Ark"):
+        if self.type == "Ark":
             # note: this should be caught because of unique_together setting,
             # but there seems to be a bug with admin inlines
             quals = self.target_set.values_list("qualify")
@@ -277,26 +268,33 @@ class Pid(models.Model):
             return self.domain.get_policy()
 
     def is_active(self):
-        '''Determine if this Pid is active.  A Pid isconsidered active if
+        '''Determine if this Pid is active.  A Pid is considered active if
         **any** of its associated :class:`Target` instances are active.
 
         :return: boolean
         '''
-        active = False
         # consider active if any targets are active
-        for t in self.target_set.all():
-            if t.active == True:
-                active = True
-
-        return active
+        return self.target_set.filter(active=True).exists()
     is_active.short_description = "Active ?"
     is_active.allow_tags = True
     is_active.boolean = True
 
     def target_linkcheck_status(self):
+        '''Determine summary linkcheck status for target(s) associated
+        with this pid.  Return values:
+            - None : unknown or unchecked; returns None if any associated
+              targets have not been checked *or* if the Pid has
+              no associated targets
+            - True: all target URIs have been checked and are ok
+            - False: any target URIs have been checked and errored
+        '''
         # true - all ok
         # false - any not ok
         # none - any unknown / unchecked
+
+        # if a pid has no targets, consider it unchecked
+        if not self.target_set.exists():
+            return None
 
         # get all linkcheck status for all target urls
         # linkcheck status is true for ok, false for error

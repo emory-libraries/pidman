@@ -2,9 +2,9 @@ Release 1.0
 -----------
 January 2016
 
+* **SOAP API has been removed.**
 * Upgraded to Django 1.8; South migrations have been converted to
   Django migrations.
-* SOAP API has been removed.
 * Pid noid sequence is now generated with django-sequences and is
   database agnostic (postgres is no longer required).
 * Pid target uri is now a URLField instead of a CharField.
@@ -15,6 +15,9 @@ January 2016
 * Unused usage statistics code has been removed (to be revisited in a
   future version).
 * Unused pidman.pidauth has been removed.
+* InvalidArk proxy model has been removed (application no longer allows
+  invalid arks to be created).
+* Legacy documentation that is no longer relevant has been removed.
 
 Release 0.9.0
 -------------
