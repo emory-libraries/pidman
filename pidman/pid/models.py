@@ -117,8 +117,8 @@ class Domain(MPTTModel):
         try:
             return self.get_policy()
         except DomainException:
-            return 'No policy set'
-    show_policy.name = 'Policy'
+            return '(no policy set)'
+    show_policy.short_description = 'Policy'
 
     def subdomain_count(self):
         return self.get_descendant_count()
