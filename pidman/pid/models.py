@@ -8,6 +8,7 @@ from django.contrib.contenttypes.fields import GenericRelation
 from django.core.urlresolvers import reverse
 from django.db import connection, models, transaction
 
+from mptt.models import MPTTModel, TreeForeignKey
 from sequences import get_next_value
 from linkcheck.models import Link
 
@@ -53,7 +54,7 @@ class Policy(models.Model):
     '''
     created_at = models.DateTimeField("Date Created", auto_now_add=True)
     commitment = models.TextField("Commitment Statement")
-    title      = models.CharField(unique=True, max_length=255)
+    title = models.CharField(unique=True, max_length=255)
 
     objects = PolicyManager()
 
@@ -72,7 +73,7 @@ class DomainException(Exception):
 # NOTE: not adding natural key logic to Target because it results in a dependency
 # error, most likely because of Domain -> collection/subdomain recursive relation.
 
-class Domain(models.Model):
+class Domain(MPTTModel):
     '''A Domain is a collection of :class:`Pid` instances.  Domains can have an
     associated :class:`Policy`, which all Pids in that collection inherit by
     default.  This implementation allows for collections or subdomains
@@ -83,12 +84,19 @@ class Domain(models.Model):
     '''
     name = models.CharField(unique=True, max_length=255)
     updated_at = models.DateTimeField(auto_now=True)
-    policy = models.ForeignKey(Policy, blank=True, null=True)
-    parent = models.ForeignKey('self', blank=True, null=True,
-                related_name='collections', db_column='parent_id')
+    policy = models.ForeignKey(Policy, blank=True, null=True,
+        help_text='Policy statement for pids in this domain')
+    parent = TreeForeignKey('self', blank=True, null=True,
+                related_name='collections', db_index=True)
+
+    class MPTTMeta:
+        order_insertion_by = ['name']
 
     def __unicode__(self):
         return self.name
+
+    def __repr__(self):
+        return '<Domain %s>' % unicode(self)
 
     def get_policy(self):
         '''Return the policy for this domain or from parent domain if inherited.
@@ -99,22 +107,28 @@ class Domain(models.Model):
         if self.policy:
             return self.policy
         elif self.parent:
-            return self.parent.get_policy()
+            # traverse the hierarchy, closest ancestor first,
+            # and find the first one with a policy
+            return self.get_ancestors(ascending=True).filter(policy__isnull=False).first().policy
         else:
             raise DomainException("No Policy Exists")
 
-    def num_collections(self):
-        "Number of collections under this domain."
-        return self.collections.count()
-    num_collections.short_description = "# collections"
+    def show_policy(self):
+        try:
+            return self.get_policy()
+        except DomainException:
+            return 'No policy set'
+    show_policy.name = 'Policy'
+
+    def subdomain_count(self):
+        return self.get_descendant_count()
+    subdomain_count.short_description = '# collections'
 
     def num_pids(self):
         '''Number of :class:`Pid` instances in this domain, including those in
         any subdomains.'''
-        pid_count = self.pid_set.count()
-        for subdomain in self.collections.all():
-            pid_count += subdomain.pid_set.count()
-        return pid_count
+        domain_ids = self.get_descendants(include_self=True).values_list('id', flat=True)
+        return Pid.objects.filter(domain__in=domain_ids).count()
     num_pids.short_description = "# pids"
 
 class PidManager(models.Manager):

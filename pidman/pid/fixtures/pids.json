@@ -18,37 +18,37 @@
       }
    },
   {
-    "pk": 1, 
-    "model": "pid.policy", 
+    "pk": 1,
+    "model": "pid.policy",
     "fields": {
-      "created_at": "2009-08-21 12:10:43", 
+      "created_at": "2009-08-21 12:10:43",
       "commitment": "Not Guaranteed",
       "title": "Not Guaranteed"
     }
-  }, 
+  },
   {
-    "pk": 2, 
-    "model": "pid.policy", 
+    "pk": 2,
+    "model": "pid.policy",
     "fields": {
-      "created_at": "2009-08-21 12:10:50", 
+      "created_at": "2009-08-21 12:10:50",
       "commitment": "Permanent, Dynamic Content",
       "title": "Permanent, Dynamic Content"
     }
-  }, 
+  },
   {
-    "pk": 3, 
-    "model": "pid.policy", 
+    "pk": 3,
+    "model": "pid.policy",
     "fields": {
-      "created_at": "2009-08-21 12:10:56", 
+      "created_at": "2009-08-21 12:10:56",
       "commitment": "Permanent, Stable Content",
       "title": "Permanent, Stable Content"
     }
-  }, 
+  },
   {
-    "pk": 4, 
-    "model": "pid.policy", 
+    "pk": 4,
+    "model": "pid.policy",
     "fields": {
-      "created_at": "2009-08-21 12:11:07", 
+      "created_at": "2009-08-21 12:11:07",
       "commitment": "Permanent, Unchanging Content",
       "title": "Permanent, Unchanging Content"
     }
@@ -63,97 +63,117 @@
     }
   },
   {
-    "pk": 2, 
-    "model": "pid.domain", 
+    "pk": 2,
+    "model": "pid.domain",
     "fields": {
-      "policy": 3, 
-      "name": "Red", 
-      "parent": 1, 
-      "updated_at": "2009-08-25 15:56:20"
+      "policy": 3,
+      "name": "Red",
+      "parent": 1,
+      "updated_at": "2009-08-25 15:56:20",
+      "level": 1,
+      "lft": 2,
+      "rght": 3,
+      "tree_id": 1
     }
-  }, 
+  },
   {
-    "pk": 5, 
-    "model": "pid.domain", 
+    "pk": 5,
+    "model": "pid.domain",
     "fields": {
-      "policy": 3, 
-      "name": "Yellow", 
-      "parent": null, 
-      "updated_at": "2009-08-25 16:28:38"
+      "policy": 3,
+      "name": "Yellow",
+      "parent": null,
+      "updated_at": "2009-08-25 16:28:38",
+      "level": 0,
+      "lft": 1,
+      "rght": 4,
+      "tree_id": 3
     }
-  }, 
+  },
   {
-    "pk": 4, 
-    "model": "pid.domain", 
+    "pk": 4,
+    "model": "pid.domain",
     "fields": {
-      "policy": null, 
-      "name": "Orange", 
-      "parent": 5, 
-      "updated_at": "2009-08-25 16:34:25"
+      "policy": null,
+      "name": "Orange",
+      "parent": 5,
+      "updated_at": "2009-08-25 16:34:25",
+      "level": 1,
+      "lft": 2,
+      "rght": 3,
+      "tree_id": 3
     }
-  }, 
+  },
   {
-    "pk": 1, 
-    "model": "pid.domain", 
+    "pk": 1,
+    "model": "pid.domain",
     "fields": {
-      "policy": 2, 
-      "name": "Blue", 
-      "parent": null, 
-      "updated_at": "2009-08-25 16:46:36"
+      "policy": 2,
+      "name": "Blue",
+      "parent": null,
+      "updated_at": "2009-08-25 16:46:36",
+      "level": 0,
+      "lft": 1,
+      "rght": 4,
+      "tree_id": 1
     }
-  }, 
+  },
   {
-    "pk": 3, 
-    "model": "pid.domain", 
+    "pk": 3,
+    "model": "pid.domain",
     "fields": {
-      "policy": 1, 
-      "name": "Green", 
-      "parent": null, 
-      "updated_at": "2009-08-25 16:49:11"
+      "policy": 1,
+      "name": "Green",
+      "parent": null,
+      "updated_at": "2009-08-25 16:49:11",
+      "level": 0,
+      "lft": 1,
+      "rght": 2,
+      "tree_id": 2
     }
-  }, 
+  },
   {
-    "pk": 1, 
-    "model": "pid.pid", 
+    "pk": 1,
+    "model": "pid.pid",
     "fields": {
-      "domain": 1, 
-      "name": "testark", 
-      "creator": 1, 
-      "created_at": "2009-08-21 12:12:49", 
-      "pid": "tsd", 
-      "updated_at": "2009-08-21 12:14:03", 
-      "ext_system_key": "", 
-      "ext_system": null, 
-      "policy": 1, 
-      "type": "Ark", 
+      "domain": 1,
+      "name": "testark",
+      "creator": 1,
+      "created_at": "2009-08-21 12:12:49",
+      "pid": "tsd",
+      "updated_at": "2009-08-21 12:14:03",
+      "ext_system_key": "",
+      "ext_system": null,
+      "policy": 1,
+      "type": "Ark",
       "editor": 1
     }
-  }, 
+  },
   {
-    "pk": 2, 
-    "model": "pid.pid", 
+    "pk": 2,
+    "model": "pid.pid",
     "fields": {
-      "domain": 2, 
-      "name": "newark", 
-      "creator": 1, 
-      "created_at": "2009-08-21 14:23:34", 
-      "pid": "twm", 
-      "updated_at": "2009-08-21 14:23:34", 
-      "ext_system_key": "", 
-      "ext_system": null, 
-      "policy": null, 
-      "type": "Ark", 
+      "domain": 2,
+      "name": "newark",
+      "creator": 1,
+      "created_at": "2009-08-21 14:23:34",
+      "pid": "twm",
+      "updated_at": "2009-08-21 14:23:34",
+      "ext_system_key": "",
+      "ext_system": null,
+      "policy": null,
+      "type": "Ark",
       "editor": 1
     }
-  }, 
+  },
   {
-    "pk": 1, 
-    "model": "pid.target", 
+    "pk": 1,
+    "model": "pid.target",
     "fields": {
-      "qualify": "", 
-      "noid": "tsd", 
-      "pid": 1, 
-      "uri": "http://fedora/get/pid", 
+      "qualify": "",
+      "noid": "tsd",
+      "pid": 1,
+      "uri": "http://fedora/get/pid",
       "proxy": null
     }
   },

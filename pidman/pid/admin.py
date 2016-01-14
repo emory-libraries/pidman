@@ -1,11 +1,14 @@
-from pidman.pid.models import ExtSystem, Pid, Proxy, Target, Policy, Domain
 from django.contrib import admin
 from django import forms
 from django.forms.models import ModelForm, ModelChoiceField
 from django.forms import ValidationError
 
+from mptt.admin import MPTTModelAdmin
+from mptt.fields import TreeNodeChoiceField
+
 from pidman.admin import admin_site
 from pidman.pid.ark_utils import normalize_ark, invalid_qualifier_characters
+from pidman.pid.models import ExtSystem, Pid, Proxy, Target, Policy, Domain
 
 
 class TargetInlineForm(ModelForm):
@@ -38,28 +41,8 @@ class PurlTargetInline(TargetInline):
     can_delete = False      # do not allow PURL target deletion (only one target)
     fields = ('uri', 'proxy', 'active')
 
-# customized domain-specific choice field - sets choices differently
-class DomainChoiceField(ModelChoiceField):
-    # generate a list of domains with grouped collections for building select
-    cached = None
-
-    @property
-    def _choices(self):
-        # If a ModelChoiceField has a '_choices' attribute, it is used instead
-        # of the model queryset.
-         for d in Domain.objects.filter(parent=None):
-            yield (d.id, d.name)
-            if d.collections.count():
-                # If a top-level domain has collections, add a label and
-                # generate a list of those collections.
-                # This is interpreted by the select wigdet as an option group
-                # with a label and choices, so that collections are clearly
-                # labeled by the domain that they belong to.
-                yield (d.name + ' collections',
-                        [(c.id, c.name) for c in d.collections.all()])
-
 class PidAdminForm(ModelForm):
-    domain = DomainChoiceField(queryset=Domain.objects, cache_choices=True)
+    domain = TreeNodeChoiceField(queryset=Domain.objects.all())
     class Meta:
         model = Pid
         exclude = []
@@ -77,7 +60,7 @@ class PidAdmin(admin.ModelAdmin):
     form = PidAdminForm
 
     # now possible in django 1.1 - fields to use here?
-    #list_editable = ('name', 'domain')
+    # list_editable = ('name', 'domain')
     date_hierarchy = 'created_at'
     search_fields = ['name', 'pid', 'ext_system_key', 'target__uri']
     # keep pid type in a separate fieldset in order to suppress it on edit
@@ -131,46 +114,51 @@ class PolicyAdmin(admin.ModelAdmin):
     list_display = ('commitment', 'created_at')
 
 class DomainAdminForm(forms.ModelForm):
-    # restrict list of domains allowed to be parents to those domains without a parent (1 level deep only)
-    # FIXME: is there any way to exclude current domain from this list? no access to instance id here
-    parent = ModelChoiceField(queryset=Domain.objects.filter(parent=None).all(), required=False)
+    # restrict list of domains allowed to be parents to those domains
+    # without a parent (1 level deep only)
+    parent = TreeNodeChoiceField(queryset=Domain.objects.filter(parent__isnull=True),
+        required=False)
     class Meta:
         model = Domain
         exclude = []
 
     def clean_parent(self):
+        print 'clean parent data = ', self.cleaned_data
         parent = self.cleaned_data["parent"]
         if parent:
             # check parent id - cannot point to self
             if parent.id == self.instance.id:
-               raise ValidationError("Not permitted: a domain can not be its own parent");
+                print 'raising ValidationError for self parent'
+                raise ValidationError("Not permitted: a domain can not be its own parent",
+                   code='invalid')
             # restrict hierarchy to one level
             elif parent.parent:
                 raise ValidationError("Domain hierarchy restricted to depth of 1; " +
-                                parent.name + " is a collection of " + parent.parent.name)
-        return parent
+                                parent.name + " is a collection of " + parent.parent.name,
+                                code='invalid')
+        return self.cleaned_data
 
     def clean(self):
-        #raise ValidationError(self.cleaned_data)
         # policy is optional by default, but top-level domains must have one (can't inherit from parent)
-        if not self.cleaned_data['parent'] and not self.cleaned_data['policy']:
+        if not self.cleaned_data.get('parent', None) and not self.cleaned_data['policy']:
            raise ValidationError("Policy is required for top-level domains");
         return self.cleaned_data
 
 class CollectionInline(admin.TabularInline):
     model = Domain
-    verbose_name = "Collection"
+    verbose_name = "Domain"
     verbose_name_plural = "Collections"
+    # parent = TreeNodeChoiceField(queryset=Domain.objects.all(),
+        # level_indicator=u'+--')
 
-class DomainAdmin(admin.ModelAdmin):
+class DomainAdmin(MPTTModelAdmin):
     form = DomainAdminForm
-    list_display = ('name', 'num_collections', 'num_pids')
-    inlines = [CollectionInline]
+    mptt_level_indent = 20
 
-    # extend queryset to limit list view to top-level domains
-    def queryset(self, request):
-        qs = super(DomainAdmin, self).queryset(request)
-        return qs.filter(parent=None)
+    list_display = ('name', 'num_pids', 'subdomain_count', 'show_policy')
+    inlines = [CollectionInline]
+    list_filter = ['level']
+
 
 admin_site.register(Pid, PidAdmin)
 admin_site.register(Proxy, ProxyAdmin)

@@ -977,39 +977,39 @@ class RestApiTestCase(TransactionTestCase):
         self.assertEqual(expected, got, "Expected status code %s because user is not allowed to create a Domain got %s" % (expected, got))
 
     def test_update_domain(self):
-        #Unless specified, tests are with a user with  sufficient permissions
+        # Unless specified, tests are with a user with  sufficient permissions
         domain_url = 'http://testserver' + reverse('rest_api:domain', kwargs={"id" : 1}) # This uri exists and should be used for testing
         domain_url_parent = 'http://testserver' + reverse('rest_api:domain', kwargs={"id" : 2}) # This uri exists and should be used for testing the parent Domain
         domain_url_bad = 'http://testserver' + reverse('rest_api:domain', kwargs={"id" : 100})  #This uri does not exist
 
-        #DELETE is not allowed
+        # DELETE is not allowed
         response = self.client.delete(domain_url)
         expected, got = 405, response.status_code
         self.assertEqual(expected, got, "Expected status code %s (method not allowed) for DELETE to %s, got %s" \
                 % (expected, domain_url, got))
 
-        #POST is not allowed
+        # POST is not allowed
         response = self.client.post(domain_url)
         expected, got = 405, response.status_code
         self.assertEqual(expected, got, "Expected status code %s (method not allowed) for POST to %s, got %s" \
                 % (expected, domain_url, got))
 
-        #PUT with correct content type but trying to update Doman that does not exist
+        # PUT with correct content type but trying to update Doman that does not exist
         response = self.client.put(domain_url_bad, json.dumps({}), content_type='application/json')
         expected, got = 404, response.status_code
         self.assertEqual(expected, got, "Expected status code %s got %s  - Domain does not exist" \
                 % (expected, got))
 
-        #PUT with wrong content type
+        # PUT with wrong content type
         response = self.client.put(domain_url, '', CONTENT_TYPE='text/plain', **ADMIN_AUTH)
         expected, got = 400, response.status_code
         self.assertEqual(expected, got, "Expected status code %s got %s" \
                 % (expected, got))
-        expected, got =  "Error: Unsupported content type 'text/plain'; please use a supported format: application/json", response.content
+        expected, got = "Error: Unsupported content type 'text/plain'; please use a supported format: application/json", response.content
         self.assertEqual(expected, got, "Expected %s got %s" \
                 % (expected, got))
 
-        #PUT with correct content type but no JSON data
+        # PUT with correct content type but no JSON data
         response = self.client.put(domain_url, json.dumps({}), content_type='application/json', **ADMIN_AUTH)
         expected, got = 400, response.status_code
         self.assertEqual(expected, got, "Expected status code %s got %s - no JSON data passed" \
@@ -1018,7 +1018,7 @@ class RestApiTestCase(TransactionTestCase):
         self.assertEqual(expected, got, "Expected  %s got %s" \
                 % (expected, got))
 
-        #PUT with invalid parent
+        # PUT with invalid parent
         data = {'name' : "New Name", 'parent' : domain_url_bad, 'policy' : "Permanent, Stable Content"}
         response = self.client.put(domain_url, json.dumps(data), content_type='application/json', **ADMIN_AUTH)
         expected, got = 400, response.status_code
@@ -1028,7 +1028,7 @@ class RestApiTestCase(TransactionTestCase):
         self.assertEqual(expected, got, "Expected  %s got %s" \
                 % (expected, got))
 
-        #PUT with invalid policy
+        # PUT with invalid policy
         data = {'name' : "New Name", 'parent' : domain_url_parent, 'policy' : "Bad Policy"}
         response = self.client.put(domain_url, json.dumps(data), content_type='application/json', **ADMIN_AUTH)
         expected, got = 400, response.status_code
@@ -1038,42 +1038,41 @@ class RestApiTestCase(TransactionTestCase):
         self.assertEqual(expected, got, "Expected  %s got %s" \
                 % (expected, got))
 
-        #PUT valid data
+        # PUT valid data
         data = {'name' : "New Name", 'parent' : domain_url_parent, 'policy' : "Permanent, Stable Content"}
         response = self.client.put(domain_url, json.dumps(data), content_type='application/json', **ADMIN_AUTH)
         expected, got = 200, response.status_code
         self.assertEqual(expected, got, "Expected status code %s got %s" \
                 % (expected, got))
 
-        #check the values in the DB
+        # check the values in the DB
         parent_id = int(data['parent'].split('/')[4])
         d = Domain.objects.get(id=1)
         self.assertEqual(d.name, data['name']);
         self.assertEqual(d.parent.id, parent_id) # get parent id from uri and compare
         self.assertEqual(d.policy.title, data['policy']);
 
-        #Check the values in the JSON object that is returned
+        # Check the values in the JSON object that is returned
         obj = json.loads(response.content)
         self.assertEqual(obj['name'], data['name']);
         self.assertEqual(obj['policy'], data['policy']);
         self.assertEqual(obj['domain'], data['parent'])
 
-        #check for log entry
+        # check for log entry
         self.assertLogEntryForObject(d)
 
-        #no credentials
+        # no credentials
         response = self.client.put(domain_url, {"name" : "New Test Domain 2"})
         expected, got = 401, response.status_code
         self.assertEqual(expected, got, "Expected status code %s because no user /pass was in post  got %s" % (expected, got))
 
-        #invalid credentials
+        # invalid credentials
         AUTH = auth_header('testuser', 'notmypassword')
         response = self.client.put(domain_url, {"name" : "New Test Domain 2"}, **AUTH)
         expected, got = 401, response.status_code
         self.assertEqual(expected, got, "Expected status code %s because of invalid user / pass got %s" % (expected, got))
 
-
-         #valid credentials but action not allowed
+        # valid credentials but action not allowed
         AUTH = auth_header(*user_credentials)
         response = self.client.put(domain_url, {"name" : "New Test Domain 2"}, **AUTH)
         expected, got = 403, response.status_code
