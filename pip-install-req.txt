@@ -3,3 +3,4 @@ https://wilson.library.emory.edu/jenkins/job/eullocal-0.17.x/lastSuccessfulBuild
 eulcommon
 django-sequences
 django_admin_bootstrapped
+django-auth-ldap
