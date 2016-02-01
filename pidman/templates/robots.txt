@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: http://pid.emory.edu/sitemap.xml
