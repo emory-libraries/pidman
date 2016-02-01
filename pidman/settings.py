@@ -32,7 +32,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'sequences.apps.SequencesConfig',
-    'eullocal.django.emory_ldap',
+    'eultheme',
+    'downtime',
     'pidman.pid',
     'pidman.resolver',
     'pidman.rest_api',
@@ -60,10 +61,19 @@ TEMPLATES = [
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
+                # django default context processors
+                "django.contrib.auth.context_processors.auth",
+                "django.core.context_processors.debug",
+                "django.core.context_processors.i18n",
+                "django.core.context_processors.media",
+                "django.contrib.messages.context_processors.messages",
+                # additional context processors
+                "eultheme.context_processors.template_settings",
+                "django.core.context_processors.request",  # always include request in render context
+                "django.core.context_processors.static",
+                # social auth support
+                "eultheme.context_processors.site_path",
+                "eultheme.context_processors.downtime_context",
             ],
         },
     },
@@ -101,6 +111,17 @@ STATIC_URL = '/static/'
 
 # if this token is in target URI it will be replaced with the noid after it is minted
 PID_REPLACEMENT_TOKEN = "{%PID%}"
+
+
+# exempted paths for downtime; exempts any urls starting with these strings
+DOWNTIME_EXEMPT_PATHS = (
+    '/admin',
+    '/indexdata',
+    '/sitemap'
+)
+DOWNTIME_EXEMPT_EXACT_URLS = (
+    '/',
+)
 
 
 try:
