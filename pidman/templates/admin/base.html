@@ -8,6 +8,10 @@
 {% if LANGUAGE_BIDI %}<link rel="stylesheet" type="text/css" href="{% block stylesheet_rtl %}{% admin_media_prefix %}css/rtl.css{% endblock %}" />{% endif %}
 {% block extrahead %}{% endblock %}
 {% block blockbots %}<meta name="robots" content="NONE,NOARCHIVE" />{% endblock %}
+
+{% if not debug %} {# google analytics tracking code #}
+    {% include 'snippets/google_analytics.html' %}
+{% endif %}
 </head>
 {% load i18n %}
 
