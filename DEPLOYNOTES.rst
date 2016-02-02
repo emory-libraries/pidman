@@ -70,7 +70,7 @@ Upgrade Notes
 * Run database migrations; existing instances will need to fake initial
   migrations for several models::
 
-    # fake content type initial migration (depedency for many other models)
+    # fake content type initial migration (dependency for several other models)
     $ python manage.py migrate contenttypes --fake-initial
     # run migrations for new apps
     $ python manage.py migrate sequences linkcheck
