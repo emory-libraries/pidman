@@ -6,7 +6,7 @@ from django.views.generic.base import RedirectView
 urlpatterns = [
     # pidman has no user-facing index, so redirect from base site url
     # to site admin page
-    url(r'^$', RedirectView.as_view(url='admin/', permanent=False)),
+    url(r'^$', RedirectView.as_view(url='admin/', permanent=False),name="site-index"),
     url(r'^admin/', include(admin.site.urls)),
 
     # REST API urls live under top-level, but should not conflict with resolver urls

@@ -31,9 +31,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.humanize',
+    'django.contrib.sitemaps',
     'sequences.apps.SequencesConfig',
     'eultheme',
     'downtime',
+    'widget_tweaks',
     'pidman.pid',
     'pidman.resolver',
     'pidman.rest_api',
@@ -44,6 +47,7 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'eultheme.middleware.DownpageMiddleware',
     'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -52,31 +56,68 @@ MIDDLEWARE_CLASSES = (
 
 ROOT_URLCONF = 'pidman.urls'
 
-TEMPLATES = [
-    {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [
-            os.path.join(BASE_DIR, 'templates'),
-        ],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                # django default context processors
-                "django.contrib.auth.context_processors.auth",
-                "django.core.context_processors.debug",
-                "django.core.context_processors.i18n",
-                "django.core.context_processors.media",
-                "django.contrib.messages.context_processors.messages",
-                # additional context processors
-                "eultheme.context_processors.template_settings",
-                "django.core.context_processors.request",  # always include request in render context
-                "django.core.context_processors.static",
-                # social auth support
-                "eultheme.context_processors.site_path",
-                "eultheme.context_processors.downtime_context",
-            ],
-        },
-    },
+
+# Tell nose to measure coverage
+NOSE_ARGS = [
+    '--with-coverage',
+    '--cover-package=pid,resolver,rest_api',
+]
+
+# TEMPLATES = [
+#     {
+#         'BACKEND': 'django.template.backends.django.DjangoTemplates',
+#         'DIRS': [
+#             os.path.join(BASE_DIR, 'templates'),
+#         ],
+#         # 'APP_DIRS': True,
+#         'OPTIONS': {
+#             'context_processors': [
+#                 # django default context processors
+#                 "django.contrib.auth.context_processors.auth",
+#                 "django.core.context_processors.debug",
+#                 "django.core.context_processors.i18n",
+#                 "django.core.context_processors.media",
+#                 "django.contrib.messages.context_processors.messages",
+#                 'eultheme.context_processors.template_settings',
+#                 # additional context processors
+#                 "django.core.context_processors.request",  # always include request in render context
+#                 "django.core.context_processors.static",
+#                 # social auth support
+#                 "eultheme.context_processors.template_settings",
+#                 "eultheme.context_processors.site_path",
+#                 "eultheme.context_processors.downtime_context",
+#             ],
+#         },
+#     },
+# ]
+
+
+TEMPLATE_CONTEXT_PROCESSORS = (
+    # django default context processors
+    "django.contrib.auth.context_processors.auth",
+    "django.core.context_processors.debug",
+    "django.core.context_processors.i18n",
+    "django.core.context_processors.media",
+    "django.contrib.messages.context_processors.messages",
+    'eultheme.context_processors.template_settings',
+    # additional context processors
+    "django.core.context_processors.request",  # always include request in render context
+    "django.core.context_processors.static",
+    # social auth support
+    "eultheme.context_processors.template_settings",
+    "eultheme.context_processors.site_path",
+    "eultheme.context_processors.downtime_context",
+)
+
+# List of callables that know how to import templates from various sources.
+TEMPLATE_LOADERS = (
+    'django.template.loaders.filesystem.Loader',
+    'django.template.loaders.app_directories.Loader',
+#     'django.template.loaders.eggs.Loader',
+)
+
+TEMPLATE_DIRS = [
+    os.path.join(BASE_DIR, 'templates'),
 ]
 
 from django.contrib import messages
@@ -109,6 +150,21 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
+# Absolute path to the directory static files should be collected to.
+# Don't put anything in this directory yourself; store your static files
+# in apps' "static/" subdirectories and in STATICFILES_DIRS.
+# Example: "/home/media/media.lawrence.com/static/"
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+
+
+# Additional locations of static files
+STATICFILES_DIRS = [
+    # Put strings here, like "/home/html/static" or "C:/www/django/static".
+    # Always use forward slashes, even on Windows.
+    # Don't forget to use absolute paths, not relative paths.
+    os.path.join(BASE_DIR, 'sitemedia'),
+]
+
 # if this token is in target URI it will be replaced with the noid after it is minted
 PID_REPLACEMENT_TOKEN = "{%PID%}"
 
@@ -119,9 +175,7 @@ DOWNTIME_EXEMPT_PATHS = (
     '/indexdata',
     '/sitemap'
 )
-DOWNTIME_EXEMPT_EXACT_URLS = (
-    '/',
-)
+
 
 
 try:

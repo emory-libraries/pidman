@@ -11,12 +11,16 @@ def pid_sequence_lastvalue(apps, schema_editor):
     # so it will start minting pids starting after the current set
     Pid = apps.get_model("pid", "Pid")
     Sequence = apps.get_model("sequences", "Sequence")
+   
     if Pid.objects.count():
+        print Pid.objects.count()
         max_noid = Pid.objects.all() \
                       .aggregate(models.Max('pid')).values()[0]
+
         last_val = decode_noid(max_noid)
         pid_seq, created = Sequence.objects.get_or_create(name=pid_models.Pid.SEQUENCE_NAME,
             last=last_val)
+        print "got HERE 2"
         pid_seq.save()
 
 def remove_pid_sequence(apps, schema_editor):
