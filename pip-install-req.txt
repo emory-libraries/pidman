@@ -2,5 +2,12 @@ django>=1.8,<1.9c
 https://wilson.library.emory.edu/jenkins/job/eullocal-0.17.x/lastSuccessfulBuild/artifact/eullocal/dist/eullocal-0.17.0-pre.tar.gz
 eulcommon
 django-sequences
+<<<<<<< HEAD
 django-mptt
 django-linkcheck>=1.2
+=======
+django_admin_bootstrapped
+django-auth-ldap
+django-downtime>=1.0.4
+-e git://github.com/emory-libraries/django-eultheme.git@1.2.1#egg=eultheme
+>>>>>>> feature/django-upgrade
