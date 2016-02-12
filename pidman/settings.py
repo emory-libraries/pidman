@@ -36,7 +36,7 @@ INSTALLED_APPS = [
     'eullocal.django.emory_ldap',
     'django.contrib.humanize',
     'django.contrib.sitemaps',
-    'sequences.apps.SequencesConfig',
+    'sequences',
     'eultheme',
     'downtime',
     'widget_tweaks',
