@@ -33,7 +33,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'mptt',
     'linkcheck',
-    'sequences',
     'eullocal.django.emory_ldap',
     'django.contrib.humanize',
     'django.contrib.sitemaps',
