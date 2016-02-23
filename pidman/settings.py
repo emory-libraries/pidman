@@ -33,14 +33,12 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'mptt',
     'linkcheck',
-    'eullocal.django.emory_ldap',
     'django.contrib.humanize',
     'django.contrib.sitemaps',
     'sequences',
     'eultheme',
     'downtime',
     'widget_tweaks',
-
     'pidman.pid',
     'pidman.resolver',
     'pidman.rest_api',
@@ -64,37 +62,8 @@ ROOT_URLCONF = 'pidman.urls'
 # Tell nose to measure coverage
 NOSE_ARGS = [
     '--with-coverage',
-    '--cover-package=pid,resolver,rest_api',
+    '--cover-package=pidman',
 ]
-
-# TEMPLATES = [
-#     {
-#         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-#         'DIRS': [
-#             os.path.join(BASE_DIR, 'templates'),
-#         ],
-#         # 'APP_DIRS': True,
-#         'OPTIONS': {
-#             'context_processors': [
-#                 # django default context processors
-#                 "django.contrib.auth.context_processors.auth",
-#                 "django.core.context_processors.debug",
-#                 "django.core.context_processors.i18n",
-#                 "django.core.context_processors.media",
-#                 "django.contrib.messages.context_processors.messages",
-#                 'eultheme.context_processors.template_settings',
-#                 # additional context processors
-#                 "django.core.context_processors.request",  # always include request in render context
-#                 "django.core.context_processors.static",
-#                 # social auth support
-#                 "eultheme.context_processors.template_settings",
-#                 "eultheme.context_processors.site_path",
-#                 "eultheme.context_processors.downtime_context",
-#             ],
-#         },
-#     },
-# ]
-
 
 TEMPLATE_CONTEXT_PROCESSORS = (
     # django default context processors
@@ -107,10 +76,12 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     # additional context processors
     "django.core.context_processors.request",  # always include request in render context
     "django.core.context_processors.static",
-    # social auth support
+    # eultheme
     "eultheme.context_processors.template_settings",
     "eultheme.context_processors.site_path",
     "eultheme.context_processors.downtime_context",
+    # local
+    'pidman.admin.template_settings',
 )
 
 # List of callables that know how to import templates from various sources.
@@ -176,8 +147,6 @@ PID_REPLACEMENT_TOKEN = "{%PID%}"
 # exempted paths for downtime; exempts any urls starting with these strings
 DOWNTIME_EXEMPT_PATHS = (
     '/admin',
-    '/indexdata',
-    '/sitemap'
 )
 
 try:

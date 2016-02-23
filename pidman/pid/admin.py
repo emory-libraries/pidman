@@ -55,8 +55,11 @@ class PidAdmin(admin.ModelAdmin):
     list_display = ('pid', 'truncated_name', 'type', 'created_at', 'updated_at',
         "domain", "primary_target_uri", "is_active", 'linkcheck_status')
     # filters: collection/domain, creator/user, type (ark/purl), date ranges (created or modified)
-    list_filter = ['type', 'domain', 'ext_system', 'creator', 'created_at',
-        'updated_at']
+    list_filter = (
+        'type', ('domain', admin.RelatedOnlyFieldListFilter),
+        'ext_system',
+        ('creator', admin.RelatedOnlyFieldListFilter),
+        'created_at', 'updated_at')
     form = PidAdminForm
 
     # now possible in django 1.1 - fields to use here?

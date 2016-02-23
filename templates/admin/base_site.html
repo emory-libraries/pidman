@@ -1,0 +1,10 @@
+{% extends "admin/base.html" %}
+
+{% comment %} extend default django-admin-bootstrapped
+ base admin template to include eultheme downtime banners
+{% endcomment %}
+
+{% block messages %}
+    {% if banner %}{% include 'mx/banner.html' %} {% endif %}
+    {{ block.super }}
+{% endblock %}

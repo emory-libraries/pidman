@@ -1,5 +1,8 @@
 from django.contrib.admin import AdminSite
 from django.contrib import auth
+from downtime.models import Period
+from eultheme.models import Banner
+
 import sequences
 
 class PidmanAdminSite(AdminSite):
@@ -13,3 +16,15 @@ admin_site = PidmanAdminSite()
 admin_site.register(auth.models.Group, auth.admin.GroupAdmin)
 admin_site.register(auth.models.User, auth.admin.UserAdmin)
 admin_site.register(sequences.models.Sequence, sequences.admin.Sequence)
+# eultheme / downtime
+admin_site.register(Period)
+admin_site.register(Banner)
+
+
+def template_settings(request):
+    '''Template context processor to add settings for use on any page.'''
+
+    context_extras = {
+        'site_title': PidmanAdminSite.site_header
+    }
+    return context_extras
