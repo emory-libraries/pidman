@@ -1,6 +1,22 @@
 Overview
 --------
 
+.. image:: https://travis-ci.org/emory-libraries/pidman.svg?branch=develop
+    :alt: Travis-CI build status
+    :target: https://travis-ci.org/emory-libraries/pidman
+
+.. image:: https://coveralls.io/repos/github/emory-libraries/pidman/badge.svg?branch=develop
+    :target: https://coveralls.io/github/emory-libraries/pidman?branch=develop
+    :alt: Code Coverage
+
+.. image:: https://codeclimate.com/github/emory-libraries/pidman/badges/gpa.svg
+   :target: https://codeclimate.com/github/emory-libraries/pidman
+   :alt: Code Climate
+
+.. image:: https://requires.io/github/emory-libraries/pidman/requirements.svg?branch=develop
+   :target: https://requires.io/github/emory-libraries/pidman/requirements/?branch=develop
+   :alt: Requirements Status
+
 This is a management application for maintaining, managing, and
 resolving PURLs (Permanent URLs) and ARKs (Archival Resource Keys).
 Together these resources allow the assignment of unique persistent
