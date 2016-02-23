@@ -1,0 +1,31 @@
+# basic localsettings config for running on travis-ci
+
+import os
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+DEBUG = True
+TEMPLATE_DEBUG = DEBUG
+
+ALLOWED_HOSTS = []
+
+# Database
+# https://docs.djangoproject.com/en/1.8/ref/settings/#databases
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'travis-db.sqlite3'),
+    }
+}
+
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = 'xOENmJpB/6E{*GnIRpn@g`=wDeMXJ]H7uUY,yTjt{uG>dD2X38'
+
+# Information needed for generating new ARKs and PURLs:
+#  - base url for all pids (where the pid resolver is installed)
+#  - name authority number for ARKs
+PID_RESOLVER_URL = 'http://pid.example.com'
+PID_ARK_NAAN = '12345'
+
+# django-linkcheck settings for internal links; for more options, see
+# https://github.com/DjangoAdminHackers/django-linkcheck#settings
+SITE_DOMAIN = ['localhost']

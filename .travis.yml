@@ -9,9 +9,7 @@ install:
   - pip install coveralls
 
 before_script:
-  - cp pidman/localsettings.py.sample pidman/localsettings.py
-  - echo "SECRET_KEY = '$DJANGO_SECRET_KEY'" >> pidman/localsettings.py
-  - python manage.py migrate --noinput
+  - cp pidman/localsettings.py.travis pidman/localsettings.py
 
 script:
   - python manage.py test

@@ -59,7 +59,6 @@ MIDDLEWARE_CLASSES = (
 ROOT_URLCONF = 'pidman.urls'
 
 
-
 TEMPLATE_CONTEXT_PROCESSORS = (
     # django default context processors
     "django.contrib.auth.context_processors.auth",
@@ -89,6 +88,12 @@ TEMPLATE_LOADERS = (
 TEMPLATE_DIRS = [
     os.path.join(BASE_DIR, 'templates'),
 ]
+
+AUTHENTICATION_BACKENDS = (
+    'django_auth_ldap.backend.LDAPBackend',
+    'django.contrib.auth.backends.ModelBackend',
+)
+
 
 from django.contrib import messages
 

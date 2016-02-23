@@ -35,29 +35,11 @@ AUTH_LDAP_BIND_PASSWORD = 'yourpassword'
 AUTH_LDAP_USER_SEARCH = LDAPSearch("ou=Lalala,dc=school,dc=edu", ldap.SCOPE_SUBTREE, "(cn=%(user)s)")
 
 
-AUTH_LDAP_USER_ATTR_MAP = {
-    'first_name': '',
-    'last_name': '',
-    'email': '',
-    'phone': '',
-    'dept_num': '',
-    'full_name': '',
-    'title': '',
-    'employee_num': '',
-    'subdept_code': '',
-    'hr_id': ''
-}
-
-
-
-AUTHENTICATION_BACKENDS = (
-    'django_auth_ldap.backend.LDAPBackend',
-    'django.contrib.auth.backends.ModelBackend',
-)
-
+# configure attributes via AUTH_LDAP_USER_ATTR_MAP
 
 
 # SECURITY WARNING: keep the secret key used in production secret!
+# Generate a new key here: http://www.miniwebtool.com/django-secret-key-generator/
 SECRET_KEY = ''
 
 # Information needed for generating new ARKs and PURLs:
@@ -68,6 +50,6 @@ PID_ARK_NAAN = '12345'
 
 # django-linkcheck settings for internal links; for more options, see
 # https://github.com/DjangoAdminHackers/django-linkcheck#settings
-SITE_DOMAIN = ['localhost']
+SITE_DOMAIN = 'localhost'
 # LINKCHECK_SITE_DOMAINS = ['example.com']
 
