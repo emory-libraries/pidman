@@ -8,6 +8,11 @@ install:
   - pip install -r pip-dev-req.txt
   - pip install coveralls
 
+before_script:
+  - cp pidman/localsettings.py.sample pidman/localsettings.py
+  - echo "SECRET_KEY = '$DJANGO_SECRET_KEY'" >> pidman/localsettings.py
+  - python manage.py migrate --noinput
+
 script:
   - python manage.py test
 
