@@ -1,0 +1,15 @@
+language: python
+
+python:
+  - "2.7"
+
+install:
+  - pip install pip-install-req.txt
+  - pip install pip-dev-req.txt
+  - pip install coveralls
+
+script:
+  - python manage.py test
+
+after_success:
+  - coveralls

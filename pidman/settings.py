@@ -59,11 +59,6 @@ MIDDLEWARE_CLASSES = (
 ROOT_URLCONF = 'pidman.urls'
 
 
-# Tell nose to measure coverage
-NOSE_ARGS = [
-    '--with-coverage',
-    '--cover-package=pidman',
-]
 
 TEMPLATE_CONTEXT_PROCESSORS = (
     # django default context processors
@@ -171,8 +166,10 @@ except ImportError:
 if django_nose is not None:
     INSTALLED_APPS.append('django_nose')
     TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
-    # NOSE_PLUGINS = [
-        # ...
-    # ]
-    # NOSE_ARGS = ['--with-eulfedorasetup']
+    # enable coverage by default
+    NOSE_ARGS = [
+        '--with-coverage',
+        '--cover-package=pidman',
+    ]
+
 
