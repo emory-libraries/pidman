@@ -9,7 +9,8 @@ install:
   - pip install coveralls
 
 before_script:
-  - cp pidman/localsettings.py.travis pidman/localsettings.py
+  - cp pidman/localsettings.py.sample pidman/localsettings.py
+  - echo "SECRET_KEY = '`uuidgen`'" >> pidman/localsettings.py
 
 script:
   - python manage.py test
