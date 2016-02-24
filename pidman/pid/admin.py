@@ -160,7 +160,6 @@ class DomainAdmin(MPTTModelAdmin):
 
     list_display = ('name', 'num_pids', 'subdomain_count', 'show_policy')
     inlines = [CollectionInline]
-    # list_filter = ['level']
 
 
 admin_site.register(Pid, PidAdmin)
