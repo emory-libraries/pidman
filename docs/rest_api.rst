@@ -84,7 +84,7 @@ View and update an ARK:
 
 .. code-block:: shell
 
-    curl http://pids.co/ark/22
+    curl http://pidserver.io/ark/22
     curl -X PUT --user user:pass -H "Content-Type: application/json" \
         --data '{"name": "an updated ARK"}' \
         http://pidserver.io/ark/22
@@ -96,7 +96,7 @@ Create or update and delete ARK targets:
     curl -X PUT --user user:pass -H "Content-Type: application/json" \
         --data '{"target_uri": "http://example.com/new/", "active": true}' \
         http://pidserver.io/ark/22/qualifier
-    curl -X DELETE --user user:pass http://pids.co/ark/22/qualifier
+    curl -X DELETE --user user:pass http://pidserver.io/ark/22/qualifier
 
 
 ----------
