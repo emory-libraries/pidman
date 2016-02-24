@@ -3,7 +3,7 @@ from django import forms
 from django.forms.models import ModelForm, ModelChoiceField
 from django.forms import ValidationError
 
-from mptt.admin import MPTTModelAdmin
+from mptt.admin import MPTTModelAdmin, MPTTAdminForm
 from mptt.fields import TreeNodeChoiceField
 
 from pidman.admin import admin_site
@@ -116,7 +116,8 @@ class ProxyAdmin(admin.ModelAdmin):
 class PolicyAdmin(admin.ModelAdmin):
     list_display = ('commitment', 'created_at')
 
-class DomainAdminForm(forms.ModelForm):
+# class DomainAdminForm(forms.ModelForm):
+class DomainAdminForm(MPTTAdminForm):
     # restrict list of domains allowed to be parents to those domains
     # without a parent (1 level deep only)
     parent = TreeNodeChoiceField(queryset=Domain.objects.filter(parent__isnull=True),
@@ -126,12 +127,10 @@ class DomainAdminForm(forms.ModelForm):
         exclude = []
 
     def clean_parent(self):
-        print 'clean parent data = ', self.cleaned_data
         parent = self.cleaned_data["parent"]
         if parent:
             # check parent id - cannot point to self
             if parent.id == self.instance.id:
-                print 'raising ValidationError for self parent'
                 raise ValidationError("Not permitted: a domain can not be its own parent",
                    code='invalid')
             # restrict hierarchy to one level
@@ -139,7 +138,8 @@ class DomainAdminForm(forms.ModelForm):
                 raise ValidationError("Domain hierarchy restricted to depth of 1; " +
                                 parent.name + " is a collection of " + parent.parent.name,
                                 code='invalid')
-        return self.cleaned_data
+        return parent
+
 
     def clean(self):
         # policy is optional by default, but top-level domains must have one (can't inherit from parent)

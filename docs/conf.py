@@ -168,6 +168,25 @@ html_static_path = ['_static']
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'pidmandoc'
 
+# The theme to use for HTML and HTML Help pages.  See the documentation for
+# a list of builtin themes.
+html_theme = 'alabaster'
+html_static_path = ['_static']
+templates_path = ['templates']
+html_style = 'style.css'
+html_theme_options = {
+    # 'logo': 'logo.png',
+    'github_user': 'emory-libraries',
+    'github_repo': 'pidman',
+    # 'travis_button': True,  # enable when we get travis-ci set up
+    'description': 'Persistent Identifier Manager and PURL/ARK Resolver'
+    # 'analytics_id':
+}
+html_sidebars = {
+    '**': ['about.html', 'navigation.html',
+          'searchbox.html', 'sidebar_footer.html'],
+}
+
 
 # -- Options for LaTeX output --------------------------------------------------
 
