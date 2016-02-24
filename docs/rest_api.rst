@@ -29,7 +29,7 @@ Ruby code to create a new ARK (example from
     }
 
     response = HTTParty.post \
-      'https://testpid.library.emory.edu/ark/', \
+      'https://pidserver.io/ark/', \
       body: "domain=#{$config['pidman_domain']}&target_uri=myuri.org&name=#{self.metadata['title']}", \
       basic_auth: pidman_auth
     # The response will give us the full URL, we just want the PID.
@@ -48,55 +48,55 @@ List domains:
 
 .. code-block:: shell
 
-    curl https://testpid.library.emory.edu/domains/
+    curl https://pidserver.io/domains/
 
 Create a new domain using POST:
 
 .. code-block:: shell
 
-    curl -X POST --user curler:curlerpass --data "name=my+domain" \
-        https://testpid.library.emory.edu/domains/
-    curl -X POST --user curler:curlerpass \
-        --data "name=seb+domain&parent=http://testpid.library.emory.edu/domains/1/" \
-        https://testpid.library.emory.edu/domains/
+    curl -X POST --user user:pass --data "name=my+domain" \
+        https://pidserver.io/domains/
+    curl -X POST --user user:pass \
+        --data "name=seb+domain&parent=http://pidserver.io/domains/1/" \
+        https://pidserver.io/domains/
 
 Update a domain with PUT and JSON data:
 
 .. code-block:: shell
 
-    curl -X PUT --user curler:curlerpass -H "Content-Type: application/json" \
+    curl -X PUT --user user:pass -H "Content-Type: application/json" \
         --data '{"name": "my subdomain"}' \
-        http://testpid.library.emory.edu/domains/3/
+        http://pidserver.io/domains/3/
 
 Create a new PURL or ARK:
 
 .. code-block:: shell
 
-    curl -X POST --user curler:curlerpass --data \
-        "domain=http://localhost:8000/domains/1/&target_uri=http://example.com&name=my+pid" \
-        http://localhost:8000/purl/
+    curl -X POST --user user:pass --data \
+        "domain=http://pidserver.io/domains/1/&target_uri=http://example.com&name=my+pid" \
+        http://pidserver.io/purl/
 
-    curl -X POST --user curler:curlerpass --data \
-        "domain=http://localhost:8000/domains/1/&target_uri=http://example.com/foo&name=my+ark&qualifier=foo" \
-        http://localhost:8000/ark/
+    curl -X POST --user user:pass --data \
+        "domain=http://pidserver.io/domains/1/&target_uri=http://example.com/foo&name=my+ark&qualifier=foo" \
+        http://pidserver.io/ark/
 
 View and update an ARK:
 
 .. code-block:: shell
 
     curl http://pids.co/ark/22
-    curl -X PUT --user curler:curlerpass -H "Content-Type: application/json" \
+    curl -X PUT --user user:pass -H "Content-Type: application/json" \
         --data '{"name": "an updated ARK"}' \
-        http://pids.co/ark/22
+        http://pidserver.io/ark/22
 
 Create or update and delete ARK targets:
 
 .. code-block:: shell
 
-    curl -X PUT --user curler:curlerpass -H "Content-Type: application/json" \
+    curl -X PUT --user user:pass -H "Content-Type: application/json" \
         --data '{"target_uri": "http://example.com/new/", "active": true}' \
-        http://localhost:8000/ark/22/qualifier
-    curl -X DELETE --user curler:curlerpass http://pids.co/ark/22/qualifier
+        http://pidserver.io/ark/22/qualifier
+    curl -X DELETE --user user:pass http://pids.co/ark/22/qualifier
 
 
 ----------
