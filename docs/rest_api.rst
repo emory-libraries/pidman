@@ -99,6 +99,34 @@ Create or update and delete ARK targets:
     curl -X DELETE --user user:pass http://pidserver.io/ark/22/qualifier
 
 
+PHP
+***
+
+.. code-block:: PHP
+
+    <?php
+     // get information about all domains
+     $data = json_decode(file_get_contents('http://pidserver.io/domains/'));
+     // get a single domain
+     $data = json_decode(file_get_contents('http://pidserver.io/domains/1/'));
+     print "Domain " . $data->{'name'} . " with uri " . $data->{'uri'} .
+        " has " . $data->{"number of pids"} . " pids\n";
+
+    // generate a new ark
+    $username = 'user';
+    $password = 'password';
+    $payload = array('domain' => 'http://pidserver.io/domains/1/',
+    'name'=> 'php ark', 'target_uri' => 'http://fr.php.net/file_get_contents');
+    $ch = curl_init('http://pidserver.io/ark/');
+    curl_setopt($ch, CURLOPT_USERPWD, $username . ":" . $password);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+    curl_setopt($ch, CURLOPT_POST, TRUE);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+    $ark = curl_exec($ch);
+    curl_close($ch);
+    ?>
+
 ----------
 
 
