@@ -296,6 +296,7 @@ class Pid(models.Model):
     def target_linkcheck_status(self):
         '''Determine summary linkcheck status for target(s) associated
         with this pid.  Return values:
+
             - None : unknown or unchecked; returns None if any associated
               targets have not been checked *or* if the Pid has
               no associated targets
