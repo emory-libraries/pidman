@@ -3,3 +3,6 @@ https://wilson.library.emory.edu/jenkins/job/eullocal-0.17.x/lastSuccessfulBuild
 eulcommon
 django-sequences
 django-linkcheck
+progressbar2
+django-admin-bootstrapped
+django-admin-logentry

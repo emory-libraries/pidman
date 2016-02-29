@@ -1,5 +1,8 @@
-from django.contrib.admin import AdminSite
 from django.contrib import auth
+from django.contrib.admin import AdminSite
+from django.contrib.admin.models import LogEntry
+from logentry_admin.admin import LogEntryAdmin
+
 import sequences
 
 class PidmanAdminSite(AdminSite):
@@ -13,3 +16,4 @@ admin_site = PidmanAdminSite()
 admin_site.register(auth.models.Group, auth.admin.GroupAdmin)
 admin_site.register(auth.models.User, auth.admin.UserAdmin)
 admin_site.register(sequences.models.Sequence, sequences.admin.Sequence)
+admin_site.register(LogEntry, LogEntryAdmin)

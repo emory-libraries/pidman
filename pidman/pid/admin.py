@@ -70,7 +70,7 @@ class PidAdmin(admin.ModelAdmin):
     # including dates in list display for sorting purposes
     # sort columns by: type, domain/collection, name, (pid url?), date created/modified ascending/descending
     list_display = ('pid', 'truncated_name', 'type', 'created_at', 'updated_at',
-        "domain", "primary_target_uri", "is_active", 'linkcheck_status')
+        "domain", "primary_target_uri", "is_active")  #, 'linkcheck_status')
     # filters: collection/domain, creator/user, type (ark/purl), date ranges (created or modified)
     list_filter = ['type', 'domain', 'ext_system', 'creator', 'created_at',
         'updated_at']

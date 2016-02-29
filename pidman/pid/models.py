@@ -9,7 +9,7 @@ from django.core.urlresolvers import reverse
 from django.db import connection, models, transaction
 
 from sequences import get_next_value
-from linkcheck.models import Link
+# from linkcheck.models import Link
 
 from pidman.pid.ark_utils import normalize_ark, valid_qualifier, qualifier_allowed_characters
 from pidman.pid.noid import encode_noid, decode_noid
@@ -53,7 +53,7 @@ class Policy(models.Model):
     '''
     created_at = models.DateTimeField("Date Created", auto_now_add=True)
     commitment = models.TextField("Commitment Statement")
-    title      = models.CharField(unique=True, max_length=255)
+    title = models.CharField(unique=True, max_length=255)
 
     objects = PolicyManager()
 
@@ -219,7 +219,8 @@ class Pid(models.Model):
                 raise Exception("Ark qualifiers must be unique")
         return True
 
-    def save(self, force_insert=False, force_update=False, *args, **kwargs):
+    def save(self, force_insert=False, force_update=False, no_sync=False,
+            *args, **kwargs):
         '''
         Custom save method to ensure that pid and noid for all associated
         :class:`Target` instances are kept in sync.
@@ -239,8 +240,8 @@ class Pid(models.Model):
                      force_update=force_update, *args, **kwargs)
 
             # keep pid and noid in sync
-            targets = self.target_set.all()
-            targets.update(noid=self.pid)
+            # targets = self.target_set.all()
+            # targets.update(noid=self.pid)
 
     def characters_valid(self):
         for t in self.target_set.exclude(qualify=''):
@@ -386,7 +387,7 @@ class Target(models.Model):
     proxy = models.ForeignKey(Proxy, blank=True, null=True)
     active = models.BooleanField(default=True)
 
-    linkcheck = GenericRelation(Link)
+    # linkcheck = GenericRelation(Link)
 
     objects = TargetManager()
 
