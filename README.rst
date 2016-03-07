@@ -28,6 +28,11 @@ You can find more information on `ARKs
 specification
 <https://confluence.ucop.edu/download/attachments/16744455/arkspec.txt?version=1>`_
 
+License
+-------
+
+This software is distributed under the Apache 2.0 License.
+
 Components
 ----------
 
