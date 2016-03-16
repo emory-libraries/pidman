@@ -5,4 +5,4 @@ django-sequences
 django-linkcheck
 progressbar2
 django-admin-bootstrapped
-django-admin-logentry
+django-logentry-admin
