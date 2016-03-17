@@ -30,6 +30,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.humanize',
     'logentry_admin',
     # 'linkcheck',
     'sequences',
@@ -86,6 +87,11 @@ USE_I18N = True
 USE_L10N = True
 
 USE_TZ = True
+
+AUTHENTICATION_BACKENDS = (
+    'django_auth_ldap.backend.LDAPBackend',
+    'django.contrib.auth.backends.ModelBackend',
+)
 
 
 # Static files (CSS, JavaScript, Images)
