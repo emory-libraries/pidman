@@ -6,3 +6,4 @@ django-linkcheck
 progressbar2
 django-admin-bootstrapped
 django-logentry-admin
+tabulate
