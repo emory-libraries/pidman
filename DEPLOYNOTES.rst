@@ -56,6 +56,12 @@ Upgrade Notes
 1.0
 ----
 
+* This update includes `django-downtime <https://github.com/dstegelman/django-downtime>`_
+  for maintenance mode.  You may want to customize **DOWNTIME_EXEMPT_PATHS**
+  and **DOWNTIME_ALLOWED_IPS**.  Downtime can be scheduled via
+  the web admin or started manually using the ``downtime_start`` and
+  ``downtime_end`` manage commands.
+
 * Configure a linkcheck **SITE_DOMAIN** in ``localsettings.py`` and
   schedule a cron job to run the linkcheck manage command to enable
   periodic link checking on Pid targets::

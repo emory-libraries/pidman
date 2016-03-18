@@ -4,6 +4,13 @@ March 2016
 
 * Domain/collection hierarchy now handled with
   `django-mptt <http://django-mptt.github.io/django-mptt/>`_.
+* Now using `django-eultheme <https://github.com/emory-libraries/django-eultheme>`_
+  for error pages and for `django-downtime <https://github.com/dstegelman/django-downtime>`_
+  integration.
+* Admin search field list for pids has been customized in an effort
+  to address slow search response.
+* Documentation has been overhauled and updated, including providing
+  REST API examples for multiple programming languages.
 
 Release 0.10
 ------------
@@ -34,6 +41,8 @@ March 2016
 * Unused pidman.pidauth has been removed.
 * InvalidArk proxy model has been removed (application no longer allows
   invalid arks to be created).
+* Now using `django-admin-bootstrapped <https://github.com/django-admin-bootstrapped/django-admin-bootstrapped>`_
+  for admin templates.
 * Now using `django-auth-ldap <https://pythonhosted.org/django-auth-ldap/>`
   for LDAP login instead of eullocal.
 * Enabled `django-logentry-admin <https://github.com/yprez/django-logentry-admin>`_
