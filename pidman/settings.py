@@ -35,7 +35,6 @@ INSTALLED_APPS = [
     # 'linkcheck',
     'sequences',
     # 'sequences.apps.SequencesConfig',
-    'eullocal.django.emory_ldap',
     'pidman.pid',
     'pidman.resolver',
     'pidman.rest_api',
