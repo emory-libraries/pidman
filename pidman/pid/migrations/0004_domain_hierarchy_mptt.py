@@ -16,7 +16,7 @@ def rebuild_hierarchy(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('pid', '0002_pid_sequence_initial_value'),
+        ('pid', '0003_rm_invalidark_target_urlfield'),
     ]
 
     operations = [
