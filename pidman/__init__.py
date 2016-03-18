@@ -5,7 +5,7 @@ __credits__ = ["Rebecca Koeser", "Ben Ranker", "Alex Thomas", "Scott Turnbull"]
 __email__ = "libsys-dev@listserv.cc.emory.edu"
 
 # Version Info, parsed below for actual version number.
-__version_info__ = (0, 9, 0)
+__version_info__ = (1, 0, 0, 'pre')
 
 # Dot-connect all but the last. Last is dash-connected if not None.
 __version__ = '.'.join([ str(i) for i in __version_info__[:-1] ])
