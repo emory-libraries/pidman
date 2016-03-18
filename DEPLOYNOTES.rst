@@ -100,7 +100,7 @@ Upgrade Notes
     $ python manage.py migrate --fake-initial
 
 * To migrate data from an existing database (i.e postgres to mysql), you
-  should configure a second database named **pg** in ``localsettings.py``
+  should configure a second database named **postgresg** in ``localsettings.py``
   (see example configuration in ``localsettings.py.sample``), and then
   run ``python manage.py pg-migrate``.  Where there is existing content
   (e.g., for content types), the script will prompt you to remove content

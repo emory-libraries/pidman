@@ -37,7 +37,7 @@ class Command(BaseCommand):
     # by default, migrate everything
     models_to_migrate = common_models + pid_models + log_models
 
-    src_db = 'pg'
+    src_db = 'postgres'
     dest_db = 'default'
     chunk_size = 3000
 
@@ -84,7 +84,7 @@ class Command(BaseCommand):
             self.stdout.write('Re-running pid sequence migration')
             # migrate back so sequence can be re-run
             call_command('migrate', 'pid', '0001', '--fake')
-            call_command('migrate', 'pid', '0002')
+            call_command('migrate', 'pid')
 
         self.summary()
 
