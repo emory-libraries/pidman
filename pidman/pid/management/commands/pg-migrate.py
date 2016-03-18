@@ -56,6 +56,9 @@ class Command(BaseCommand):
 
 
     def handle(self, *args, **options):
+        # make sure db migrations are current
+        call_command('migrate')
+
         # if specified, restrict which models to sync
         if options['auth'] or options['pids'] or options['logs']:
             self.models_to_migrate = []
