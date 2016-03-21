@@ -1,0 +1,28 @@
+{# override linkcheck paginator to use bootstrap layout #}
+{% if pages.has_other_pages %}
+<div>
+    <ul class="pagination">
+     {% if pages.has_previous %}
+        <li>
+          <a href="?{{qry_data}}&amp;page={{ pages.previous_page_number }}"
+            aria-label="Previous">
+            <span aria-hidden="true">&laquo;</span>
+          </a>
+        </li>
+    {% endif %}
+    {% for page in pages.paginator.page_range %}
+        <li {% if page == pages.number %}class="active"{% endif %}><a href="?{{qry_data}}&amp;page={{ page }}">{{ page }}</a></li>
+    {% endfor %}
+    {% if pages.has_next %}
+        <li>
+            <a href="?{{qry_data}}&amp;page={{ pages.next_page_number }}"
+                aria-label="Next">
+                <span aria-hidden="true">&raquo;</span>
+            </a>
+        </li>
+    {% endif %}
+    </ul>
+
+    <p>{{ pages.paginator.count }} links</p>
+</div>
+{% endif %}
