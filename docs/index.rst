@@ -9,6 +9,7 @@ Contents:
    rest_api
    api_list
    changelog
+   deploynotes
 
 .. include:: ../README.rst
 

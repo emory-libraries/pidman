@@ -1,7 +1,7 @@
 .. _DEPLOYNOTES:
 
-DEPLOYNOTES
-===========
+Deploy Notes
+============
 
 Installation
 ------------
@@ -51,10 +51,10 @@ To verify installation execute without errors::
 
 
 Upgrade Notes
-=============
+-------------
 
 1.0
-----
+~~~
 
 * This update includes `django-downtime <https://github.com/dstegelman/django-downtime>`_
   for maintenance mode.  You may want to customize **DOWNTIME_EXEMPT_PATHS**
@@ -74,7 +74,7 @@ Upgrade Notes
 
 
 0.10
-----
+~~~~
 
 * This release includes an update from Django 1.2 to Django 1.8, so some
   files have been moved or renamed.  You should update any Apache
@@ -117,7 +117,7 @@ Upgrade Notes
   and to sync content by chunks.  Run with ``-h`` for specifics.
 
 0.9
----
+~~~
 
 * The REST api uses Basic Authentication.  When running under Apache
   with mod_wsgi, use this configuration setting: ``WSGIPassAuthorization On``
