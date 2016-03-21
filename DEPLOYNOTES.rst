@@ -116,6 +116,11 @@ Upgrade Notes
   The script includes options to summarize object counts in both databases
   and to sync content by chunks.  Run with ``-h`` for specifics.
 
+  .. Note::
+
+    Make sure that the character encoding for the two databases matches
+    to avoid encoding issues.  UTF-8 is recommended.
+
 0.9
 ~~~
 
