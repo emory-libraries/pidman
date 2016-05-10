@@ -57,8 +57,11 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.paginator import Paginator, InvalidPage, EmptyPage
 from django.core.urlresolvers import reverse, resolve
 from django.core.serializers.json import DjangoJSONEncoder
+from django.http import HttpResponse, HttpResponseNotAllowed, \
+    HttpResponseBadRequest, HttpResponseForbidden, Http404
 from django.shortcuts import get_object_or_404
-from django.http import HttpResponse, HttpResponseNotAllowed, HttpResponseBadRequest, HttpResponseForbidden, Http404
+from django.views.decorators.csrf import csrf_exempt
+
 
 from eulcommon.djangoextras.http.responses import HttpResponseUnauthorized
 
@@ -120,6 +123,7 @@ def _paged_results_set(queryset):
 
     """
 
+@csrf_exempt
 @basic_authentication
 def pid(request, noid, type):
     '''REST API access to PURLs and ARKs.
@@ -246,6 +250,8 @@ them from being resolved.'''
     # if request method is not GET or PUT, return 405 method not allowed
     return HttpResponseNotAllowed(methods)
 
+
+@csrf_exempt
 @basic_authentication
 def target(request, noid, type, qualifier):
     '''REST API access to ARK and PURL targets.
@@ -391,7 +397,7 @@ def target(request, noid, type, qualifier):
     return HttpResponseNotAllowed(methods)
 
 
-
+@csrf_exempt
 @basic_authentication
 def create_pid(request, type):
     '''On POST, create a new ARK or PURL.  On successful creation, returns a
@@ -649,6 +655,8 @@ def search_pids(request):
     json_data = json_serializer.encode(results_set)
     return HttpResponse(json_data, content_type='application/json')
 
+
+@csrf_exempt
 @basic_authentication
 def domains(request):
     '''On GET, returns a list of all top-level :class:`~pidman.pid.models.Domain`
@@ -749,6 +757,8 @@ def domains(request):
     # if request method is not GET, return 405 method not allowed
     return HttpResponseNotAllowed(methods)
 
+
+@csrf_exempt
 @basic_authentication
 def domain(request, id):
     '''On GET, return information about the `pidman.pid.models.Domain`
