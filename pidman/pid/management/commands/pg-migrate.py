@@ -53,7 +53,9 @@ class Command(BaseCommand):
             help='Sync/summarize all pid related models')
         parser.add_argument('--logs', action='store_true', default=False,
             help='Sync/summarize admin log entry models')
-
+        # reverse sync direction
+        parser.add_argument('--reverse', action='store_true', default=False,
+            help='Reverse sync direction (swap source and dest databases)')
 
     def handle(self, *args, **options):
         # make sure db migrations are current
@@ -68,6 +70,10 @@ class Command(BaseCommand):
                 self.models_to_migrate += self.pid_models
             if options['logs']:
                 self.models_to_migrate += self.log_models
+
+        # swap source and dest dbs when reverse is specified
+        if options['reverse']:
+            self.src_db, self.dest_db = self.dest_db, self.src_db
 
         # summarize model counts across the dbs
         self.summary()
