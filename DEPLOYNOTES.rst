@@ -105,8 +105,21 @@ Upgrade Notes
     # migrate all other existing models, faking initial migrations
     $ python manage.py migrate --fake-initial
 
+* *OPTIONAL*: if you want to configure the previous pidman instance to
+  run in read-only mode during the data migration to prevent new pids from
+  being created, you should configure django to access the database using
+  a database user with only the following permissions on the database:
+
+  - **SELECT** on the entire database
+  - **INSERT**, **UPDATE**, **DELETE** on ``django_session``
+  - **UPDATE** ``last_login`` on ``auth_user``
+
+  This will allow users to log in to the admin site, but will throw a
+  500 error if anyone tries to create or modify data via the admin site
+  or via the REST API.
+
 * To migrate data from an existing database (i.e postgres to mysql), you
-  should configure a second database named **pg** in ``localsettings.py``
+  should configure a second database named **postgres** in ``localsettings.py``
   (see example configuration in ``localsettings.py.sample``), and then
   run ``python manage.py pg-migrate``.  Where there is existing content
   (e.g., for content types), the script will prompt you to remove content
