@@ -75,6 +75,9 @@ class Command(BaseCommand):
         if options['summary']:
             return
 
+        # disable automatic date fields so that data will be copied
+        # over as-is
+        self.disable_auto_now_fields(self.models_to_migrate)
         # use django models to migrate data between dbs
         for model in self.models_to_migrate:
             self.batch_migrate(model)
@@ -113,7 +116,6 @@ class Command(BaseCommand):
             intcomma(from_count, use_l10n=False),
             intcomma(to_count - from_count, use_l10n=False)
         ]
-
 
     def batch_migrate(self, model, start=0):
         '''Migrate model data from one db to the other using django's
@@ -186,4 +188,17 @@ class Command(BaseCommand):
                 return strtobool(raw_input().lower())
             except ValueError:
                 sys.stdout.write('Please respond with \'y\' or \'n\'.\n')
+
+    def disable_auto_now_fields(self, models):
+        """
+        Turn off auto_now and auto_now_add attributes on a Model's fields,
+        so that migrated data can be saved as-is.
+        """
+        # from http://stackoverflow.com/questions/7499767/temporarily-disable-auto-now-auto-now-add
+        for model in models:
+            for field in model._meta.local_fields:
+                if hasattr(field, 'auto_now'):
+                    field.auto_now = False
+                if hasattr(field, 'auto_now_add'):
+                    field.auto_now_add = False
 
