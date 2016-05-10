@@ -19,6 +19,8 @@ Contents:
    :maxdepth: 2
 
    api_list
+   deploynotes
+
 
 Indices and tables
 ==================
