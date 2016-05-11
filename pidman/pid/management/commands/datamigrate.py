@@ -5,6 +5,7 @@ from django.db.utils import IntegrityError
 from django.core import serializers
 from django.core.management import call_command
 from django.core.management.base import BaseCommand, CommandError
+from django.conf import settings
 from django.contrib.auth.models import User, Group, Permission
 from django.contrib.admin.models import LogEntry
 from django.contrib.contenttypes.models import ContentType
@@ -20,9 +21,10 @@ from pidman.pid import models as pid_models
 
 class Command(BaseCommand):
     help = '''Migrate models from an old database to the current one.
-    Expects a secondary database configured with the name 'pg'.
+    Expects a secondary database to be configured in project settings;
+    database name must be passed in as a parameter to the script.
     Removes any conflicting models, and then copies models from the
-    'pg' database to the configured 'default' database.'''
+    source database to the configured 'default' database.'''
 
     # common django models, auth
     common_models = [ContentType, Permission, Group, User]
@@ -37,11 +39,13 @@ class Command(BaseCommand):
     # by default, migrate everything
     models_to_migrate = common_models + pid_models + log_models
 
-    src_db = 'postgres'
     dest_db = 'default'
+    src_db = None
     chunk_size = 3000
 
     def add_arguments(self, parser):
+        parser.add_argument('source-db',
+            help='Source database name, as configured in project settings')
         parser.add_argument('-s', '--summary', default=False,
             action='store_true', help='Display summary information only')
         parser.add_argument('-n', '--num-per-chunk', default=self.chunk_size,
@@ -60,6 +64,12 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         # make sure db migrations are current
         call_command('migrate')
+
+        # get source database name from user options
+        self.src_db = options['source-db']
+        if self.src_db not in settings.DATABASES:
+            raise CommandError('Database "%s" configuration not found' %
+                               self.src_db)
 
         # if specified, restrict which models to sync
         if options['auth'] or options['pids'] or options['logs']:
@@ -178,7 +188,7 @@ class Command(BaseCommand):
 
         # many-to-many fields are NOT handled by bulk create; check for
         # them and use the existing implicit through models to copy them
-        # e.g. User.groups.through.objects.using('pg').all()
+        # e.g. User.groups.through.objects.using('old-db').all()
 
         # NOTE: this should only affect groups and user models; pid models
         # do not include any many-to-many relationships
