@@ -119,12 +119,13 @@ Upgrade Notes
   or via the REST API.
 
 * To migrate data from an existing database (i.e postgres to mysql), you
-  should configure a second database named **postgres** in ``localsettings.py``
+  should configure a second database in ``localsettings.py``
   (see example configuration in ``localsettings.py.sample``), and then
-  run ``python manage.py pg-migrate``.  Where there is existing content
-  (e.g., for content types), the script will prompt you to remove content
-  before copying data; this is required in order to ensure
-  primary ids are propagated correctly in the migration.
+  run ``python manage.py datamigrate db-name``, where ``db-name`` is the
+  name of the database you configured in ``localsettings.py`` .  Where
+  there is existing content (e.g., for content types), the script will
+  prompt you to remove content before copying data; this is required in
+  order to ensure primary ids are propagated correctly in the migration.
 
   The script includes options to summarize object counts in both databases
   and to sync content by chunks.  Run with ``-h`` for specifics.
