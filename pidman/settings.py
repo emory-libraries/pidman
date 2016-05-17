@@ -178,4 +178,8 @@ if django_nose is not None:
         '--cover-package=pidman',
     ]
 
-
+try:
+    import debug_toolbar
+    INSTALLED_APPS.append('debug_toolbar')
+except ImportError:
+    pass
