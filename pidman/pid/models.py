@@ -291,7 +291,7 @@ class Pid(models.Model):
         :return: boolean
         '''
         # consider active if any targets are active
-        return self.target_set.filter(active=True).exists()
+        return any([target.active for target in self.target_set.all()])
     is_active.short_description = "Active ?"
     is_active.allow_tags = True
     is_active.boolean = True
