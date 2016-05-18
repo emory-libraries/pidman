@@ -178,10 +178,13 @@ class Pid(models.Model):
 
         :return: :class:`Target`
         '''
-        try:
-            return self.target_set.filter(qualify='').first()
-        except Target.DoesNotExist:
-            return None
+        # NOTE: this method is used in django-admin change list;
+        # intentionally does not hit the database, since it requires
+        # one query per pid
+        for target in self.target_set.all():
+            if target.qualify == '':
+                return target
+        return None
 
     # make primary target uri easily accessible
     def primary_target_uri(self):

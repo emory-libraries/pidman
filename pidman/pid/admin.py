@@ -52,15 +52,18 @@ class PidAdmin(admin.ModelAdmin):
     # note: including pid for link to edit page, since name is optional and not always present
     # including dates in list display for sorting purposes
     # sort columns by: type, domain/collection, name, (pid url?), date created/modified ascending/descending
-    
+
     ####### removing domain fixed the problem need to find query for domain
-    list_display = ('pid', 'truncated_name', 'type', 'created_at','domain', 'updated_at', "primary_target_uri", "is_active", 'linkcheck_status')
+    list_display = ('pid', 'truncated_name', 'type', 'created_at', 'updated_at',
+                    'domain', "primary_target_uri", "is_active", 'linkcheck_status')
+
     # filters: collection/domain, creator/user, type (ark/purl), date ranges (created or modified)
     list_filter = (
         'type', ('domain', admin.RelatedOnlyFieldListFilter),
         'ext_system',
         ('creator', admin.RelatedOnlyFieldListFilter),
         'created_at', 'updated_at')
+    list_select_related = True  # may want to limit this some
     form = PidAdminForm
 
     # now possible in django 1.1 - fields to use here?
@@ -103,9 +106,16 @@ class PidAdmin(admin.ModelAdmin):
             obj.creator = request.user
         obj.save()
 
-    #disallow delete of Pids set targets to inactive instead
+    # disallow delete of Pids set targets to inactive instead
     def has_delete_permission(self, request, obj=None):
         return False
+
+    def get_queryset(self, request):
+        # extend queryset to prefetch targets & linkcheck status,
+        # which are used in the change list display
+        pidqs = super(PidAdmin, self).get_queryset(request)
+        pidqs = pidqs.prefetch_related('target_set', 'target_set__linkcheck')
+        return pidqs
 
 
 class ExtSystemAdmin(admin.ModelAdmin):
