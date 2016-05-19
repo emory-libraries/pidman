@@ -53,7 +53,7 @@ class PidAdmin(admin.ModelAdmin):
     # including dates in list display for sorting purposes
     # sort columns by: type, domain/collection, name, (pid url?), date created/modified ascending/descending
 
-    ####### removing domain fixed the problem need to find query for domain
+    
     list_display = ('pid', 'truncated_name', 'type', 'created_at', 'updated_at',
                     'domain', "primary_target_uri", "is_active", 'linkcheck_status')
 
