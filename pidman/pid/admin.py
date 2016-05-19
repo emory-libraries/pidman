@@ -42,10 +42,10 @@ class PurlTargetInline(TargetInline):
     fields = ('uri', 'proxy', 'active')
 
 class PidAdminForm(ModelForm):
-    domain = TreeNodeChoiceField(queryset=Domain.objects.all())
+    domain = TreeNodeChoiceField(queryset=Domain.objects.all().select_related('pid'))
     class Meta:
         model = Pid
-        exclude = []
+        fields = ('id',)
 
 class PidAdmin(admin.ModelAdmin):
     # browse display: type (ark/purl), domain/collection, name/description, and pid url (not target url)
