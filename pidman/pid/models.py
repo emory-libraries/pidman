@@ -316,11 +316,19 @@ class Pid(models.Model):
 
         # get all linkcheck status for all target urls
         # linkcheck status is true for ok, false for error
-        link_status = self.target_set.all().values_list('linkcheck__url__status',
-                                                        flat=True)
+
+        # NOTE: iterating here to take advantage of pre-fetching
+        # results as configured for admin change list
+        linkcheck = []
+        for target in self.target_set.all():
+            linkcheck.extend(target.linkcheck.all())
+        if not linkcheck:
+            return None
+        link_status = [link.url.status for link in linkcheck]
+
         # if the number of statuses doesn't match the number of targets,
         # then return None for unknown/unchecked
-        if self.target_set.count() != len(link_status):
+        if self.target_set.all().count() != len(link_status):
             return None
         else:
             # ok if all are true, otherwise there are some errors

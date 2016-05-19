@@ -114,7 +114,7 @@ class PidAdmin(admin.ModelAdmin):
         # extend queryset to prefetch targets & linkcheck status,
         # which are used in the change list display
         pidqs = super(PidAdmin, self).get_queryset(request)
-        pidqs = pidqs.prefetch_related('target_set', 'target_set__linkcheck')
+        pidqs = pidqs.prefetch_related('target_set', 'target_set__linkcheck__url')
         return pidqs
 
 
