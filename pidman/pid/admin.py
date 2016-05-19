@@ -42,10 +42,10 @@ class PurlTargetInline(TargetInline):
     fields = ('uri', 'proxy', 'active')
 
 class PidAdminForm(ModelForm):
-    domain = TreeNodeChoiceField(queryset=Domain.objects.all().select_related('pid'))
+    domain = TreeNodeChoiceField(queryset=Domain.objects.all())
     class Meta:
         model = Pid
-        fields = ('id',)
+        exclude = []
 
 class PidAdmin(admin.ModelAdmin):
     # browse display: type (ark/purl), domain/collection, name/description, and pid url (not target url)
@@ -155,7 +155,7 @@ class DomainAdminForm(MPTTAdminForm):
     def clean(self):
         # policy is optional by default, but top-level domains must have one (can't inherit from parent)
         if not self.cleaned_data.get('parent', None) and not self.cleaned_data['policy']:
-           raise ValidationError("Policy is required for top-level domains");
+           raise ValidationError("Policy is required for top-level domains")
         return self.cleaned_data
 
 class CollectionInline(admin.TabularInline):
