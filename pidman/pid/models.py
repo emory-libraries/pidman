@@ -7,7 +7,6 @@ from django.contrib.auth.models import User
 from django.contrib.contenttypes.fields import GenericRelation
 from django.core.urlresolvers import reverse
 from django.db import connection, models, transaction
-
 from mptt.models import MPTTModel, TreeForeignKey
 from sequences import get_next_value
 from linkcheck.models import Link

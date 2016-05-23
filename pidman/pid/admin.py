@@ -5,7 +5,6 @@ from django.forms import ValidationError
 
 from mptt.admin import MPTTModelAdmin, MPTTAdminForm
 from mptt.fields import TreeNodeChoiceField
-
 from pidman.admin import admin_site
 from pidman.pid.ark_utils import normalize_ark, invalid_qualifier_characters
 from pidman.pid.models import ExtSystem, Pid, Proxy, Target, Policy, Domain
@@ -113,8 +112,8 @@ class PidAdmin(admin.ModelAdmin):
     def get_queryset(self, request):
         # extend queryset to prefetch targets & linkcheck status,
         # which are used in the change list display
-        pidqs = super(PidAdmin, self).get_queryset(request)
-        pidqs = pidqs.prefetch_related('target_set', 'target_set__linkcheck__url')
+        pidqs = super(PidAdmin, self).get_queryset(request) 
+        pidqs = pidqs.prefetch_related('target_set', 'target_set__linkcheck__url','domain','creator')
         return pidqs
 
 
