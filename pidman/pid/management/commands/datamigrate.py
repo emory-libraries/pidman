@@ -102,7 +102,7 @@ class Command(BaseCommand):
         if pid_models.Pid in self.models_to_migrate:
             self.stdout.write('Re-running pid sequence migration')
             # migrate back so sequence can be re-run
-            call_command('migrate', 'pid', '0001', '--fake')
+            call_command('migrate', 'pid', '0001')
             call_command('migrate', 'pid')
 
         self.summary()
