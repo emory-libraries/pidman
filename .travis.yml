@@ -1,0 +1,19 @@
+language: python
+
+python:
+  - "2.7"
+
+install:
+  - pip install -r pip-install-req.txt
+  - pip install -r pip-dev-req.txt
+  - pip install coveralls
+
+before_script:
+  - cp pidman/localsettings.py.sample pidman/localsettings.py
+  - echo "SECRET_KEY = '`python -c 'import uuid; print uuid.uuid4()'`'" >> pidman/localsettings.py
+
+script:
+  - python manage.py test
+
+after_success:
+  - coveralls
