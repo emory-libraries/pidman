@@ -3,10 +3,6 @@ language: python
 python:
   - "2.7"
 
-before_install:
-  - sudo apt-get -qq update
-  - sudo apt-get install -y uuid-runtime
-
 install:
   - pip install -r pip-install-req.txt
   - pip install -r pip-dev-req.txt
@@ -14,7 +10,7 @@ install:
 
 before_script:
   - cp pidman/localsettings.py.sample pidman/localsettings.py
-  - echo "SECRET_KEY = '`uuidgen`'" >> pidman/localsettings.py
+  - echo "SECRET_KEY = '`python -c 'import uuid; print uuid.uuid4()'`'" >> pidman/localsettings.py
 
 script:
   - python manage.py test

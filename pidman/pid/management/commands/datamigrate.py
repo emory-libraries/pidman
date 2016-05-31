@@ -62,8 +62,8 @@ class Command(BaseCommand):
             help='Reverse sync direction (swap source and dest databases)')
 
     def handle(self, *args, **options):
-        # make sure db migrations are current
-        call_command('migrate')
+        # NOTE: django migrations should be up to date and match
+        # the db version of the pidman data being copied
 
         # get source database name from user options
         self.src_db = options['source-db']
@@ -102,7 +102,7 @@ class Command(BaseCommand):
         if pid_models.Pid in self.models_to_migrate:
             self.stdout.write('Re-running pid sequence migration')
             # migrate back so sequence can be re-run
-            call_command('migrate', 'pid', '0001', '--fake')
+            call_command('migrate', 'pid', '0001')
             call_command('migrate', 'pid')
 
         self.summary()

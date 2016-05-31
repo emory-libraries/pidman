@@ -8,4 +8,6 @@ django-auth-ldap
 django-downtime>=1.0.4
 django-logentry-admin
 -e git://github.com/emory-libraries/django-eultheme.git@1.2.1#egg=eultheme
+progressbar2
+tabulate
 
