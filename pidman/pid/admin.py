@@ -67,7 +67,7 @@ class PidAdmin(admin.ModelAdmin):
 
     # now possible in django 1.1 - fields to use here?
     # list_editable = ('name', 'domain')
-    date_hierarchy = 'created_at'
+    # date_hierarchy = 'created_at'
     search_fields = ['name', 'pid', 'ext_system_key', 'target__uri']
     # keep pid type in a separate fieldset in order to suppress it on edit
     fieldset_pidtype = ('Pid Type', {
@@ -115,6 +115,18 @@ class PidAdmin(admin.ModelAdmin):
         pidqs = super(PidAdmin, self).get_queryset(request) 
         pidqs = pidqs.prefetch_related('target_set', 'target_set__linkcheck__url','domain','creator')
         return pidqs
+
+    def formfield_for_dbfield(self, db_field, **kwargs):
+        request = kwargs['request']
+        formfield = super(PidAdmin, self).formfield_for_dbfield(db_field, **kwargs)
+
+        if db_field.name == 'domain':
+            choices = getattr(request, '_domain_choices_cache', None)
+            if choices is None:
+                request._domain_choices_cache = choices = list(formfield.choices)
+            formfield.choices = choices
+
+        return formfield
 
 
 class ExtSystemAdmin(admin.ModelAdmin):
@@ -170,6 +182,13 @@ class DomainAdmin(MPTTModelAdmin):
 
     list_display = ('name', 'num_pids', 'subdomain_count', 'show_policy')
     inlines = [CollectionInline]
+
+    def get_queryset(self, request):
+        # extend queryset to prefetch targets & linkcheck status,
+        # which are used in the change list display
+        domains = super(DomainAdmin, self).get_queryset(request) 
+        domains = domains.prefetch_related('policy','parent')
+        return domains
 
 
 admin_site.register(Pid, PidAdmin)
