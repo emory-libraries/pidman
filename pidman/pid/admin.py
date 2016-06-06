@@ -24,6 +24,7 @@ class TargetInlineForm(ModelForm):
         # normalize according to how the ARK will be resolved
         return normalize_ark(self.cleaned_data["qualify"])
 
+
 class TargetInline(admin.TabularInline):
     model = Target
     fields = ('qualify', 'uri', 'proxy', 'active')
@@ -34,11 +35,13 @@ class TargetInline(admin.TabularInline):
 # NOTE: should be possible to extend inline template here
 # to display link status - last checked / message / etc
 
+
 class PurlTargetInline(TargetInline):
     verbose_name_plural = "Target"
     max_num = 1
     can_delete = False      # do not allow PURL target deletion (only one target)
     fields = ('uri', 'proxy', 'active')
+
 
 class PidAdminForm(ModelForm):
     domain = TreeNodeChoiceField(queryset=Domain.objects.all())
@@ -46,13 +49,12 @@ class PidAdminForm(ModelForm):
         model = Pid
         exclude = []
 
+
 class PidAdmin(admin.ModelAdmin):
     # browse display: type (ark/purl), domain/collection, name/description, and pid url (not target url)
     # note: including pid for link to edit page, since name is optional and not always present
     # including dates in list display for sorting purposes
     # sort columns by: type, domain/collection, name, (pid url?), date created/modified ascending/descending
-
-    
     list_display = ('pid', 'truncated_name', 'type', 'created_at', 'updated_at',
                     'domain', "primary_target_uri", "is_active", 'linkcheck_status')
 
@@ -67,7 +69,7 @@ class PidAdmin(admin.ModelAdmin):
 
     # now possible in django 1.1 - fields to use here?
     # list_editable = ('name', 'domain')
-    # date_hierarchy = 'created_at'
+    date_hierarchy = 'created_at'
     search_fields = ['name', 'pid', 'ext_system_key', 'target__uri']
     # keep pid type in a separate fieldset in order to suppress it on edit
     fieldset_pidtype = ('Pid Type', {
@@ -112,8 +114,9 @@ class PidAdmin(admin.ModelAdmin):
     def get_queryset(self, request):
         # extend queryset to prefetch targets & linkcheck status,
         # which are used in the change list display
-        pidqs = super(PidAdmin, self).get_queryset(request) 
-        pidqs = pidqs.prefetch_related('target_set', 'target_set__linkcheck__url','domain','creator')
+        pidqs = super(PidAdmin, self).get_queryset(request)
+        pidqs = pidqs.prefetch_related('target_set', 'domain', 'creator',
+                                       'target_set__linkcheck__url')
         return pidqs
 
     def formfield_for_dbfield(self, db_field, **kwargs):
@@ -132,11 +135,14 @@ class PidAdmin(admin.ModelAdmin):
 class ExtSystemAdmin(admin.ModelAdmin):
     list_display = ('name', 'key_field', 'updated_at')
 
+
 class ProxyAdmin(admin.ModelAdmin):
     list_display = ('name', 'transform', 'updated_at')
 
+
 class PolicyAdmin(admin.ModelAdmin):
     list_display = ('commitment', 'created_at')
+
 
 # class DomainAdminForm(forms.ModelForm):
 class DomainAdminForm(MPTTAdminForm):
@@ -162,12 +168,12 @@ class DomainAdminForm(MPTTAdminForm):
                                 code='invalid')
         return parent
 
-
     def clean(self):
         # policy is optional by default, but top-level domains must have one (can't inherit from parent)
         if not self.cleaned_data.get('parent', None) and not self.cleaned_data['policy']:
            raise ValidationError("Policy is required for top-level domains")
         return self.cleaned_data
+
 
 class CollectionInline(admin.TabularInline):
     model = Domain
@@ -175,6 +181,7 @@ class CollectionInline(admin.TabularInline):
     verbose_name_plural = "Collections"
     # parent = TreeNodeChoiceField(queryset=Domain.objects.all(),
         # level_indicator=u'+--')
+
 
 class DomainAdmin(MPTTModelAdmin):
     form = DomainAdminForm
@@ -184,10 +191,10 @@ class DomainAdmin(MPTTModelAdmin):
     inlines = [CollectionInline]
 
     def get_queryset(self, request):
-        # extend queryset to prefetch targets & linkcheck status,
+        # extend queryset to prefetch policy and parent,
         # which are used in the change list display
-        domains = super(DomainAdmin, self).get_queryset(request) 
-        domains = domains.prefetch_related('policy','parent')
+        domains = super(DomainAdmin, self).get_queryset(request)
+        domains = domains.prefetch_related('policy', 'parent')
         return domains
 
 
