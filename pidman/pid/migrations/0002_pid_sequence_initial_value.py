@@ -19,9 +19,14 @@ def pid_sequence_lastvalue(apps, schema_editor):
         # (previously using aggregate max, but doesn't seem to find
         # the highest pid value correctly)
         last_val = decode_noid(max_noid)
-        pid_seq, created = Sequence.objects.get_or_create(name=pid_models.Pid.SEQUENCE_NAME,
-             last=last_val)
-        pid_seq.last = last_val
+        try:
+            # try to find the pid sequence by name, in case it already exists
+            pid_seq = Sequence.objects.get(name=pid_models.Pid.SEQUENCE_NAME)
+            pid_seq.last = last_val
+        except Sequence.DoesNotExist:
+            # if sequence does not exist, create a new one
+            pid_seq = Sequence.objects.create(name=pid_models.Pid.SEQUENCE_NAME,
+                                              last=last_val)
         pid_seq.save()
 
 
