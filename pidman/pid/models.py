@@ -7,7 +7,6 @@ from django.contrib.auth.models import User
 from django.contrib.contenttypes.fields import GenericRelation
 from django.core.urlresolvers import reverse
 from django.db import connection, models, transaction
-
 from mptt.models import MPTTModel, TreeForeignKey
 from sequences import get_next_value
 # from linkcheck.models import Link
@@ -85,12 +84,14 @@ class Domain(MPTTModel):
     name = models.CharField(unique=True, max_length=255)
     updated_at = models.DateTimeField(auto_now=True)
     policy = models.ForeignKey(Policy, blank=True, null=True,
-        help_text='Policy statement for pids in this domain')
+        help_text='Policy statement for pids in this domain', db_index=True)
     parent = TreeForeignKey('self', blank=True, null=True,
                 related_name='collections', db_index=True)
 
     class MPTTMeta:
         order_insertion_by = ['name']
+        index_together = ["policy", "parent"]
+
 
     def __unicode__(self):
         return self.name
@@ -140,22 +141,25 @@ class Pid(models.Model):
     pid = models.CharField(unique=True, max_length=255, editable=False)
     # NOTE: previously, pid value was set using a default=mint_noid;
     # now, to use sequence cleanly, noid is only Cleanset when saving a new Pid
-    domain = models.ForeignKey(Domain)
+    domain = models.ForeignKey(Domain, db_index=True)
     name = models.CharField(max_length=1023, blank=True)
     # external system & key - identifier in another system, e.g. EUCLID control key
-    ext_system = models.ForeignKey(ExtSystem, verbose_name='External system', blank=True, null=True)
+    ext_system = models.ForeignKey(ExtSystem, verbose_name='External system', blank=True, null=True, db_index=True)
     ext_system_key = models.CharField('External system key', max_length=1023, blank=True, null=True)
-    creator = models.ForeignKey(User, related_name='created')
+    creator = models.ForeignKey(User, related_name='created', db_index=True)
     created_at = models.DateTimeField("Date Created", auto_now_add=True)
-    editor = models.ForeignKey(User, related_name="edited")
+    editor = models.ForeignKey(User, related_name="edited", db_index=True)
     pid_types = (("Ark", "Ark"), ("Purl", "Purl"))
     type = models.CharField(max_length=25, choices=pid_types)
     updated_at = models.DateTimeField("Date Updated", auto_now=True)
-    policy = models.ForeignKey(Policy, blank=True, null=True)
+    policy = models.ForeignKey(Policy, blank=True, null=True, db_index=True)
 
     SEQUENCE_NAME = 'pid_noid'
 
     objects = PidManager()
+
+    class Meta:
+        index_together = ["updated_at","policy","editor","creator","ext_system","domain"]
 
     def __unicode__(self):
         return self.pid + ' ' + self.name
@@ -178,10 +182,13 @@ class Pid(models.Model):
 
         :return: :class:`Target`
         '''
-        try:
-            return self.target_set.filter(qualify='').first()
-        except Target.DoesNotExist:
-            return None
+        # NOTE: this method is used in django-admin change list;
+        # intentionally does not hit the database, since it requires
+        # one query per pid
+        for target in self.target_set.all():
+            if target.qualify == '':
+                return target
+        return None
 
     # make primary target uri easily accessible
     def primary_target_uri(self):
@@ -289,7 +296,7 @@ class Pid(models.Model):
         :return: boolean
         '''
         # consider active if any targets are active
-        return self.target_set.filter(active=True).exists()
+        return any([target.active for target in self.target_set.all()])
     is_active.short_description = "Active ?"
     is_active.allow_tags = True
     is_active.boolean = True
@@ -314,11 +321,19 @@ class Pid(models.Model):
 
         # get all linkcheck status for all target urls
         # linkcheck status is true for ok, false for error
-        link_status = self.target_set.all().values_list('linkcheck__url__status',
-                                                        flat=True)
+
+        # NOTE: iterating here to take advantage of pre-fetching
+        # results as configured for admin change list
+        linkcheck = []
+        for target in self.target_set.all():
+            linkcheck.extend(target.linkcheck.all())
+        if not linkcheck:
+            return None
+        link_status = [link.url.status for link in linkcheck]
+
         # if the number of statuses doesn't match the number of targets,
         # then return None for unknown/unchecked
-        if self.target_set.count() != len(link_status):
+        if self.target_set.all().count() != len(link_status):
             return None
         else:
             # ok if all are true, otherwise there are some errors
@@ -393,21 +408,22 @@ class Target(models.Model):
     well as the **noid**, so that resolving a Target can be done as efficiently
     as possible.
     '''
-    pid = models.ForeignKey(Pid)
+    pid = models.ForeignKey(Pid, db_index=True)
     noid = models.CharField(max_length=255, editable=False)
     # NOTE: previously uri was a charfield, because URLField was only
     # introduced in Django 1.5.
     uri = models.URLField(max_length=2048)
     qualify = models.CharField("Qualifier", max_length=255, null=False, blank=True, default='')
-    proxy = models.ForeignKey(Proxy, blank=True, null=True)
+    proxy = models.ForeignKey(Proxy, blank=True, null=True, db_index=True)
     active = models.BooleanField(default=True)
 
     # linkcheck = GenericRelation(Link)
 
     objects = TargetManager()
-
+    
     class Meta:
         unique_together = (('pid', 'qualify'))
+        index_together = ["proxy","pid"]
 
     def __unicode__(self):
         return self.get_resolvable_url()

@@ -1,8 +1,8 @@
 from django.contrib import auth
-from downtime.models import Period
-from eultheme.models import Banner
 from django.contrib.admin import AdminSite
 from django.contrib.admin.models import LogEntry
+from downtime.models import Period
+from eultheme.models import Banner
 from logentry_admin.admin import LogEntryAdmin
 
 import sequences
@@ -23,6 +23,7 @@ admin_site.register(sequences.models.Sequence, sequences.admin.Sequence)
 # eultheme / downtime
 admin_site.register(Period)
 admin_site.register(Banner)
+admin_site.register(LogEntry, LogEntryAdmin)
 
 
 def template_settings(request):

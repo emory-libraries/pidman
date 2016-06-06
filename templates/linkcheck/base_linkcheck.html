@@ -1,0 +1,36 @@
+{# customize linkcheck base template for compatibility with django-admin-bootstrapped #}
+{% extends "admin/change_list.html" %}
+{% load i18n admin_urls admin_static admin_list bootstrapped_goodies_tags %}
+
+{# restyle breadcrumbs to match bootstrap #}
+{% block breadcrumbs %}
+<ul class="breadcrumb">
+    <li><a href="{% url 'admin:index' %}">{% trans 'Home' %}</a></li>
+    <li>Link Checker</li>
+</ul>
+{% endblock %}
+{# {% block breadcrumbs %}<div class="breadcrumbs"><a href="/admin/">Home</a>&nbsp;&rsaquo;&nbsp;Link Checker</div>{% endblock %} #}
+{% block content %}
+    <div id="content-main" class="nomargintop">
+        <h1>Link Checker</h1>
+        <div class="module">
+            {% block innercontent %}
+            {% endblock %}
+        </div>
+    </div>
+{% endblock %}
+
+{# turn off things that cause errors because there is no content list for django-admin-bootstrapped templatetags #}
+{% block object-tools %}{% endblock %}
+{% block date_hierarchy %}{% endblock %}
+{% block result_list %}{% endblock %}
+{% block pagination %}{% endblock %}
+
+{% comment %}
+NOTE:
+- ideally, the good/broken/unchecked links nav should probably be in the
+object-tools block for consistency with other admin pages, but the
+linkcheck template is not configurable or set in blocks.
+- navbar links that show in other admin pages are not visible here
+  (probably because template variables are not set)
+{% endcomment %}
