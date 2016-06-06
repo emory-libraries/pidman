@@ -56,6 +56,14 @@ Upgrade Notes
 1.0
 ~~~
 
+* Run database migrations::
+
+    python manage.py migrate
+
+* Add a **CACHES** configuration to ``localsettings.py`` to take advantage
+  of the caching that has been added to make slow admin pages more efficient.
+  See the example configuration and notes in ``localsettings.py.sample``.
+
 * This update includes `django-downtime <https://github.com/dstegelman/django-downtime>`_
   for maintenance mode.  You may want to customize **DOWNTIME_EXEMPT_PATHS**
   and **DOWNTIME_ALLOWED_IPS**.  Downtime can be scheduled via

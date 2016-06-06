@@ -38,6 +38,19 @@ DATABASES = {
 # or use uuidgen
 SECRET_KEY = ''
 
+# cache configuration https://docs.djangoproject.com/en/1.9/topics/cache/
+CACHES = {
+    'default': {
+        # file-based cache
+        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'LOCATION': '/path/to/cache',
+        # memory cache
+        # 'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        # 'LOCATION': 'pidman-cache',
+    }
+}
+
+
 # django-auth-ldap settings for LDAP login
 try:
     import ldap
@@ -79,4 +92,6 @@ PID_ARK_NAAN = '12345'
 # https://github.com/DjangoAdminHackers/django-linkcheck#settings
 SITE_DOMAIN = 'localhost'
 # LINKCHECK_SITE_DOMAINS = ['example.com']
+
+
 
