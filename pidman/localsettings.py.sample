@@ -38,16 +38,16 @@ DATABASES = {
 SECRET_KEY = ''
 
 # cache configuration https://docs.djangoproject.com/en/1.9/topics/cache/
-CACHES = {
-    'default': {
-        # file-based cache
-        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
-        'LOCATION': '/path/to/cache',
-        # memory cache
-        # 'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        # 'LOCATION': 'pidman-cache',
-    }
-}
+# CACHES = {
+#     'default': {
+#         # file-based cache
+#         'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+#         'LOCATION': '/path/to/cache',
+#         # memory cache
+#         # 'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+#         # 'LOCATION': 'pidman-cache',
+#     }
+# }
 
 
 # django-auth-ldap settings for LDAP login
