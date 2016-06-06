@@ -34,4 +34,3 @@ def template_settings(request):
     }
     return context_extras
 
-admin_site.register(LogEntry, LogEntryAdmin)
