@@ -39,6 +39,8 @@ INSTALLED_APPS = [
     'eultheme',
     'downtime',
     'widget_tweaks',
+    'logentry_admin',
+    # 'linkcheck',
     'pidman.pid',
     'pidman.resolver',
     'pidman.rest_api',
@@ -111,13 +113,18 @@ WSGI_APPLICATION = 'pidman.wsgi.application'
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'America/New_York'
 
 USE_I18N = True
 
 USE_L10N = True
 
 USE_TZ = True
+
+AUTHENTICATION_BACKENDS = (
+    'django_auth_ldap.backend.LDAPBackend',
+    'django.contrib.auth.backends.ModelBackend',
+)
 
 
 # Static files (CSS, JavaScript, Images)

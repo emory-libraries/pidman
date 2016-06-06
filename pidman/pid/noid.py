@@ -38,7 +38,7 @@ def encode_noid(num):
     character.'''
     digits = _digits(num)
     digits.append(_checksum(digits))
-    return ''.join([ ALPHABET[digit] for digit in digits ])
+    return ''.join([ALPHABET[digit] for digit in digits])
 
 def decode_noid(noid):
     '''Decode the integer represented by a NOID string, ignoring the final

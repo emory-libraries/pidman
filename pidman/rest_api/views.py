@@ -11,8 +11,11 @@ from django.core.paginator import Paginator, InvalidPage, EmptyPage
 from django.core.urlresolvers import reverse, resolve
 from django.core.serializers.json import DjangoJSONEncoder
 from django.views.decorators.csrf import csrf_exempt
+from django.http import HttpResponse, HttpResponseNotAllowed, \
+    HttpResponseBadRequest, HttpResponseForbidden, Http404
 from django.shortcuts import get_object_or_404
-from django.http import HttpResponse, HttpResponseNotAllowed, HttpResponseBadRequest, HttpResponseForbidden, Http404
+from django.views.decorators.csrf import csrf_exempt
+
 
 from eulcommon.djangoextras.http.responses import HttpResponseUnauthorized
 
@@ -206,6 +209,7 @@ them from being resolved.'''
 
     # if request method is not GET or PUT, return 405 method not allowed
     return HttpResponseNotAllowed(methods)
+
 
 @csrf_exempt
 @basic_authentication
@@ -611,6 +615,7 @@ def search_pids(request):
     json_data = json_serializer.encode(results_set)
     return HttpResponse(json_data, content_type='application/json')
 
+
 @csrf_exempt
 @basic_authentication
 def domains(request):
@@ -713,6 +718,7 @@ def domains(request):
 
     # if request method is not GET, return 405 method not allowed
     return HttpResponseNotAllowed(methods)
+
 
 @csrf_exempt
 @basic_authentication
@@ -859,6 +865,7 @@ def target_data(target, request):
     if target.proxy:
         data['proxy'] = target.proxy.name
     return data
+
 
 def domain_data(domain, request):
     '''Generate a dictionary of data about a single :class:`~pidman.pid.models.Domain`

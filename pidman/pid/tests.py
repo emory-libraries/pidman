@@ -154,6 +154,7 @@ class PidTestCase(TestCase):
         self.assertFalse(self.ark.is_active())
         self.assertFalse(self.purl.is_active())
 
+    @unittest.skip    # linkcheck disabled in 0.10
     def test_target_linkcheck_status(self):
         # no links checked, status -> none
         self.assertEqual(None, self.ark.target_linkcheck_status(),

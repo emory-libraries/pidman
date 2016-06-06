@@ -1,9 +1,12 @@
-from django.contrib.admin import AdminSite
 from django.contrib import auth
 from downtime.models import Period
 from eultheme.models import Banner
+from django.contrib.admin import AdminSite
+from django.contrib.admin.models import LogEntry
+from logentry_admin.admin import LogEntryAdmin
 
 import sequences
+
 
 class PidmanAdminSite(AdminSite):
     site_header = 'Persistent Identifier Manager'
@@ -16,6 +19,7 @@ admin_site = PidmanAdminSite()
 admin_site.register(auth.models.Group, auth.admin.GroupAdmin)
 admin_site.register(auth.models.User, auth.admin.UserAdmin)
 admin_site.register(sequences.models.Sequence, sequences.admin.Sequence)
+
 # eultheme / downtime
 admin_site.register(Period)
 admin_site.register(Banner)
@@ -28,3 +32,5 @@ def template_settings(request):
         'site_title': PidmanAdminSite.site_header
     }
     return context_extras
+
+admin_site.register(LogEntry, LogEntryAdmin)

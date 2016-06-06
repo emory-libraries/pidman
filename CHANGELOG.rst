@@ -1,6 +1,11 @@
-Release 1.0
------------
-January 2016
+Release 0.10
+------------
+March 2016
+
+.. NOTE::
+
+  This is an interim release intended for migrating data.  You should
+  upgrade to the next release once the database migration is complete.
 
 * **SOAP API has been removed.**
 * Upgraded to Django 1.8; South migrations have been converted to
@@ -8,13 +13,9 @@ January 2016
 * Pid noid sequence is now generated with django-sequences and is
   database agnostic (postgres is no longer required).
 * Pid target uri is now a URLField instead of a CharField.
-* Domain/collection hierarchy now handled with
-  `django-mptt <http://django-mptt.github.io/django-mptt/>`_.
-* Updated and refined
-  `django-linkcheck <https://github.com/DjangoAdminHackers/django-linkcheck>`_
-  integration.
-* Updated to use `django-nose <https://django-nose.readthedocs.org/en/latest/>`_
-  as unit test runner.
+* New migration script to migrate data from an old database
+  to a new one (i.e., postgres to mysql).
+* Updated to use django-nose as unit test runner.
 * Django admin site now customized using a local AdminSite instead of
   extending admin templates.
 * Unused usage statistics code has been removed (to be revisited in a
@@ -22,6 +23,10 @@ January 2016
 * Unused pidman.pidauth has been removed.
 * InvalidArk proxy model has been removed (application no longer allows
   invalid arks to be created).
+* Now using `django-auth-ldap <https://pythonhosted.org/django-auth-ldap/>`
+  for LDAP login instead of eullocal.
+* Enabled `django-logentry-admin <https://github.com/yprez/django-logentry-admin>`_
+  to provide minimal view access to admin log entries.
 * Legacy documentation that is no longer relevant has been removed.
 
 Release 0.9.0
