@@ -1,7 +1,7 @@
 
 Release 1.0
 -----------
-March 2016
+June 2016
 
 * Domain/collection hierarchy now handled with
   `django-mptt <http://django-mptt.github.io/django-mptt/>`_.
@@ -18,7 +18,7 @@ March 2016
 
 Release 0.10
 ------------
-March 2016
+June 2016
 
 .. NOTE::
 
