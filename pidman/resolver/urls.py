@@ -1,7 +1,9 @@
-from django.conf.urls.defaults import *
+from django.conf.urls import url
+from . import views
 
-urlpatterns = patterns('pidman.resolver.views',
-    (r'^(?P<noid>[a-z0-9]+)$', 'resolve_purl'),
+urlpatterns = [
+    url(r'^(?P<noid>[a-z0-9]+)$', views.resolve_purl),
     # either / or . can delimit the end of ark name and the beginning of the qualifier
-    (r'^ark:/(?P<naan>\d+)/(?P<noid>[a-z0-9-]+)[/.]?(?P<qual>[a-zA-Z0-9=#*+@_$%-./]*)', 'resolve_ark'),
-)
+    url(r'^ark:/(?P<naan>\d+)/(?P<noid>[a-z0-9-]+)[/.]?(?P<qual>[a-zA-Z0-9=#*+@_$%-./]*)',
+        views.resolve_ark),
+]

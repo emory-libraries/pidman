@@ -6,12 +6,12 @@
 PID Manager Documentation
 =========================
 
-.. include:: ../README
+.. include:: ../README.rst
 
 Version History
 ===============
 
-.. include:: ../CHANGELOG
+.. include:: ../CHANGELOG.rst
 
 Contents:
 
@@ -19,6 +19,8 @@ Contents:
    :maxdepth: 2
 
    api_list
+   deploynotes
+
 
 Indices and tables
 ==================

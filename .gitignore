@@ -1,0 +1,8 @@
+*.pyc
+pidman/localsettings.py
+test-results
+docs/_build
+build
+dist
+nosetests.xml
+.coverage

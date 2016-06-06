@@ -11,7 +11,7 @@ Currently, the only supported format is JSON.
 
    + use GET to list information about all domains
    + use POST to create a new domain - see :meth:`domains` for options
-   
+
  - **/domains/#/** (where # is an domain id number)
 
    + use GET to retrieve a single domain by id number
@@ -57,10 +57,13 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.paginator import Paginator, InvalidPage, EmptyPage
 from django.core.urlresolvers import reverse, resolve
 from django.core.serializers.json import DjangoJSONEncoder
+from django.http import HttpResponse, HttpResponseNotAllowed, \
+    HttpResponseBadRequest, HttpResponseForbidden, Http404
 from django.shortcuts import get_object_or_404
-from django.http import HttpResponse, HttpResponseNotAllowed, HttpResponseBadRequest, HttpResponseForbidden, Http404
+from django.views.decorators.csrf import csrf_exempt
 
-from eulcore.django.http import HttpResponseUnauthorized
+
+from eulcommon.djangoextras.http.responses import HttpResponseUnauthorized
 
 from pidman.pid.models import Pid, Target, Domain, ExtSystem, Proxy, Policy
 from pidman.pid.ark_utils import valid_qualifier
@@ -79,7 +82,7 @@ class BadRequest(Exception):
 def _log_rest_action(request, object, action, msg):
     """
     This adds actions to the standard django admin LogEntry model as if it were
-    performed via the admin interface.  Simple place the log entry after the 
+    performed via the admin interface.  Simple place the log entry after the
     action for create or update functions or *before* the action in if deleting
     an object.
 
@@ -100,7 +103,7 @@ def _log_rest_action(request, object, action, msg):
     :param action: static variable for action from `django.admin.model`
                    limited to ADDITION, CHANGE or DELETE
     :param msg: Text message to include in log entry for object action.
-    
+
     """
     LogEntry.objects.log_action(
         user_id = request.user.id,
@@ -117,15 +120,16 @@ def _paged_results_set(queryset):
     information for a more complete and informative results set.
 
     :param queryset: The django query to pass through the paginator.
-    
+
     """
 
+@csrf_exempt
 @basic_authentication
 def pid(request, noid, type):
     '''REST API access to PURLs and ARKs.
 
     On GET, returns information about the PURL or ARK requested by id and type.
-    
+
     Accessing an ARK or PURL will return all information associated with that
     pid.  In order to allow accessing and updating the unqualified (for an ARK)
     or default (for a PURL) target, the pid url must NOT include a trailing slash.
@@ -137,7 +141,7 @@ def pid(request, noid, type):
 
     On PUT, update a PURL or ARK.  Update values should be in the request body
     as JSON.  The following values are supported:
-    
+
         * **domain** - domain, in URI resource format, e.g.
           http://pid.emory.edu/domains/1/
         * **name** - label or title
@@ -182,7 +186,7 @@ them from being resolved.'''
                                  % (request.META['CONTENT_TYPE'], content_type))
 
             # parse the request body as JSON
-            data = json.loads(request.raw_post_data)
+            data = json.loads(request.body)
 
             # TODO: figure out how to take advantage of overlap in create_pid logic
 
@@ -240,12 +244,14 @@ them from being resolved.'''
     # common logic for GET and successful PUT: return pid info as JSON
     if request.method == 'GET' or request.method == 'PUT':
         json_data = json_serializer.encode(pid_data(pid, request))
-        return HttpResponse(json_data, mimetype='application/json')
+        return HttpResponse(json_data, content_type='application/json')
 
-    
+
     # if request method is not GET or PUT, return 405 method not allowed
     return HttpResponseNotAllowed(methods)
 
+
+@csrf_exempt
 @basic_authentication
 def target(request, noid, type, qualifier):
     '''REST API access to ARK and PURL targets.
@@ -254,7 +260,7 @@ def target(request, noid, type, qualifier):
     type, and qualifier.  Returns information about the requested target only,
     with a reference to the ARK or PURL the target belongs to.  A final slash
     after the pid indicates that the unqualified or default target is requested.
-    
+
     Examples urls::
 
         http://pid.emory.edu/purl/127zr/        - default (only) target (PURL)
@@ -267,7 +273,7 @@ def target(request, noid, type, qualifier):
 
     Update values should be in the request body as JSON.  The following values
     are supported:
-    
+
         * proxy - name of the proxy to use when resolving; set blank to clear proxy
         * target_uri - URI that the target should resolve to when accessed
         * active - boolean; indicates whether or not the target should be resolved
@@ -279,7 +285,7 @@ def target(request, noid, type, qualifier):
     # target deletion is allowed for ARK targets only
     if type == 'ark':
         methods.append('DELETE')
-        
+
     # target filter options to find the requested target for view or update
     target_details = {
         'noid__exact': noid,
@@ -317,7 +323,7 @@ def target(request, noid, type, qualifier):
                 raise BadRequest("Unsupported content type '%s'; please use a supported format: %s" \
                                  % (request.META['CONTENT_TYPE'], content_type))
             # parse the request body as JSON
-            data = json.loads(request.raw_post_data)
+            data = json.loads(request.body)
             # TODO: figure out how to take advantage of overlap in create_pid logic
 
             # update any target properties that are specified
@@ -345,7 +351,7 @@ def target(request, noid, type, qualifier):
                  'Updated target:%s via rest api' % unicode(target))
             _log_rest_action(request, target.pid, CHANGE,
                  'Updated pid:%s via rest api' % unicode(target.pid))
-            
+
             # on success, fall through to common GET/PUT display logic
 
         except BadRequest as err:
@@ -363,7 +369,7 @@ def target(request, noid, type, qualifier):
                                         kwargs={'noid': target.noid,
                                                 'type': target.pid.type.lower()}))
         json_data = json_serializer.encode(data)
-        return HttpResponse(json_data, mimetype='application/json', status=status)
+        return HttpResponse(json_data, content_type='application/json', status=status)
 
     # ARK targets can be deleted; PURLs have only one target-- not allowing deletion
     if request.method == 'DELETE' and type == 'ark':
@@ -372,12 +378,12 @@ def target(request, noid, type, qualifier):
             return HttpResponseUnauthorized(BASIC_AUTH_REALM)
         elif not request.user.has_perm('pid.delete_pid'):
             return HttpResponseForbidden()
-        
+
         target = get_object_or_404(Target, **target_details)
         # action must be logged before the object is deleted
         _log_rest_action(request, target, DELETION,
                  'Deleted target:%s via rest api' % unicode(target))
-        target.delete()        
+        target.delete()
         # consider deleting a target as an update to the ARK
         target.pid.editor = request.user
         target.pid.save()
@@ -391,7 +397,7 @@ def target(request, noid, type, qualifier):
     return HttpResponseNotAllowed(methods)
 
 
-
+@csrf_exempt
 @basic_authentication
 def create_pid(request, type):
     '''On POST, create a new ARK or PURL.  On successful creation, returns a
@@ -437,7 +443,7 @@ def create_pid(request, type):
             # incompatible options - qualifier only makes sense for purls
             if 'qualifier' in request.POST and type == 'purl':
                 raise BadRequest('Purl targets can not have qualifiers')
-            
+
             # domain should be passed in as resource URI - resolve to model instance
             domain = _domain_from_uri(request.POST['domain'])
 
@@ -491,7 +497,7 @@ def create_pid(request, type):
 
             # return the resolvable url (purl/ark) for the new target
             return HttpResponse(t.get_resolvable_url(), status=201)   # 201 Created
-        
+
         except BadRequest as err:
             # return a response with status code 400, Bad Request
             return HttpResponseBadRequest('Error: %s' % err)
@@ -538,13 +544,13 @@ def search_pids(request):
         * next_page_link - URL to next page or None if no next page.
         * prev_page_link - URL to previous page or None of no previous page.
         * results - list of PIDs returned in request.
-        
+
     '''
     # This holds a set of params to be carried forward for paging.
     # It also provides scrubbing for nonsense params so they aren't carried
     # foward.
     pagequery = {}
-    
+
     # Only build searches on the following params.
     valid_search_params = {
         'domain': 'domain__name__iexact',
@@ -582,7 +588,7 @@ def search_pids(request):
     pid_list = Pid.objects.filter(**query).order_by('updated_at')
     if not pid_list:
         json_data = json_serializer.encode({})
-        return HttpResponse(json_data, mimetype='application/json')
+        return HttpResponse(json_data, content_type='application/json')
 
 
     # pagination code based on the django documentation for same
@@ -647,8 +653,10 @@ def search_pids(request):
 
     # Serialize it all as JSON and return it.
     json_data = json_serializer.encode(results_set)
-    return HttpResponse(json_data, mimetype='application/json')
+    return HttpResponse(json_data, content_type='application/json')
 
+
+@csrf_exempt
 @basic_authentication
 def domains(request):
     '''On GET, returns a list of all top-level :class:`~pidman.pid.models.Domain`
@@ -671,13 +679,13 @@ def domains(request):
         http://pid.emory.edu/domains/
     '''
     methods = ['GET', 'POST']
-    
+
     if request.method == 'GET':
         # retrieve all top-level domains
         domains = Domain.objects.filter(parent=None)
         data = [domain_data(d, request) for d in domains]
         json_data = json_serializer.encode(data)
-        return HttpResponse(json_data, mimetype='application/json')
+        return HttpResponse(json_data, content_type='application/json')
 
     elif request.method == 'POST':
         #Validate permissions
@@ -746,9 +754,11 @@ def domains(request):
         except Exception as err:
             return HttpResponse("Error: %s " % err, status=500)   #500 = Bad Request
 
-    # if request method is not GET, return 405 method not allowed 
+    # if request method is not GET, return 405 method not allowed
     return HttpResponseNotAllowed(methods)
 
+
+@csrf_exempt
 @basic_authentication
 def domain(request, id):
     '''On GET, return information about the `pidman.pid.models.Domain`
@@ -757,7 +767,7 @@ def domain(request, id):
 
     On PUT, update Domain.  Update values should be in the request body
     as JSON.  The following values are supported:
-    
+
         * name - label or title for the Domain
         * policy - policy title
         * parent - parent uri
@@ -765,12 +775,12 @@ def domain(request, id):
     Example domain url::
 
         http://pid.emory.edu/domains/1/
-        
+
     '''
     # Look-Up object for PUT and GET
     if request.method == 'GET' or  request.method == 'PUT':
 	domain = get_object_or_404(Domain, id__exact=id)
-        
+
     if request.method == 'PUT':
         #Validate permissions
         if not request.user.is_authenticated():
@@ -783,12 +793,13 @@ def domain(request, id):
         # content should be posted in request body as JSON
         content_type = 'application/json'
         try:
-
-       	    if request.META['CONTENT_TYPE'] != content_type:
-        	raise BadRequest("Unsupported content type '%s'; please use a supported format: %s" \
-                                 % (request.META['CONTENT_TYPE'], content_type))
+            # NOTE: should be using HTTP_ACCEPT here; content-type
+            # is for responses only
+            if request.META.get('CONTENT_TYPE', None) != content_type:
+                raise BadRequest("Unsupported content type '%s'; please use a supported format: %s" \
+                                 % (request.META.get('CONTENT_TYPE', ''), content_type))
             # parse the request body as JSON
-            data = json.loads(request.raw_post_data)
+            data = json.loads(request.body)
 
             if len(data) == 0:
                 raise BadRequest("No Parameters Passed")
@@ -821,8 +832,8 @@ def domain(request, id):
     #return Domain object for both GET or PUT
     if request.method == 'GET' or request.method == 'PUT':
         json_data = json_serializer.encode(domain_data(domain, request))
-        return HttpResponse(json_data, mimetype='application/json')
-       
+        return HttpResponse(json_data, content_type='application/json')
+
     # if request method is not GET or PUT, return 405 method not allowed
     return HttpResponseNotAllowed(['GET', 'PUT'])
 
@@ -837,7 +848,7 @@ def pid_data(pid, request):
     :param pid: :class:`~pidman.pid.models.Pid` instance
     :param request: :class:`django.http.HttpRequest`, for generating absolute URIs
     :rtype: dict
-    
+
     '''
     data = {
         'uri': request.build_absolute_uri(reverse('rest_api:pid',
@@ -846,7 +857,7 @@ def pid_data(pid, request):
         'domain': request.build_absolute_uri(reverse('rest_api:domain',
                     kwargs={'id':pid.domain.id})),
         'creator': pid.creator.username,
-        'created': pid.created_at.isoformat(), 
+        'created': pid.created_at.isoformat(),
         'editor': pid.editor.username,
         'updated': pid.updated_at.isoformat(),
         'targets': [target_data(t, request) for t in pid.target_set.all()]
@@ -916,7 +927,7 @@ def domain_data(domain, request):
     }
     if domain.policy:
         data['policy'] = domain.policy.title
-    
+
     if domain.parent:
         # if this domain has a parent, it is a collection/subdomain
         # include parent domain uri
@@ -955,7 +966,7 @@ def _domain_from_uri(domain_uri):
         # if the uri does not resolve to the rest api domain method
         # or does not have an id argument, it's not a domain uri
         raise BadRequest('Could not resolve domain URI into a domain')
-    
+
     try:
         d = Domain.objects.get(pk=kwargs['id'])
     except ObjectDoesNotExist:

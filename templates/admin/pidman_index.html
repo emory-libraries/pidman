@@ -1,0 +1,24 @@
+{% extends "admin/index.html" %}
+{% comment %}
+Extends default admin site index template in order to add custom links
+for reporting purposes, etc.
+{% endcomment %}
+
+{% block content %}
+<div id="content-main">
+{{ block.super }}
+{# TODO: should there be any permissions required and checked here to view these reports? #}
+    <div class="module">
+        <table summary="Available Reports">
+        <caption>Reports</caption>
+        <tr>
+            <th scope="row"><a href="{% url 'linkcheck:linkcheck_report' %}">Link Checker Report</a></th>
+            <td><a href="{% url 'linkcheck:linkcheck_coverage' %}">Coverage</a></td>
+        </tr>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{# also available: block sidebar #}
+

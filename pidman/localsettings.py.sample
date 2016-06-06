@@ -1,45 +1,78 @@
-# This is a sample localsettings.py. Copy it to localsettings.py and fill it
+# Sample localsettings.py. Copy it to localsettings.py and fill it
 # with settings relevant to your local server.
 
-DEBUG = False # Debug should always have to be explicitly set to True.
+import os
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = True
 TEMPLATE_DEBUG = DEBUG
+
+ALLOWED_HOSTS = []
 
 ADMINS = (
     # ('Your Name', 'your_email@domain.com'),
 )
 MANAGERS = ADMINS
 
-DATABASE_ENGINE = ''           # 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-DATABASE_NAME = ''             # Or path to database file if using sqlite3.
-DATABASE_USER = ''             # Not used with sqlite3.
-DATABASE_PASSWORD = ''         # Not used with sqlite3.
-DATABASE_HOST = ''             # Set to empty string for localhost. Not used with sqlite3.
-DATABASE_PORT = ''             # Set to empty string for default. Not used with sqlite3.
+# Database
+# https://docs.djangoproject.com/en/1.8/ref/settings/#databases
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+    },
+    # old postgres db with data to migrate using datamigrate
+    'old-db': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': '',
+        'USER': '',
+        'PASSWORD': '',
+        'HOST': '',
+        'PORT': '',
+    }
 
-# LDAP login settings. These are configured for emory, but you'll need
-# to get a base user DN and password elsewhere.
-AUTH_LDAP_SERVER = 'ldaps://vlad.service.emory.edu'
-AUTH_LDAP_BASE_USER = ''           # DN of the base LDAP user (e.g., 'uid=foo,ou=bar,o=emory.edu')
-AUTH_LDAP_BASE_PASS = ''           # password for that user
-AUTH_LDAP_SEARCH_SUFFIX = 'o=emory.edu'
-AUTH_LDAP_SEARCH_FILTER = '(uid=%s)'
-AUTH_LDAP_CHECK_SERVER_CERT = True # set to False to skip server cert verification (TESTING ONLY)
-AUTH_LDAP_CA_CERT_PATH = ''        # full path to CA cert bundle
+}
 
-# This should be private and unique per server. In a pinch, something from
-# `uuidgen` should do.
+# SECURITY WARNING: keep the secret key used in production secret!
+# You can generate a new key here: http://www.miniwebtool.com/django-secret-key-generator/
 SECRET_KEY = ''
+
+# django-auth-ldap settings for LDAP login
+import ldap
+from django_auth_ldap.config import LDAPSearch
+
+AUTH_LDAP_SERVER_URI = 'ldaps://ldap.co'
+AUTH_LDAP_BIND_DN = ''     # DN of the  base LDAP user (e.g., 'uid=foo,ou=bar,o=emory.edu')
+AUTH_LDAP_BIND_PASSWORD = ''           # password for that user
+AUTH_LDAP_USER_SEARCH = LDAPSearch("o=...",   ldap.SCOPE_SUBTREE, "(uid=%(user)s)")
+# If a cert file needs to be specified, or any other ldap options
+# from http://python-ldap.org/doc/html/ldap.html#options are needed,
+# add them here:
+# AUTH_LDAP_GLOBAL_OPTIONS = {
+#     ldap.OPT_X_TLS_CACERTFILE: '...',
+# }
+
+AUTH_LDAP_USER_ATTR_MAP = {
+    'first_name': 'givenName',
+    'last_name': 'sn',
+    'email': 'mail',
+    # 'phone': 'telephoneNumber',
+    # 'dept_num': 'departmentNumber',
+    # 'full_name': 'cn',
+    # 'title': 'title',
+}
+
+
 
 # Information needed for generating new ARKs and PURLs:
 #  - base url for all pids (where the pid resolver is installed)
 #  - name authority number for ARKs
-PID_RESOLVER_URL = 'http://pidtest.library.emory.edu'
-PID_ARK_NAAN = '25593'
+PID_RESOLVER_URL = 'http://pid.example.com'
+PID_ARK_NAAN = '12345'
 
-EXTENSION_DIRS = (
-    # This works for manage.py, but running under apache requires an
-    # absolute path.
-
-    '../external/django-modules',
-)
+# django-linkcheck settings for internal links; for more options, see
+# https://github.com/DjangoAdminHackers/django-linkcheck#settings
+SITE_DOMAIN = ['localhost']
+# LINKCHECK_SITE_DOMAINS = ['example.com']
 

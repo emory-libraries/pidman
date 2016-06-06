@@ -4,27 +4,16 @@ import urlparse
 
 from django.conf import settings
 from django.contrib.auth.models import User
-from django.contrib.contenttypes import generic
+from django.contrib.contenttypes.fields import GenericRelation
 from django.core.urlresolvers import reverse
-from django.db import connection, models
+from django.db import connection, models, transaction
 
-from linkcheck import Linklist
-from linkcheck.models import Link as LinkCheckLink
+from sequences import get_next_value
+# from linkcheck.models import Link
 
 from pidman.pid.ark_utils import normalize_ark, valid_qualifier, qualifier_allowed_characters
-from pidman.pid.noid import encode_noid
+from pidman.pid.noid import encode_noid, decode_noid
 from django.core.exceptions import ValidationError
-
-def mint_noid():
-    '''mint_noid() -> unicode
-    Generate a new NOID (Nice Opaque IDentifier).
-    '''
-    cursor = connection.cursor()
-    cursor.execute("SELECT nextval('pid_pid_pid_seq')")
-    noid_num = cursor.fetchone()[0]
-    cursor.close()
-
-    return encode_noid(noid_num)
 
 
 class ExtSystemManager(models.Manager):
@@ -50,7 +39,7 @@ class ExtSystem(models.Model):
     def natural_key(self):
         return (self.name,)
 
-    
+
 class PolicyManager(models.Manager):
     def get_by_natural_key(self, title):
         return self.get(title=title)
@@ -64,7 +53,7 @@ class Policy(models.Model):
     '''
     created_at = models.DateTimeField("Date Created", auto_now_add=True)
     commitment = models.TextField("Commitment Statement")
-    title      = models.CharField(unique=True, max_length=255)
+    title = models.CharField(unique=True, max_length=255)
 
     objects = PolicyManager()
 
@@ -88,7 +77,7 @@ class Domain(models.Model):
     associated :class:`Policy`, which all Pids in that collection inherit by
     default.  This implementation allows for collections or subdomains
     that belong to a domain (currently only supports one level of nesting).
-    
+
     Domains are **not** part of the ARK spec, but a feature of this implementation
     meant for managing and grouping PIDs.
     '''
@@ -97,14 +86,14 @@ class Domain(models.Model):
     policy = models.ForeignKey(Policy, blank=True, null=True)
     parent = models.ForeignKey('self', blank=True, null=True,
                 related_name='collections', db_column='parent_id')
-  
+
     def __unicode__(self):
         return self.name
 
     def get_policy(self):
         '''Return the policy for this domain or from parent domain if inherited.
         Raises a :class:`DomainException` if no policy is found.
-        
+
         :return: instance of :class:`Policy`
         '''
         if self.policy:
@@ -134,7 +123,9 @@ class PidManager(models.Manager):
 
 class Pid(models.Model):
     '''Pid: an ARK or a PURL, with associated :class:`Target` instance(s).'''
-    pid = models.CharField(unique=True, max_length=255, editable=False, default=mint_noid)
+    pid = models.CharField(unique=True, max_length=255, editable=False)
+    # NOTE: previously, pid value was set using a default=mint_noid;
+    # now, to use sequence cleanly, noid is only Cleanset when saving a new Pid
     domain = models.ForeignKey(Domain)
     name = models.CharField(max_length=1023, blank=True)
     # external system & key - identifier in another system, e.g. EUCLID control key
@@ -148,6 +139,8 @@ class Pid(models.Model):
     updated_at = models.DateTimeField("Date Updated", auto_now=True)
     policy = models.ForeignKey(Policy, blank=True, null=True)
 
+    SEQUENCE_NAME = 'pid_noid'
+
     objects = PidManager()
 
     def __unicode__(self):
@@ -155,7 +148,16 @@ class Pid(models.Model):
 
     def natural_key(self):
         return (self.pid,)
-    
+
+    @classmethod
+    def next_sequence_value(cls):
+        return get_next_value(cls.SEQUENCE_NAME)
+
+    @classmethod
+    def mint_noid(cls):
+        '''Generate a new NOID (Nice Opaque IDentifier).'''
+        return encode_noid(cls.next_sequence_value())
+
     def primary_target(self):
         '''Return the  primary target for this pid (the only target for a PURL,
         or the default target for an ARK).
@@ -163,21 +165,21 @@ class Pid(models.Model):
         :return: :class:`Target`
         '''
         try:
-            t = self.target_set.filter(qualify='')
-            if len(t):
-                return t[0]
+            return self.target_set.filter(qualify='').first()
         except Target.DoesNotExist:
             return None
-    
+
     # make primary target uri easily accessible
     def primary_target_uri(self):
+        '''Return the resolvable URL for the primary :class:`Target` associated
+        with this pid.'''
         target = self.primary_target()
         if target:
             return target.uri
         else:
             return ''
 
-    # display resolvable url 
+    # display resolvable url
     def url(self):
         """Return the purl or ark for the primary target of this Pid.
            Returns a non-primary target url if no primary target is present."""
@@ -185,7 +187,7 @@ class Pid(models.Model):
         # if primary target is available, return ark/purl url for that target
         if target:
             return target.get_resolvable_url()
-        # if non-primary targets are available, return url for one of them 
+        # if non-primary targets are available, return url for one of them
         elif len(self.target_set.all()):
             return self.target_set.all()[0].get_resolvable_url()
         # no targets
@@ -199,49 +201,53 @@ class Pid(models.Model):
             return "<a target='_blank' href='%(url)s'>%(url)s</a>" % {'url': url}
         else:
             return ''
-    url_link.short_description = "Url"
+    url_link.short_description = "URL"
     url_link.allow_tags = True
 
-    def primary_uri(self):
-        '''Return the resolvable URL for the primary :class:`Target` associated
-        with this pid.'''
-        target = self.primary_target()
-        if target:
-            return target.get_resolvable_url()
-        else:
-	    return ''
-
     def is_valid(self):
-        if (self.type == "Purl"):
-            if (self.target_set.count() > 1):
+        if self.type == "Purl":
+            if self.target_set.count() > 1:
                 raise Exception("Purls may only have one target")
-            if (self.target_set.count() and self.target_set.get().qualify != ''):
+            if self.target_set.count() and self.target_set.get().qualify != '':
                 raise Exception("Purl target may not have qualifiers")
-        if (self.type == "Ark"):
+        if self.type == "Ark":
             # note: this should be caught because of unique_together setting,
             # but there seems to be a bug with admin inlines
             quals = self.target_set.values_list("qualify")
             # set forces list to be unique; if length changes, qualifiers are not unique
             if len(quals) != len(set(quals)):
-                raise Exception("Ark qualifiers must be unique")            
+                raise Exception("Ark qualifiers must be unique")
         return True
 
-    def save(self, force_insert=False, force_update=False, *args, **kwargs):
+    def save(self, force_insert=False, force_update=False, no_sync=False,
+            *args, **kwargs):
         '''
         Custom save method to ensure that pid and noid for all associated
         :class:`Target` instances are kept in sync.
         '''
-        if (self.is_valid()):
-            super(Pid, self).save(force_insert=force_insert, force_update=force_update, *args, **kwargs)
-            #keep pid and noid in sync
-            targets = self.target_set.all()
-            targets.update(noid=self.pid)
+        # don't save invalid records
+        # NOTE: should this add logging or an exception, instead of failing silently?
+        if self.is_valid():
+            # if primary key is not set, we are saving a new pid
+            # - mint a new noid based in our pid sequence
+            if self.pk is None:
+                with transaction.atomic():
+                    self.pid = Pid.mint_noid()
+                    super(Pid, self).save(force_insert=force_insert,
+                         force_update=force_update, *args, **kwargs)
+            else:
+                super(Pid, self).save(force_insert=force_insert,
+                     force_update=force_update, *args, **kwargs)
+
+            # keep pid and noid in sync
+            # targets = self.target_set.all()
+            # targets.update(noid=self.pid)
 
     def characters_valid(self):
         for t in self.target_set.exclude(qualify=''):
             if not valid_qualifier(t.qualify):
                 return "<span style='color:red'>NO</span>"
-            
+
         return "<span style='color:green'>Yes</span>"
     characters_valid.short_description = "Valid?"
     characters_valid.allow_tags = True
@@ -249,43 +255,11 @@ class Pid(models.Model):
     def truncated_name(self):
         return self.name[:50]
     truncated_name.short_description = "Name"
-    
-    def show_target_linkcheck_status(self):
-        num_passed = 0
-        num_failed = 0
-        num_unchecked = 0
-
-        for t in self.target_set.all():
-            try:
-                if t.linkcheck_link.get().url.last_checked == None:
-                    num_unchecked = num_unchecked + 1
-                
-                if t.linkcheck_link.get().url.status == True:
-                    num_passed = num_passed + 1
-                else:
-                    num_failed = num_failed + 1
-
-            except: #if target link does not exist the url was not tested
-                num_unchecked = num_unchecked + 1
-
-        total = len(self.target_set.all())
-
-        if total == 0:
-            return "<span style='font-weight: bold;'>No Targets</span>"
-        elif num_unchecked > 0:
-            return "<span style='font-weight: bold; color: blue;'>%(unchecked)d of %(total)d Targets Unchecked</span>" % {'unchecked': num_unchecked, 'total': total}
-        elif num_failed > 0:
-            return "<span style='font-weight: bold; color: red;'>%(fail)d of %(total)d Targets Fail</span>" % {'fail': num_failed, 'total': total}
-        else:
-            return "<span style='font-weight: bold; color: green;'>All Targets Resolve</span>"
-
-    show_target_linkcheck_status.short_description = "Target Status"
-    show_target_linkcheck_status.allow_tags = True
 
     def get_policy(self):
         '''Return the :class:`Policy` for this pid.  If this pid is not active,
         this method automatically returns the inactive Policy.  If the pid has
-        a policy explicitly assigned, that is used; otherwise, the policy is 
+        a policy explicitly assigned, that is used; otherwise, the policy is
         inherited from the :class:`Domain` this pid belongs to.'''
         if self.is_active() == False:
             return Policy.objects.get(title__exact='Inactive Policy')
@@ -295,41 +269,84 @@ class Pid(models.Model):
             return self.domain.get_policy()
 
     def is_active(self):
-        '''Determine if this Pid is active.  A Pid isconsidered active if
+        '''Determine if this Pid is active.  A Pid is considered active if
         **any** of its associated :class:`Target` instances are active.
 
         :return: boolean
         '''
-        active = False
         # consider active if any targets are active
-        for t in self.target_set.all():
-            if t.active == True:
-                active = True
-
-        return active
+        return self.target_set.filter(active=True).exists()
     is_active.short_description = "Active ?"
     is_active.allow_tags = True
-    
-# proxy model & custom manager - find ARKs that have target qualifiers with invalid characters
-class InvalidArkManager(PidManager):
-    def get_query_set(self):
-        return super(InvalidArkManager, self).get_query_set().filter(target__qualify__regex=r'[^' +
-            ''.join(qualifier_allowed_characters) + ']')
+    is_active.boolean = True
 
-class InvalidArk(Pid):
-    '''Filtered set of :class:`Pid` instances that filters on invalid qualifiers.
-    This model was created to make it easy to find and correct any invalid Pids
-    that were added before ARK validation was added to the application.  Meant for
-    access/update use only in the Django Admin interface.
-    '''
-    objects = InvalidArkManager()
-    class Meta:
-        proxy = True
+    def target_linkcheck_status(self):
+        '''Determine summary linkcheck status for target(s) associated
+        with this pid.  Return values:
+            - None : unknown or unchecked; returns None if any associated
+              targets have not been checked *or* if the Pid has
+              no associated targets
+            - True: all target URIs have been checked and are ok
+            - False: any target URIs have been checked and errored
+        '''
+        # true - all ok
+        # false - any not ok
+        # none - any unknown / unchecked
+
+        # if a pid has no targets, consider it unchecked
+        if not self.target_set.exists():
+            return None
+
+        # get all linkcheck status for all target urls
+        # linkcheck status is true for ok, false for error
+        link_status = self.target_set.all().values_list('linkcheck__url__status',
+                                                        flat=True)
+        # if the number of statuses doesn't match the number of targets,
+        # then return None for unknown/unchecked
+        if self.target_set.count() != len(link_status):
+            return None
+        else:
+            # ok if all are true, otherwise there are some errors
+            return all(link_status)
+
+    def linkcheck_status(self):
+        # move to target for reuse?
+        link_status = None
+        if self.target_set.exists():
+            link_status = self.target_linkcheck_status()
+            if link_status is None:
+                status = LINKCHECK_STATUS['unknown']
+            elif link_status:
+                status = LINKCHECK_STATUS['ok']
+            else:
+                status = LINKCHECK_STATUS['alert']
+        else:
+            status = LINKCHECK_STATUS['no_urls']
+
+        tag = '<i style="color:%(color)s" class="fa fa-%(icon)s" title="%(title)s"></i>' \
+            % status
+        if 'filter' in status:
+            tag = '<a href="%s?filters=%s">%s</a>' % \
+                (reverse('linkcheck:linkcheck_report'), status['filter'], tag)
+        return tag
+    linkcheck_status.short_description = 'URL Status'
+    linkcheck_status.allow_tags = True
+
+
+LINKCHECK_STATUS = {
+    'no_urls': {'color': 'black', 'icon': 'ban', 'title': 'No URLs'},
+    'ok': {'color': 'green', 'icon': 'check', 'title': 'All URLs ok',
+            'filter': 'show_valid'},
+    'alert': {'color': 'red', 'icon': 'exclamation-triangle', 'title': 'Some errors',
+            'filter': 'show_invalid'},
+    'unknown': {'color': 'blue', 'icon': 'question-circle', 'title': 'Unchecked',
+            'filter': 'show_unchecked'},
+}
 
 class ProxyManager(models.Manager):
     def get_by_natural_key(self, name):
         return self.get(name=name)
-    
+
 class Proxy(models.Model):
     '''Use this model to define Proxy systems that should be used when resolving
     :class:`Target` instances.  The transform property is prepended to the
@@ -363,11 +380,14 @@ class Target(models.Model):
     '''
     pid = models.ForeignKey(Pid)
     noid = models.CharField(max_length=255, editable=False)
-    uri = models.CharField(max_length=2048)
+    # NOTE: previously uri was a charfield, because URLField was only
+    # introduced in Django 1.5.
+    uri = models.URLField(max_length=2048)
     qualify = models.CharField("Qualifier", max_length=255, null=False, blank=True, default='')
     proxy = models.ForeignKey(Proxy, blank=True, null=True)
-    linkcheck_link = generic.GenericRelation(LinkCheckLink)
     active = models.BooleanField(default=True)
+
+    # linkcheck = GenericRelation(Link)
 
     objects = TargetManager()
 
@@ -379,7 +399,7 @@ class Target(models.Model):
 
     def natural_key(self):
         return (self.noid, self.qualify)
-    
+
     def get_resolvable_url(self):
         """Return the resolvable PURL or ARK URL (with any qualifiers) for this target."""
         url = settings.PID_RESOLVER_URL.rstrip('/')
@@ -414,9 +434,9 @@ class Target(models.Model):
         # if qualifier is not valid, it should not be saved
         if not(valid_qualifier(self.qualify)):
             raise ValidationError("Qualifier '%s' contains invalid characters"%(self.qualify))
-        
+
         # normalize so qualifier will be found by the resolver
-        self.qualify = normalize_ark(self.qualify)        
+        self.qualify = normalize_ark(self.qualify)
         return super(Target, self).save(force_insert=force_insert, force_update=force_update, *args, **kwargs)
 
     # needed by linkcheck admin
@@ -431,16 +451,9 @@ class Target(models.Model):
     def get_absolute_url(self):
         return self.get_resolvable_url()
 
-    def linkcheck_status(self):
-        lc_u = self.linkcheck_link.get().url
-        return "<span style='font-size: +1; font-weight: bold; color: %(color)s;'>%(message)s</span>" % {'color':lc_u.colour, 'message':lc_u.get_message}
+    # def link_status(self):
 
 
-class TargetLinkCheck(Linklist):
-    model = Target # The model this relates to
-    html_fields = [] # fields in the model that contain HTML fragments
-    url_fields = ['uri',] # fields in the model that contain raw url fields
-    image_fields = [] # fields in the model that contain raw image fields    
 
 def parse_resolvable_url(urlstring):
     '''Parse a PURL, ARK, or qualified ARK in resolvable url form.
@@ -453,16 +466,16 @@ def parse_resolvable_url(urlstring):
      * NOID
      * qualifier (qualified ARKs only)
     '''
-    
+
     info = {"qualifier":''}     # default to '' so qualifier will always be set; override if present
     if (urlstring.find('/ark:/') != -1):
         info['type'] = "Ark"
 
         # NOTE: not using urlparse for ARKs because qualifier could be anything
-        
+
         # regular expression for arks
         # 0 = scheme, 1 = server, 2 = naan, 3 = noid, 4 = qualifier
-        arkpattern = re.compile('^(https?)://([a-z.]+)/ark:/([0-9]+)/([a-z0-9]+)/?(.+)?$')      
+        arkpattern = re.compile('^(https?)://([a-z.]+)/ark:/([0-9]+)/([a-z0-9]+)/?(.+)?$')
         m = arkpattern.match(urlstring)
         pieces = m.groups()
         info['scheme'] = pieces[0]
@@ -474,7 +487,7 @@ def parse_resolvable_url(urlstring):
     else:
         info['type'] = 'Purl'
         # purl uris are simple enough to use urlparse
-        o = urlparse.urlsplit(urlstring)        
+        o = urlparse.urlsplit(urlstring)
         info['scheme'] = o.scheme
         info['hostname'] = o.netloc
         info['noid'] = o.path.lstrip("/")

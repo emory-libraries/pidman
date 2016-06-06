@@ -40,10 +40,6 @@ class ResolverTestCase(unittest.TestCase):
         self.ark.delete()
         self.user.delete()
         self.domain.delete()
-        
-        
-        
-        
         self.policy.delete()
 
     def test_resolve_purl(self):
@@ -106,7 +102,7 @@ class ResolverTestCase(unittest.TestCase):
         self.assert_(isinstance(response, HttpResponse), "ark_metadata returns HttpResponse")
         for header in response.items():
             if header[0] == 'Content-Type':
-                self.assertEqual(header[1], "text/plain", "response has text/plain mimetype") 
+                self.assertEqual(header[1], "text/plain", "response has text/plain mimetype")
         lines = response.content.splitlines()
         self.assertEqual("erc:", lines[0], "response is in ERC format")
         what = lines[1].split(":", 1)       # only split once
@@ -127,13 +123,13 @@ class ResolverTestCase(unittest.TestCase):
         sections = response.content.split("erc-support:\n")
         lines = sections[1].splitlines()
         what = lines[0].split(":", 1)
-        self.assertEqual("what", what[0]) 
+        self.assertEqual("what", what[0])
         self.assertEqual(self.policy.commitment, what[1].strip(),
                          "what: value should be policy commitment %s, got %s" % (self.policy.commitment, what[1].strip()))
         when = lines[1].split(":", 1)
         self.assertEqual("when", when[0])
         create_date = self.policy.created_at.strftime("%Y%m%d")
-        self.assertEqual(create_date, when[1].strip(), 
+        self.assertEqual(create_date, when[1].strip(),
                          "when: value should be policy creation date " + create_date + ", got " + when[1].strip())
 
     def test_resolve_and_ark_normalization(self):

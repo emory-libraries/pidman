@@ -15,7 +15,9 @@ import sys, os
 
 sys.path.extend(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 
+import django
 import pidman
+django.setup()
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
