@@ -1,7 +1,7 @@
 .. _DEPLOYNOTES:
 
-DEPLOYNOTES
-===========
+Deploy Notes
+============
 
 Installation
 ------------
@@ -51,10 +51,24 @@ To verify installation execute without errors::
 
 
 Upgrade Notes
-=============
+-------------
 
 1.0
-----
+~~~
+
+* Run database migrations::
+
+    python manage.py migrate
+
+* Add a **CACHES** configuration to ``localsettings.py`` to take advantage
+  of the caching that has been added to make slow admin pages more efficient.
+  See the example configuration and notes in ``localsettings.py.sample``.
+
+* This update includes `django-downtime <https://github.com/dstegelman/django-downtime>`_
+  for maintenance mode.  You may want to customize **DOWNTIME_EXEMPT_PATHS**
+  and **DOWNTIME_ALLOWED_IPS**.  Downtime can be scheduled via
+  the web admin or started manually using the ``downtime_start`` and
+  ``downtime_end`` manage commands.
 
 * Configure a linkcheck **SITE_DOMAIN** in ``localsettings.py`` and
   schedule a cron job to run the linkcheck manage command to enable
@@ -68,7 +82,7 @@ Upgrade Notes
 
 
 0.10
-----
+~~~~
 
 * This release includes an update from Django 1.2 to Django 1.8, so some
   files have been moved or renamed.  You should update any Apache
@@ -92,7 +106,7 @@ Upgrade Notes
   *If you are upgrading an existing instance*, you will need to fake
   initial migrations for several models.  This sequence should work::
 
-    # fake content type initial migration (depedency for many other models)
+    # fake content type initial migration (dependency for several other models)
     $ python manage.py migrate contenttypes --fake-initial
     # run migrations for new apps
     $ python manage.py migrate sequences linkcheck
@@ -124,8 +138,13 @@ Upgrade Notes
   The script includes options to summarize object counts in both databases
   and to sync content by chunks.  Run with ``-h`` for specifics.
 
+  .. Note::
+
+    Make sure that the character encoding for the two databases matches
+    to avoid encoding issues.  UTF-8 is recommended.
+
 0.9
----
+~~~
 
 * The REST api uses Basic Authentication.  When running under Apache
   with mod_wsgi, use this configuration setting: ``WSGIPassAuthorization On``

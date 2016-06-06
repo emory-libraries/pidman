@@ -1,50 +1,3 @@
-'''
-This module provides REST API access for Create, Read, Update, and limited Delete
-on :class:`~pidman.pid.models.Pid`, :class:`~pidman.pid.models.Domain`, and
-:class:`~pidman.pid.models.Target` objects.
-
-Currently, the only supported format is JSON.
-
-* Domains:
-
- - **/domains/**
-
-   + use GET to list information about all domains
-   + use POST to create a new domain - see :meth:`domains` for options
-
- - **/domains/#/** (where # is an domain id number)
-
-   + use GET to retrieve a single domain by id number
-   + PUT data in json format to update an existing domain - see :meth:`domain`
-
-* Pids and Targets:
-
- - **/ark/** or **/purl/** - POST to create a new ark or purl; see :meth:`create_pid`
- - **/ark/8g3sq** or **/purl/127zr** - pid by type and noid
-
-   + GET to retrieve information about an existing ARK or PURL and associated targets
-   + PUT data in json to update pid info - see :meth:`pid`
-
- - **/purl/127zr/** or **/ark/8g3sq/** or **/ark/8g3sq/qualifier**
-
-   + GET to retrieve information about a single target by qualifier; use trailing
-     slash after the pid for unqualified target (only target for a PURL)
-   + PUT to update an existing target OR create a new ARK target, see :meth:`target`
-   + DELETE to remove a target (ARK only)
-
- - **/pids/?** - search pids; see :meth:`search_pids` for supported search terms
-
-
-NOTE:  The or term **uri** is used throughout, and occurs as a key in several
-JSON returns to refer to the REST API location of the Domain, Pid, or Target
-object as a resource, which is distinct from the the **access_uri** (the address
-where a Purl, Ark, or Qualified Ark should be requested in order to resolve to
-the contents of that Purl or Ark) and the **target_uri** (the uri that a Purl or
-Ark will resolve to when requested via the access_uri).
-
--------------------
-'''
-
 import json
 from urlparse import urlparse
 from urllib import urlencode
@@ -59,9 +12,8 @@ from django.core.urlresolvers import reverse, resolve
 from django.core.serializers.json import DjangoJSONEncoder
 from django.http import HttpResponse, HttpResponseNotAllowed, \
     HttpResponseBadRequest, HttpResponseForbidden, Http404
-from django.shortcuts import get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
-
+from django.shortcuts import get_object_or_404
 
 from eulcommon.djangoextras.http.responses import HttpResponseUnauthorized
 
@@ -74,6 +26,12 @@ json_serializer = DjangoJSONEncoder(ensure_ascii=False, indent=2)
 BASIC_AUTH_REALM = 'PID Manager'
 # NOTE: Basic Auth when deployed with Apache & mod_wsgi may require this setting:
 # WSGIPassAuthorization On
+
+# NOTE: rest api views that require authentication and make changes
+# (POST, PUT, DELETE) are all marked as CSRF exempt, since they are intended
+# for external use with basic authentication and NOT for local use
+# with a logged in session.
+
 
 class BadRequest(Exception):
     # Custom exception to simplify error-handling with REST views
@@ -106,12 +64,12 @@ def _log_rest_action(request, object, action, msg):
 
     """
     LogEntry.objects.log_action(
-        user_id = request.user.id,
-        content_type_id = ContentType.objects.get_for_model(object).pk,
-        object_id = object.pk,
-        object_repr = object.__unicode__(), # All models used here have __unicode__ methods.
-        change_message = msg,
-        action_flag = action,
+        user_id=request.user.id,
+        content_type_id=ContentType.objects.get_for_model(object).pk,
+        object_id=object.pk,
+        object_repr=object.__unicode__(), # All models used here have __unicode__ methods.
+        change_message=msg,
+        action_flag=action,
     )
 
 def _paged_results_set(queryset):
@@ -212,7 +170,7 @@ them from being resolved.'''
                 # if policy is set and not empty, find and update
                 if data['policy']:
                     try:
-                        pid.policy =  Policy.objects.get(title=data['policy'])
+                        pid.policy = Policy.objects.get(title=data['policy'])
                     except ObjectDoesNotExist:
                         raise BadRequest("Policy '%s' not found" % request.POST['policy'])
                 # otherwise, clear policy
@@ -468,7 +426,7 @@ def create_pid(request, type):
                 pid_opts['ext_system_key'] = request.POST['external_system_key']
             if 'policy' in request.POST:
                 try:
-                    pid_opts['policy'] =  Policy.objects.get(title=request.POST['policy'])
+                    pid_opts['policy'] = Policy.objects.get(title=request.POST['policy'])
                 except ObjectDoesNotExist:
                     raise BadRequest("Policy '%s' not found" % request.POST['policy'])
 
@@ -715,21 +673,23 @@ def domains(request):
             return HttpResponse('Error: %s' % err, status=400)   # 400 = Bad Request
 
 
-        #get parent if parent is in POST
+        # get parent if parent is in POST
         try:
-            if 'parent' in request.POST and request.POST['parent'].strip() and request.POST['parent'] != 'None':
-                domain_opts['parent'] =  _domain_from_uri(request.POST['parent'])
+            if 'parent' in request.POST and request.POST['parent'].strip() \
+              and request.POST['parent'] != 'None':
+                domain_opts['parent'] = _domain_from_uri(request.POST['parent'])
         except BadRequest as err:
-            return HttpResponse("Error: Parent %s does not exists" % request.POST['parent'], status=400)   #400 = Bad Request
+            return HttpResponse("Error: Parent %s does not exists" % \
+                request.POST['parent'], status=400)   #400 = Bad Request
 
-
-        #get policy if policy is in POST
+        # get policy if policy is in POST
         try:
-            if 'policy' in request.POST and request.POST['policy'].strip() and request.POST['policy'] != 'None':
-                    domain_opts['policy'] =  Policy.objects.get(title=request.POST['policy'])
+            if 'policy' in request.POST and request.POST['policy'].strip() \
+              and request.POST['policy'] != 'None':
+                domain_opts['policy'] = Policy.objects.get(title=request.POST['policy'])
         except ObjectDoesNotExist as err:
-            return HttpResponse("Error: Policy %s does not exists" % request.POST['policy'], status=400)   #400 = Bad Request
-
+            return HttpResponse("Error: Policy %s does not exists" % \
+                request.POST['policy'], status=400)   #400 = Bad Request
 
         try:
             domain, created = Domain.objects.get_or_create(**domain_opts)
@@ -746,7 +706,7 @@ def domains(request):
                 status = 400 # Bad Request -  in this case the object already exists
                 msg = "Error: Domain '%s' already exists" % request.POST['name']
 
-            return HttpResponse(msg, status = status)
+            return HttpResponse(msg, status=status)
 
         except IntegrityError as err:
             return HttpResponse("Error: Domain '%s' already exists" % request.POST['name'], status=400)   #400 = Bad Request
@@ -778,11 +738,11 @@ def domain(request, id):
 
     '''
     # Look-Up object for PUT and GET
-    if request.method == 'GET' or  request.method == 'PUT':
-	domain = get_object_or_404(Domain, id__exact=id)
+    if request.method == 'GET' or request.method == 'PUT':
+        domain = get_object_or_404(Domain, id__exact=id)
 
     if request.method == 'PUT':
-        #Validate permissions
+        # Validate permissions
         if not request.user.is_authenticated():
             # 401 unauthorized - not logged in or invalid credentials
             return HttpResponseUnauthorized(BASIC_AUTH_REALM)
@@ -793,8 +753,6 @@ def domain(request, id):
         # content should be posted in request body as JSON
         content_type = 'application/json'
         try:
-            # NOTE: should be using HTTP_ACCEPT here; content-type
-            # is for responses only
             if request.META.get('CONTENT_TYPE', None) != content_type:
                 raise BadRequest("Unsupported content type '%s'; please use a supported format: %s" \
                                  % (request.META.get('CONTENT_TYPE', ''), content_type))
@@ -804,23 +762,23 @@ def domain(request, id):
             if len(data) == 0:
                 raise BadRequest("No Parameters Passed")
 
-            #set new values and save
+            # set new values and save
             if 'name' in data:
                 domain.name = data['name']
             if 'parent' in data and data['parent']:
-                    try:
-                        domain.parent =  _domain_from_uri(data['parent'])
-                    except ObjectDoesNotExist:
-                        raise BadRequest("Parent Domani '%s' not found" % data['parent'])
+                try:
+                    domain.parent = _domain_from_uri(data['parent'])
+                except ObjectDoesNotExist:
+                    raise BadRequest("Parent domain '%s' not found" % data['parent'])
             else:
-                domain.parent =  None
+                domain.parent = None
             if 'policy' in data and data['policy']:
-                    try:
-                        domain.policy =  Policy.objects.get(title=data['policy'])
-                    except ObjectDoesNotExist:
-                        raise BadRequest("Policy '%s' not found" % data['policy'])
+                try:
+                    domain.policy = Policy.objects.get(title=data['policy'])
+                except ObjectDoesNotExist:
+                    raise BadRequest("Policy '%s' not found" % data['policy'])
             else:
-                domain.policy =  None
+                domain.policy = None
 
             domain.save()
             _log_rest_action(request, domain, CHANGE, 'Updated Domain: %s via rest api' % domain.__unicode__())
@@ -829,16 +787,13 @@ def domain(request, id):
             # return a response with status code 400, Bad Request
             return HttpResponseBadRequest('Error: %s' % err)
 
-    #return Domain object for both GET or PUT
+    # return Domain object for both GET or PUT
     if request.method == 'GET' or request.method == 'PUT':
         json_data = json_serializer.encode(domain_data(domain, request))
         return HttpResponse(json_data, content_type='application/json')
 
     # if request method is not GET or PUT, return 405 method not allowed
     return HttpResponseNotAllowed(['GET', 'PUT'])
-
-
-
 
 
 def pid_data(pid, request):

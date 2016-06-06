@@ -1,4 +1,4 @@
-Pidman API Documentation
+Python API Documentation
 ========================
 
 The following code is generated from introspection of the code comments.
@@ -45,14 +45,3 @@ views
 .. automodule:: pidman.resolver.views
    :members:
 
-rest_api
---------
-
-.. automodule:: pidman.rest_api
-   :members:
-
-.. automodule:: pidman.rest_api.views
-   :members:
-
-.. automodule:: pidman.rest_api.decorators
-   :members:

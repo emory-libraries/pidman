@@ -7,7 +7,7 @@ from django.contrib.auth.models import User
 from django.contrib.contenttypes.fields import GenericRelation
 from django.core.urlresolvers import reverse
 from django.db import connection, models, transaction
-
+from mptt.models import MPTTModel, TreeForeignKey
 from sequences import get_next_value
 # from linkcheck.models import Link
 
@@ -72,7 +72,7 @@ class DomainException(Exception):
 # NOTE: not adding natural key logic to Target because it results in a dependency
 # error, most likely because of Domain -> collection/subdomain recursive relation.
 
-class Domain(models.Model):
+class Domain(MPTTModel):
     '''A Domain is a collection of :class:`Pid` instances.  Domains can have an
     associated :class:`Policy`, which all Pids in that collection inherit by
     default.  This implementation allows for collections or subdomains
@@ -83,12 +83,21 @@ class Domain(models.Model):
     '''
     name = models.CharField(unique=True, max_length=255)
     updated_at = models.DateTimeField(auto_now=True)
-    policy = models.ForeignKey(Policy, blank=True, null=True)
-    parent = models.ForeignKey('self', blank=True, null=True,
-                related_name='collections', db_column='parent_id')
+    policy = models.ForeignKey(Policy, blank=True, null=True,
+        help_text='Policy statement for pids in this domain', db_index=True)
+    parent = TreeForeignKey('self', blank=True, null=True,
+                related_name='collections', db_index=True)
+
+    class MPTTMeta:
+        order_insertion_by = ['name']
+        index_together = ["policy", "parent"]
+
 
     def __unicode__(self):
         return self.name
+
+    def __repr__(self):
+        return '<Domain %s>' % unicode(self)
 
     def get_policy(self):
         '''Return the policy for this domain or from parent domain if inherited.
@@ -99,22 +108,28 @@ class Domain(models.Model):
         if self.policy:
             return self.policy
         elif self.parent:
-            return self.parent.get_policy()
+            # traverse the hierarchy, closest ancestor first,
+            # and find the first one with a policy
+            return self.get_ancestors(ascending=True).filter(policy__isnull=False).first().policy
         else:
             raise DomainException("No Policy Exists")
 
-    def num_collections(self):
-        "Number of collections under this domain."
-        return self.collections.count()
-    num_collections.short_description = "# collections"
+    def show_policy(self):
+        try:
+            return self.get_policy()
+        except DomainException:
+            return '(no policy set)'
+    show_policy.short_description = 'Policy'
+
+    def subdomain_count(self):
+        return self.get_descendant_count()
+    subdomain_count.short_description = '# collections'
 
     def num_pids(self):
         '''Number of :class:`Pid` instances in this domain, including those in
         any subdomains.'''
-        pid_count = self.pid_set.count()
-        for subdomain in self.collections.all():
-            pid_count += subdomain.pid_set.count()
-        return pid_count
+        domain_ids = self.get_descendants(include_self=True).values_list('id', flat=True)
+        return Pid.objects.filter(domain__in=domain_ids).count()
     num_pids.short_description = "# pids"
 
 class PidManager(models.Manager):
@@ -126,22 +141,25 @@ class Pid(models.Model):
     pid = models.CharField(unique=True, max_length=255, editable=False)
     # NOTE: previously, pid value was set using a default=mint_noid;
     # now, to use sequence cleanly, noid is only Cleanset when saving a new Pid
-    domain = models.ForeignKey(Domain)
+    domain = models.ForeignKey(Domain, db_index=True)
     name = models.CharField(max_length=1023, blank=True)
     # external system & key - identifier in another system, e.g. EUCLID control key
-    ext_system = models.ForeignKey(ExtSystem, verbose_name='External system', blank=True, null=True)
+    ext_system = models.ForeignKey(ExtSystem, verbose_name='External system', blank=True, null=True, db_index=True)
     ext_system_key = models.CharField('External system key', max_length=1023, blank=True, null=True)
-    creator = models.ForeignKey(User, related_name='created')
+    creator = models.ForeignKey(User, related_name='created', db_index=True)
     created_at = models.DateTimeField("Date Created", auto_now_add=True)
-    editor = models.ForeignKey(User, related_name="edited")
+    editor = models.ForeignKey(User, related_name="edited", db_index=True)
     pid_types = (("Ark", "Ark"), ("Purl", "Purl"))
     type = models.CharField(max_length=25, choices=pid_types)
     updated_at = models.DateTimeField("Date Updated", auto_now=True)
-    policy = models.ForeignKey(Policy, blank=True, null=True)
+    policy = models.ForeignKey(Policy, blank=True, null=True, db_index=True)
 
     SEQUENCE_NAME = 'pid_noid'
 
     objects = PidManager()
+
+    class Meta:
+        index_together = ["updated_at","policy","editor","creator","ext_system","domain"]
 
     def __unicode__(self):
         return self.pid + ' ' + self.name
@@ -164,10 +182,13 @@ class Pid(models.Model):
 
         :return: :class:`Target`
         '''
-        try:
-            return self.target_set.filter(qualify='').first()
-        except Target.DoesNotExist:
-            return None
+        # NOTE: this method is used in django-admin change list;
+        # intentionally does not hit the database, since it requires
+        # one query per pid
+        for target in self.target_set.all():
+            if target.qualify == '':
+                return target
+        return None
 
     # make primary target uri easily accessible
     def primary_target_uri(self):
@@ -275,7 +296,7 @@ class Pid(models.Model):
         :return: boolean
         '''
         # consider active if any targets are active
-        return self.target_set.filter(active=True).exists()
+        return any([target.active for target in self.target_set.all()])
     is_active.short_description = "Active ?"
     is_active.allow_tags = True
     is_active.boolean = True
@@ -283,6 +304,7 @@ class Pid(models.Model):
     def target_linkcheck_status(self):
         '''Determine summary linkcheck status for target(s) associated
         with this pid.  Return values:
+
             - None : unknown or unchecked; returns None if any associated
               targets have not been checked *or* if the Pid has
               no associated targets
@@ -299,11 +321,19 @@ class Pid(models.Model):
 
         # get all linkcheck status for all target urls
         # linkcheck status is true for ok, false for error
-        link_status = self.target_set.all().values_list('linkcheck__url__status',
-                                                        flat=True)
+
+        # NOTE: iterating here to take advantage of pre-fetching
+        # results as configured for admin change list
+        linkcheck = []
+        for target in self.target_set.all():
+            linkcheck.extend(target.linkcheck.all())
+        if not linkcheck:
+            return None
+        link_status = [link.url.status for link in linkcheck]
+
         # if the number of statuses doesn't match the number of targets,
         # then return None for unknown/unchecked
-        if self.target_set.count() != len(link_status):
+        if self.target_set.all().count() != len(link_status):
             return None
         else:
             # ok if all are true, otherwise there are some errors
@@ -378,21 +408,22 @@ class Target(models.Model):
     well as the **noid**, so that resolving a Target can be done as efficiently
     as possible.
     '''
-    pid = models.ForeignKey(Pid)
+    pid = models.ForeignKey(Pid, db_index=True)
     noid = models.CharField(max_length=255, editable=False)
     # NOTE: previously uri was a charfield, because URLField was only
     # introduced in Django 1.5.
     uri = models.URLField(max_length=2048)
     qualify = models.CharField("Qualifier", max_length=255, null=False, blank=True, default='')
-    proxy = models.ForeignKey(Proxy, blank=True, null=True)
+    proxy = models.ForeignKey(Proxy, blank=True, null=True, db_index=True)
     active = models.BooleanField(default=True)
 
     # linkcheck = GenericRelation(Link)
 
     objects = TargetManager()
-
+    
     class Meta:
         unique_together = (('pid', 'qualify'))
+        index_together = ["proxy","pid"]
 
     def __unicode__(self):
         return self.get_resolvable_url()

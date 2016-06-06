@@ -9,6 +9,12 @@ def resolve_purl(request, noid):
 def resolve_ark(request, naan, noid, qual=''):
     '''Resolve an ARK or qualified ARK to the appropriate target URL.
 
+    Sample ARK URLs:
+        http://pid.emory.edu/ark:/25593/rg8kw     *(unqualified)*
+        http://pid.emory.edu/ark:/25593/17s6q/PDF *(qualified)*
+        `http://pid.emory.edu/ark:/25593/rg8kw? <http://pid.emory.edu/ark:/25593/rg8kw?>`_  *(metadata)*
+        `http://pid.emory.edu/ark:/25593/rg8kw?? <http://pid.emory.edu/ark:/25593/rg8kw??>`_ *(commitment statement)*
+
     If there are no qualifiers and the URL ends with single question mark,
     returns minimal metadata about the ARK.  If the URL ends with two question
     marks, returns the commitment statement for the requested ARK.  See
@@ -30,6 +36,9 @@ def resolve_ark(request, naan, noid, qual=''):
 
 def resolve_pid(noid, qual=''):
     '''Common functionality for resolving PURLs and ARKs.
+
+    Sample PURL URL:
+        http://pid.emory.edu/rg68f
 
     Retrive the :class:`Target` requested, prefix the :class:`Proxy` transform
     to the target URL if a proxy is defined, and then redirect to the target URL.

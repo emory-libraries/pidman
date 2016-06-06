@@ -28,9 +28,11 @@ def pid_sequence_lastvalue(apps, schema_editor):
                                               last=last_val)
         pid_seq.save()
 
+
 def remove_pid_sequence(apps, schema_editor):
     Sequence = apps.get_model("sequences", "Sequence")
     Sequence.objects.get(name=pid_models.Pid.SEQUENCE_NAME).delete()
+
 
 class Migration(migrations.Migration):
 

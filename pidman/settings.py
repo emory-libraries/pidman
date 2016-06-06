@@ -18,8 +18,9 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.8/howto/deployment/checklist/
 
+SECRET_KEY = "lb-35%a_y93otr=%giz955n0j%xyudkrselst4&*51-eo3cw07"
 
-
+# DAB_FIELD_RENDERER = 'django_admin_bootstrapped.renderers.BootstrapFieldRenderer'
 # Application definition
 
 INSTALLED_APPS = [
@@ -31,10 +32,14 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.humanize',
+    'django.contrib.sitemaps',
+    'mptt',
+    'linkcheck',
     'logentry_admin',
-    # 'linkcheck',
     'sequences',
-    # 'sequences.apps.SequencesConfig',
+    'eultheme',
+    'downtime',
+    'widget_tweaks',
     'pidman.pid',
     'pidman.resolver',
     'pidman.rest_api',
@@ -45,6 +50,7 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'eultheme.middleware.DownpageMiddleware',
     'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -53,23 +59,61 @@ MIDDLEWARE_CLASSES = (
 
 ROOT_URLCONF = 'pidman.urls'
 
-TEMPLATES = [
-    {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [
-            os.path.join(BASE_DIR, 'templates'),
+
+TEMPLATE_CONTEXT_PROCESSORS = (
+    # django default context processors
+    "django.contrib.auth.context_processors.auth",
+    "django.core.context_processors.debug",
+    "django.core.context_processors.i18n",
+    "django.core.context_processors.media",
+    "django.contrib.messages.context_processors.messages",
+    'eultheme.context_processors.template_settings',
+    # additional context processors
+    "django.core.context_processors.request",  # always include request in render context
+    "django.core.context_processors.static",
+    # eultheme
+    "eultheme.context_processors.template_settings",
+    "eultheme.context_processors.site_path",
+    "eultheme.context_processors.downtime_context",
+    # local
+    'pidman.admin.template_settings',
+)
+
+# List of callables that know how to import templates from various sources.
+TEMPLATES = [{
+    'BACKEND': 'django.template.backends.django.DjangoTemplates',
+    'DIRS': [os.path.join(BASE_DIR, 'templates')],
+    'OPTIONS': {
+        'loaders': [
+            ('django.template.loaders.cached.Loader', [
+                'django.template.loaders.filesystem.Loader',
+                'django.template.loaders.app_directories.Loader',
+            ]),
         ],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
+        'context_processors': [
                 'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
             ],
-        },
     },
-]
+}]
+
+SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
+
+AUTHENTICATION_BACKENDS = (
+    'django_auth_ldap.backend.LDAPBackend',
+    'django.contrib.auth.backends.ModelBackend',
+)
+
+
+from django.contrib import messages
+
+MESSAGE_TAGS = {
+            messages.SUCCESS: 'alert-success success',
+            messages.WARNING: 'alert-warning warning',
+            messages.ERROR: 'alert-danger error'
+}
 
 WSGI_APPLICATION = 'pidman.wsgi.application'
 
@@ -105,8 +149,22 @@ STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 
+# Additional locations of static files
+STATICFILES_DIRS = [
+    # Put strings here, like "/home/html/static" or "C:/www/django/static".
+    # Always use forward slashes, even on Windows.
+    # Don't forget to use absolute paths, not relative paths.
+    # os.path.join(BASE_DIR, 'sitemedia'),
+]
+
 # if this token is in target URI it will be replaced with the noid after it is minted
 PID_REPLACEMENT_TOKEN = "{%PID%}"
+
+
+# exempted paths for downtime; exempts any urls starting with these strings
+DOWNTIME_EXEMPT_PATHS = (
+    '/admin',
+)
 
 try:
     from localsettings import *
@@ -130,8 +188,14 @@ except ImportError:
 if django_nose is not None:
     INSTALLED_APPS.append('django_nose')
     TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
-    # NOSE_PLUGINS = [
-        # ...
-    # ]
-    # NOSE_ARGS = ['--with-eulfedorasetup']
+    # enable coverage by default
+    NOSE_ARGS = [
+        '--with-coverage',
+        '--cover-package=pidman',
+    ]
 
+try:
+    import debug_toolbar
+    INSTALLED_APPS.append('debug_toolbar')
+except ImportError:
+    pass

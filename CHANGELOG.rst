@@ -1,3 +1,21 @@
+
+Release 1.0
+-----------
+March 2016
+
+* Domain/collection hierarchy now handled with
+  `django-mptt <http://django-mptt.github.io/django-mptt/>`_.
+* Now using `django-eultheme <https://github.com/emory-libraries/django-eultheme>`_
+  for error pages and for `django-downtime <https://github.com/dstegelman/django-downtime>`_
+  integration.
+* Admin search field list for pids has been customized in an effort
+  to address slow search response.
+* Documentation has been overhauled and updated, including providing
+  REST API examples for multiple programming languages.
+* Updated and refined
+  `django-linkcheck <https://github.com/DjangoAdminHackers/django-linkcheck>`_
+
+
 Release 0.10
 ------------
 March 2016
@@ -5,7 +23,7 @@ March 2016
 .. NOTE::
 
   This is an interim release intended for migrating data.  You should
-  upgrade to the next release once the database migration is complete.
+  upgrade to the 1.0 release once the database migration is complete.
 
 * **SOAP API has been removed.**
 * Upgraded to Django 1.8; South migrations have been converted to
@@ -13,9 +31,11 @@ March 2016
 * Pid noid sequence is now generated with django-sequences and is
   database agnostic (postgres is no longer required).
 * Pid target uri is now a URLField instead of a CharField.
+  integration.
+* Updated to use `django-nose <https://django-nose.readthedocs.org/en/latest/>`_
+  as unit test runner.
 * New migration script to migrate data from an old database
   to a new one (i.e., postgres to mysql).
-* Updated to use django-nose as unit test runner.
 * Django admin site now customized using a local AdminSite instead of
   extending admin templates.
 * Unused usage statistics code has been removed (to be revisited in a
@@ -23,6 +43,8 @@ March 2016
 * Unused pidman.pidauth has been removed.
 * InvalidArk proxy model has been removed (application no longer allows
   invalid arks to be created).
+* Now using `django-admin-bootstrapped <https://github.com/django-admin-bootstrapped/django-admin-bootstrapped>`_
+  for admin templates.
 * Now using `django-auth-ldap <https://pythonhosted.org/django-auth-ldap/>`
   for LDAP login instead of eullocal.
 * Enabled `django-logentry-admin <https://github.com/yprez/django-logentry-admin>`_

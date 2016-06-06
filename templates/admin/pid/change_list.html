@@ -1,0 +1,58 @@
+{% extends "admin/change_list.html" %}
+{% load i18n admin_urls admin_static admin_list bootstrapped_goodies_tags cache %}
+
+{% comment %}
+Extend admin change list to cache drop down filters to improve page
+load times, so that filters don't need to be calculated every time.
+{% endcomment %}
+
+
+{# standard django admin template #}
+{% block filters %}
+    {% cache 500 admin_filters request.GET.items request.path request.user.username %}
+        {% if cl.has_filters %}
+          <div id="changelist-filter">
+            <h2>{% trans 'Filter' %}</h2>
+            {% for spec in cl.filter_specs %}{% admin_list_filter cl spec %}{% endfor %}
+          </div>
+          <!-- {% now "jS F Y H:i" %} -->
+        {% endif %}
+    {% endcache %}
+{% endblock %}
+
+
+{# django-admin-bootstrapped template #}
+{% block object-tools %}
+<div id="content-navbar-collapse" class="navbar-collapse collapse">
+    <ul class="object-tools nav navbar-nav">
+        {% block object-tools-items %}
+        {% if has_add_permission %}
+        <li>
+        {% url cl.opts|admin_urlname:'add' as add_url %}
+        <a role="button" href="{% add_preserved_filters add_url is_popup %}" class="btn btn-primary">
+            <span class="glyphicon glyphicon-plus"></span> {% blocktrans with cl.opts.verbose_name as name %}Add {{ name }}{% endblocktrans %}
+        </a>
+        </li>
+        {% endif %}
+        {% endblock %}
+    </ul>
+
+    {% cache 500 admin_filters request.GET.items request.path request.user.username %}
+    {% if cl.has_filters %}
+    <ul class="nav navbar-nav navbar-right">
+        <li class="dropdown">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown">{% trans 'Filter' %}<span class="caret"></span></a>
+            <ul class="dropdown-menu pull-right scrollable-dropdown-menu">
+                {% for spec in cl.filter_specs %}
+                    {% admin_list_filter cl spec %}
+                {% endfor %}
+            </ul>
+        </li>
+    </ul>
+    {% endif %}
+    <!-- filters cached {% now "jS F Y H:i" %} -->
+    {% endcache %}
+
+    {% block search %}{% search_form cl %}{% endblock %}
+</div>
+{% endblock %}
