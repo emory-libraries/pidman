@@ -5,7 +5,6 @@ django-sequences
 django-mptt
 django-linkcheck>=1.2
 django_admin_bootstrapped
-django-auth-ldap
 django-downtime>=1.0.4
 django-logentry-admin
 -e git://github.com/emory-libraries/django-eultheme.git@1.2.1#egg=eultheme
