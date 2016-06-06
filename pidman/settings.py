@@ -35,7 +35,6 @@ INSTALLED_APPS = [
     'django.contrib.sitemaps',
     'mptt',
     'linkcheck',
-    'logentry_admin',
     'sequences',
     'eultheme',
     'downtime',
