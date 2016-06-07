@@ -56,7 +56,8 @@ class PidAdmin(admin.ModelAdmin):
     # including dates in list display for sorting purposes
     # sort columns by: type, domain/collection, name, (pid url?), date created/modified ascending/descending
     list_display = ('pid', 'truncated_name', 'type', 'created_at', 'updated_at',
-                    'domain', "primary_target_uri", "is_active", 'linkcheck_status')
+                    'domain', "primary_target_uri", "is_active")
+                #, 'linkcheck_status')
 
     # filters: collection/domain, creator/user, type (ark/purl), date ranges (created or modified)
     list_filter = (
@@ -115,8 +116,8 @@ class PidAdmin(admin.ModelAdmin):
         # extend queryset to prefetch targets & linkcheck status,
         # which are used in the change list display
         pidqs = super(PidAdmin, self).get_queryset(request)
-        pidqs = pidqs.prefetch_related('target_set', 'domain', 'creator',
-                                       'target_set__linkcheck__url')
+        pidqs = pidqs.prefetch_related('target_set', 'domain', 'creator')
+                                       # 'target_set__linkcheck__url')
         return pidqs
 
     def formfield_for_dbfield(self, db_field, **kwargs):
