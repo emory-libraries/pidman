@@ -1,6 +1,12 @@
+Release 0.10.1
+--------------
+
+* Minor fix for testing and continuous integration build.
+
+
 Release 0.10
 ------------
-March 2016
+June 2016
 
 .. NOTE::
 
