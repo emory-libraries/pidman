@@ -1,6 +1,11 @@
+Release 1.0.1
+-------------
+
+* Clean up merge errors (duplicated imports, etc)
+* Require django-linkcheck 1.2, since 1.3 causes issues with test fixture data
+
 Release 1.0
 -----------
-June 2016
 
 * Domain/collection hierarchy now handled with
   `django-mptt <http://django-mptt.github.io/django-mptt/>`_.
