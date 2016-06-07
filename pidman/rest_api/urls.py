@@ -1,6 +1,6 @@
 from django.conf.urls import url
 from . import views
-
+# urlpatterns
 urlpatterns = [
     url(r'^(?P<type>(purl|ark))/$', views.create_pid, name='create-pid'),
     url(r'^(?P<type>(purl|ark))/(?P<noid>[a-z0-9]+)$', views.pid, name='pid'),
