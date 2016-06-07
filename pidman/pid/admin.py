@@ -57,6 +57,7 @@ class PidAdmin(admin.ModelAdmin):
     # sort columns by: type, domain/collection, name, (pid url?), date created/modified ascending/descending
     list_display = ('pid', 'truncated_name', 'type', 'created_at', 'updated_at',
                     'domain', "primary_target_uri", "is_active", 'linkcheck_status')
+
     # filters: collection/domain, creator/user, type (ark/purl), date ranges (created or modified)
     list_filter = (
         'type', ('domain', admin.RelatedOnlyFieldListFilter),

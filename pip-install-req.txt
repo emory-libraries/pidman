@@ -3,7 +3,7 @@ eulcommon
 django-auth-ldap
 django-sequences
 django-mptt
-django-linkcheck>=1.2
+django-linkcheck==1.2
 django_admin_bootstrapped
 django-downtime>=1.0.4
 django-logentry-admin

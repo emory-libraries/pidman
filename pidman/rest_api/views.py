@@ -864,6 +864,7 @@ def target_data(target, request):
         data['proxy'] = target.proxy.name
     return data
 
+
 def domain_data(domain, request):
     '''Generate a dictionary of data about a single :class:`~pidman.pid.models.Domain`
     and any collections that belong to it, for REST API dissemination.  Includes
