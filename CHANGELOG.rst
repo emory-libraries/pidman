@@ -1,4 +1,3 @@
-
 Release 1.0
 -----------
 June 2016
@@ -31,7 +30,6 @@ June 2016
 * Pid noid sequence is now generated with django-sequences and is
   database agnostic (postgres is no longer required).
 * Pid target uri is now a URLField instead of a CharField.
-  integration.
 * Updated to use `django-nose <https://django-nose.readthedocs.org/en/latest/>`_
   as unit test runner.
 * New migration script to migrate data from an old database

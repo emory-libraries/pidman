@@ -19,7 +19,7 @@ admin_site = PidmanAdminSite()
 admin_site.register(auth.models.Group, auth.admin.GroupAdmin)
 admin_site.register(auth.models.User, auth.admin.UserAdmin)
 admin_site.register(sequences.models.Sequence, sequences.admin.Sequence)
-admin_site.register(LogEntry, LogEntryAdmin)
+
 # eultheme / downtime
 admin_site.register(Period)
 admin_site.register(Banner)

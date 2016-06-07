@@ -11,6 +11,7 @@ def pid_sequence_lastvalue(apps, schema_editor):
     # so it will start minting pids starting after the current set
     Pid = apps.get_model("pid", "Pid")
     Sequence = apps.get_model("sequences", "Sequence")
+
     if Pid.objects.count():
         # pid noids are generated in sequence, so the pid with the
         # highest pk _should_ be the one with the highest noid

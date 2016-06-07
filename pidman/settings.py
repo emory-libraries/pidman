@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'eultheme',
     'downtime',
     'widget_tweaks',
+    'logentry_admin',
     'pidman.pid',
     'pidman.resolver',
     'pidman.rest_api',
