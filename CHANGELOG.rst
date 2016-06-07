@@ -1,3 +1,8 @@
+Release 1.0.2
+-------------
+
+* Disable linkcheck display in pid admin change list
+
 Release 1.0.1
 -------------
 
