@@ -10,12 +10,10 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.paginator import Paginator, InvalidPage, EmptyPage
 from django.core.urlresolvers import reverse, resolve
 from django.core.serializers.json import DjangoJSONEncoder
-from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse, HttpResponseNotAllowed, \
     HttpResponseBadRequest, HttpResponseForbidden, Http404
-from django.shortcuts import get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
-
+from django.shortcuts import get_object_or_404
 
 from eulcommon.djangoextras.http.responses import HttpResponseUnauthorized
 

@@ -33,4 +33,3 @@ def template_settings(request):
         'site_title': PidmanAdminSite.site_header
     }
     return context_extras
-

@@ -1,6 +1,11 @@
+Release 1.0.1
+-------------
+
+* Clean up merge errors (duplicated imports, etc)
+* Require django-linkcheck 1.2, since 1.3 causes issues with test fixture data
+
 Release 1.0
 -----------
-June 2016
 
 * Domain/collection hierarchy now handled with
   `django-mptt <http://django-mptt.github.io/django-mptt/>`_.
@@ -14,6 +19,7 @@ June 2016
 * Updated and refined
   `django-linkcheck <https://github.com/DjangoAdminHackers/django-linkcheck>`_
 
+
 Release 0.10
 ------------
 June 2016
@@ -21,7 +27,7 @@ June 2016
 .. NOTE::
 
   This is an interim release intended for migrating data.  You should
-  upgrade to the next release once the database migration is complete.
+  upgrade to the 1.0 release once the database migration is complete.
 
 * **SOAP API has been removed.**
 * Upgraded to Django 1.8; South migrations have been converted to

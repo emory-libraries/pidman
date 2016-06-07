@@ -40,7 +40,6 @@ INSTALLED_APPS = [
     'downtime',
     'widget_tweaks',
     'logentry_admin',
-    # 'linkcheck',
     'pidman.pid',
     'pidman.resolver',
     'pidman.rest_api',

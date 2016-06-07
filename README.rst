@@ -1,11 +1,11 @@
 Overview
 --------
 
-.. image:: https://travis-ci.org/emory-libraries/pidman.svg?branch=develop
+.. image:: https://travis-ci.org/emory-libraries/pidman.svg
     :alt: Travis-CI build status
     :target: https://travis-ci.org/emory-libraries/pidman
 
-.. image:: https://coveralls.io/repos/github/emory-libraries/pidman/badge.svg?branch=develop
+.. image:: https://coveralls.io/repos/github/emory-libraries/pidman/badge.svg
     :target: https://coveralls.io/github/emory-libraries/pidman?branch=develop
     :alt: Code Coverage
 
@@ -13,8 +13,8 @@ Overview
    :target: https://codeclimate.com/github/emory-libraries/pidman
    :alt: Code Climate
 
-.. image:: https://requires.io/github/emory-libraries/pidman/requirements.svg?branch=develop
-   :target: https://requires.io/github/emory-libraries/pidman/requirements/?branch=develop
+.. image:: https://requires.io/github/emory-libraries/pidman/requirements.svg
+   :target: https://requires.io/github/emory-libraries/pidman/requirements/
    :alt: Requirements Status
 
 **pidman** is a Django application for maintaining, managing, and
