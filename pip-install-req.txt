@@ -2,7 +2,6 @@ django>=1.8,<1.9c
 eulcommon
 django-auth-ldap
 django-sequences
-django-linkcheck
 progressbar2
 django-admin-bootstrapped
 django-logentry-admin
