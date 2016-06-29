@@ -10,6 +10,7 @@ Contents:
    api_list
    changelog
    deploynotes
+   devnotes
 
 .. include:: ../README.rst
 
