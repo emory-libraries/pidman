@@ -16,6 +16,10 @@ Overview
 .. image:: https://requires.io/github/emory-libraries/pidman/requirements.svg
    :target: https://requires.io/github/emory-libraries/pidman/requirements/
    :alt: Requirements Status
+   
+.. image:: https://landscape.io/github/emory-libraries/pidman/master/landscape.svg?style=flat
+   :target: https://landscape.io/github/emory-libraries/pidman/master
+   :alt: Code Health
 
 **pidman** is a Django application for maintaining, managing, and
 resolving PURLs (Permanent URLs) and ARKs (Archival Resource Keys).
