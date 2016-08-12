@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib import auth
 from django.contrib.admin import AdminSite
 from django.contrib.admin.models import LogEntry
@@ -9,7 +10,8 @@ import sequences
 
 
 class PidmanAdminSite(AdminSite):
-    site_header = 'Persistent Identifier Manager'
+    site_header = 'Persistent Identifier Manager %s' % \
+        getattr(settings, 'ADMIN_TITLE_SUFFIX', '')
     site_title = 'PID Manager Administration'
     index_template = 'admin/pidman_index.html'
 
