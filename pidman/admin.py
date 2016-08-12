@@ -10,7 +10,7 @@ import sequences
 
 class PidmanAdminSite(AdminSite):
     site_header = 'Persistent Identifier Manager'
-    site_title = 'PID Manager Adminstration'
+    site_title = 'PID Manager Administration'
     index_template = 'admin/pidman_index.html'
 
 admin_site = PidmanAdminSite()
@@ -30,6 +30,7 @@ def template_settings(request):
     '''Template context processor to add settings for use on any page.'''
 
     context_extras = {
-        'site_title': PidmanAdminSite.site_header
+        'site_title': PidmanAdminSite.site_title,
+        'site_header': PidmanAdminSite.site_header
     }
     return context_extras
