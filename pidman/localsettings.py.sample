@@ -87,6 +87,10 @@ except ImportError:
 PID_RESOLVER_URL = 'http://pid.example.com'
 PID_ARK_NAAN = '12345'
 
+# add text here to display in the admin site title, e.g. to differentiate
+# test and production
+# ADMIN_TITLE_SUFFIX = ''
+
 # django-linkcheck settings for internal links; for more options, see
 # https://github.com/DjangoAdminHackers/django-linkcheck#settings
 SITE_DOMAIN = 'localhost'
