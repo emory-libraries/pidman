@@ -5,6 +5,7 @@ from urllib import urlencode
 from django.contrib.admin.models import LogEntry, ADDITION, CHANGE, DELETION
 from django.contrib.contenttypes.models import ContentType
 from django.db import IntegrityError
+from django.db.models import Q
 from django.core import serializers
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.paginator import Paginator, InvalidPage, EmptyPage
@@ -36,6 +37,7 @@ BASIC_AUTH_REALM = 'PID Manager'
 class BadRequest(Exception):
     # Custom exception to simplify error-handling with REST views
     pass
+
 
 def _log_rest_action(request, object, action, msg):
     """
@@ -460,9 +462,9 @@ def create_pid(request, type):
             # return a response with status code 400, Bad Request
             return HttpResponseBadRequest('Error: %s' % err)
 
-
     # if request method is not POST, return 405 method not allowed
     return HttpResponseNotAllowed(['POST'])
+
 
 def search_pids(request):
     '''On GET, searches pids based on key-value querystring values and returns
@@ -509,32 +511,36 @@ def search_pids(request):
     # foward.
     pagequery = {}
 
-    # Only build searches on the following params.
+    # build searches based on the following options.
     valid_search_params = {
-        'domain': 'domain__name__iexact',
         'type': 'type__iexact',
         'pid': 'pid__iexact',
         'target': 'target__uri__contains',
     }
 
-    query = {} # Initialize the query dict to use for searching
+    query = {}  # Initialize the query dict to use for searching
+    domain_id = None
+    domain_name = request.GET.get('domain', None)
+    if 'domain' in request.GET:
+        pagequery['domain'] = domain_name
 
-    # Create the param searches as dict values
+    # Where request parameters can be converted to search parameters,
+    # look for them and convert to the appropriate query option
     for param in valid_search_params:
-        if request.GET.has_key(param):
+        if param in request.GET:
             pagequery[param] = request.GET.get(param)
             query[valid_search_params[param]] = pagequery[param]
 
     # Searching for domains by uri requires getting the domain object.
-    if request.GET.has_key('domain_uri'):
+    if 'domain_uri' in request.GET:
         domain_uri = request.GET.get('domain_uri')
         pagequery['domain_uri'] = domain_uri
         if domain_uri:
-            query['domain'] = _domain_from_uri(domain_uri)
+            domain_id = _domain_from_uri(domain_uri).id
 
     # Qualifier is handled somewhat differently in that it might be empty.
     # Add either an isnull search or exact search to the query dict as needed.
-    if request.GET.has_key('qualifier'):
+    if 'qualifier' in request.GET:
         qualifier = request.GET.get('qualifier')
         pagequery['qualifier'] = qualifier
         if qualifier == '':
@@ -544,10 +550,19 @@ def search_pids(request):
 
     # Return the queryset or default to list of all pids ordered by last update
     pid_list = Pid.objects.filter(**query).order_by('updated_at')
+    # if searching by domain (either name or uri), check for matches
+    # on primary domain *OR* parent domain so that search on the top-level
+    # domain includes all pids in subdomains
+    if domain_id is not None:
+        pid_list = pid_list.filter(Q(domain__id=domain_id) |
+                                   Q(domain__parent__id=domain_id))
+    if domain_name is not None:
+        pid_list = pid_list.filter(Q(domain__name__iexact=domain_name) |
+                                   Q(domain__parent__name__iexact=domain_name))
+
     if not pid_list:
         json_data = json_serializer.encode({})
         return HttpResponse(json_data, content_type='application/json')
-
 
     # pagination code based on the django documentation for same
     # Make sure page and count are set to default values if empty and are int
@@ -586,7 +601,7 @@ def search_pids(request):
         "prev_page_link": None,
     }
 
-    baseurl = reverse("rest_api:search-pids") # Set for convienence
+    baseurl = reverse("rest_api:search-pids")  # Set for convienence
 
     # Build a First Page link.
     pagequery["page"] = page.start_index()
@@ -607,7 +622,7 @@ def search_pids(request):
         results_set["prev_page_link"] = '%s?%s' % (baseurl, urlencode(pagequery))
 
     # Finnally add the actual results to the result set.
-    results_set["results"] = [pid_data(pid, request) for pid in page.object_list]
+    results_set["results"] = [pid_data(p, request) for p in page.object_list]
 
     # Serialize it all as JSON and return it.
     json_data = json_serializer.encode(results_set)
