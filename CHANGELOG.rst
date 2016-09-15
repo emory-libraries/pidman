@@ -1,3 +1,12 @@
+Release 1.0.3
+-------------
+
+* Fix admin base template so site header and title are included.
+* Add configurable admin site title suffix to help differentiate instances
+  of the pid manager.
+* bugfix: REST API search previously did not return pids in subdomains
+  when searching by domain.
+
 Release 1.0.2
 -------------
 

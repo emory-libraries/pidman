@@ -537,7 +537,10 @@ class RestApiTestCase(TransactionTestCase):
         _test_search_results({'domain': 'LSDI'}, 1)
 
         # SIMPLE DOMAIN URI SEARCH
-        _test_search_results({'domain_uri': 'http://pid.emory.edu/domains/2/'}, 1)
+        # - single domain with no subdomains
+        _test_search_results({'domain_uri': 'http://pid.emory.edu/domains/1/'}, 1)
+        # - domain with one subdomain
+        _test_search_results({'domain_uri': 'http://pid.emory.edu/domains/2/'}, 2)
 
         # SIMPLE TARGET SEARCH
         _test_search_results({'target': 'http://domokun.library.emory.edu:8080/fedora/get/emory:8crx1/'}, 2)
@@ -555,7 +558,7 @@ class RestApiTestCase(TransactionTestCase):
         # Test various conditions where errors are expected instead of results.
 
         # Out of range page requests should return 404 Errors
-        encoded_args = urllib.urlencode( {'count': 2, 'page': 200})
+        encoded_args = urllib.urlencode({'count': 2, 'page': 200})
         url = '%s?%s' % (base_url, encoded_args)
         response = self.client.get(url)
         expected, actual = 404, response.status_code
