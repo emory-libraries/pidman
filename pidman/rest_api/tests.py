@@ -1,12 +1,12 @@
 from base64 import b64encode
 import json
 import re
-import urllib
+from urllib.parse import urlencode
 
 from django.conf import settings
 from django.contrib.admin.models import LogEntry
 from django.contrib.contenttypes.models import ContentType
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.http import HttpRequest
 from django.test import Client
 from django.test import TransactionTestCase
@@ -513,7 +513,7 @@ class RestApiTestCase(TransactionTestCase):
 
         def _test_search_results(searchdict, expcount, expcode=200):
             # Tests status code for searches to ensure no errors.
-            encoded_args = urllib.urlencode(searchdict)
+            encoded_args = urlencode(searchdict)
             url = '%s?%s' % (base_url, encoded_args)
             response = self.client.get(url)
             expected, actual = expcode, response.status_code
@@ -558,14 +558,14 @@ class RestApiTestCase(TransactionTestCase):
         # Test various conditions where errors are expected instead of results.
 
         # Out of range page requests should return 404 Errors
-        encoded_args = urllib.urlencode({'count': 2, 'page': 200})
+        encoded_args = urlencode({'count': 2, 'page': 200})
         url = '%s?%s' % (base_url, encoded_args)
         response = self.client.get(url)
         expected, actual = 404, response.status_code
         self.failUnlessEqual(expected, actual, "Expected status code %s but returned %s for %s" % (expected, actual, url))
 
         # Nonsense page reqeuests should return 404.
-        encoded_args = urllib.urlencode( {'count': 2, 'page': 'toast'})
+        encoded_args = urlencode( {'count': 2, 'page': 'toast'})
         url = '%s?%s' % (base_url, encoded_args)
         response = self.client.get(url)
         expected, actual = 404, response.status_code

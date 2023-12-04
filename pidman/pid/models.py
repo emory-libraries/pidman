@@ -1,11 +1,11 @@
 import os
 import re
-import urlparse
+from urllib.parse import urlsplit
 
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.fields import GenericRelation
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.db import connection, models, transaction
 from mptt.models import MPTTModel, TreeForeignKey
 from sequences import get_next_value
@@ -84,9 +84,9 @@ class Domain(MPTTModel):
     name = models.CharField(unique=True, max_length=255)
     updated_at = models.DateTimeField(auto_now=True)
     policy = models.ForeignKey(Policy, blank=True, null=True,
-        help_text='Policy statement for pids in this domain', db_index=True)
+        help_text='Policy statement for pids in this domain', db_index=True, on_delete=models.CASCADE)
     parent = TreeForeignKey('self', blank=True, null=True,
-                related_name='collections', db_index=True)
+                related_name='collections', db_index=True, on_delete=models.CASCADE)
 
     class MPTTMeta:
         order_insertion_by = ['name']
@@ -141,18 +141,18 @@ class Pid(models.Model):
     pid = models.CharField(unique=True, max_length=255, editable=False)
     # NOTE: previously, pid value was set using a default=mint_noid;
     # now, to use sequence cleanly, noid is only Cleanset when saving a new Pid
-    domain = models.ForeignKey(Domain, db_index=True)
+    domain = models.ForeignKey(Domain, db_index=True, on_delete=models.CASCADE)
     name = models.CharField(max_length=1023, blank=True)
     # external system & key - identifier in another system, e.g. EUCLID control key
-    ext_system = models.ForeignKey(ExtSystem, verbose_name='External system', blank=True, null=True, db_index=True)
+    ext_system = models.ForeignKey(ExtSystem, verbose_name='External system', blank=True, null=True, db_index=True, on_delete=models.CASCADE)
     ext_system_key = models.CharField('External system key', max_length=1023, blank=True, null=True)
-    creator = models.ForeignKey(User, related_name='created', db_index=True)
+    creator = models.ForeignKey(User, related_name='created', db_index=True, on_delete=models.CASCADE)
     created_at = models.DateTimeField("Date Created", auto_now_add=True)
-    editor = models.ForeignKey(User, related_name="edited", db_index=True)
+    editor = models.ForeignKey(User, related_name="edited", db_index=True, on_delete=models.CASCADE)
     pid_types = (("Ark", "Ark"), ("Purl", "Purl"))
     type = models.CharField(max_length=25, choices=pid_types)
     updated_at = models.DateTimeField("Date Updated", auto_now=True)
-    policy = models.ForeignKey(Policy, blank=True, null=True, db_index=True)
+    policy = models.ForeignKey(Policy, blank=True, null=True, db_index=True, on_delete=models.CASCADE)
 
     SEQUENCE_NAME = 'pid_noid'
 
@@ -408,13 +408,13 @@ class Target(models.Model):
     well as the **noid**, so that resolving a Target can be done as efficiently
     as possible.
     '''
-    pid = models.ForeignKey(Pid, db_index=True)
+    pid = models.ForeignKey(Pid, db_index=True, on_delete=models.CASCADE)
     noid = models.CharField(max_length=255, editable=False)
     # NOTE: previously uri was a charfield, because URLField was only
     # introduced in Django 1.5.
     uri = models.URLField(max_length=2048)
     qualify = models.CharField("Qualifier", max_length=255, null=False, blank=True, default='')
-    proxy = models.ForeignKey(Proxy, blank=True, null=True, db_index=True)
+    proxy = models.ForeignKey(Proxy, blank=True, null=True, db_index=True, on_delete=models.CASCADE)
     active = models.BooleanField(default=True)
 
     # linkcheck = GenericRelation(Link)
@@ -518,7 +518,7 @@ def parse_resolvable_url(urlstring):
     else:
         info['type'] = 'Purl'
         # purl uris are simple enough to use urlparse
-        o = urlparse.urlsplit(urlstring)
+        o = urlsplit(urlstring)
         info['scheme'] = o.scheme
         info['hostname'] = o.netloc
         info['noid'] = o.path.lstrip("/")

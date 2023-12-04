@@ -1,12 +1,12 @@
-django>=1.8,<1.9c
+Django<4
 eulcommon
 django-auth-ldap
+django-widget-tweaks
 django-sequences
 django-mptt
-django-linkcheck==1.2
-django_admin_bootstrapped
-django-downtime>=1.0.4
+django-linkcheck
 django-logentry-admin
--e git://github.com/emory-libraries/django-eultheme.git@1.2.1#egg=eultheme
 progressbar2
 tabulate
+mysqlclient
+django-jazzmin

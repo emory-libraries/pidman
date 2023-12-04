@@ -1,10 +1,4 @@
-{% extends "eultheme/site_base.html" %}
-{% comment %}
-Site base is required for eultheme error pages, but otherwise is not
-currently used for anything else.  Default site title is set via
-context processor, but in-template defaults are provided for the 500 error
-page because it bypasses context processors.
-{% endcomment %}
+
 
 {% block page-title %}{{ site_title|default:'Persistent Identifier Manager' }}{% endblock %}
 

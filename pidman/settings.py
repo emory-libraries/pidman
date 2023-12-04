@@ -24,7 +24,7 @@ SECRET_KEY = "lb-35%a_y93otr=%giz955n0j%xyudkrselst4&*51-eo3cw07"
 # Application definition
 
 INSTALLED_APPS = [
-    'django_admin_bootstrapped',
+    'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -36,8 +36,6 @@ INSTALLED_APPS = [
     'mptt',
     'linkcheck',
     'sequences',
-    'eultheme',
-    'downtime',
     'widget_tweaks',
     'logentry_admin',
     'pidman.pid',
@@ -45,13 +43,11 @@ INSTALLED_APPS = [
     'pidman.rest_api',
 ]
 
-MIDDLEWARE_CLASSES = (
+MIDDLEWARE = (
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'eultheme.middleware.DownpageMiddleware',
-    'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
@@ -67,14 +63,9 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     "django.core.context_processors.i18n",
     "django.core.context_processors.media",
     "django.contrib.messages.context_processors.messages",
-    'eultheme.context_processors.template_settings',
     # additional context processors
     "django.core.context_processors.request",  # always include request in render context
     "django.core.context_processors.static",
-    # eultheme
-    "eultheme.context_processors.template_settings",
-    "eultheme.context_processors.site_path",
-    "eultheme.context_processors.downtime_context",
     # local
     'pidman.admin.template_settings',
 )
@@ -161,13 +152,9 @@ STATICFILES_DIRS = [
 PID_REPLACEMENT_TOKEN = "{%PID%}"
 
 
-# exempted paths for downtime; exempts any urls starting with these strings
-DOWNTIME_EXEMPT_PATHS = (
-    '/admin',
-)
 
 try:
-    from localsettings import *
+    from pidman.localsettings import *
 except ImportError:
     import sys
     print >>sys.stderr, 'No local settings. Trying to start, but if ' + \

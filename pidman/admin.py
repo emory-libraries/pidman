@@ -2,8 +2,6 @@ from django.conf import settings
 from django.contrib import auth
 from django.contrib.admin import AdminSite
 from django.contrib.admin.models import LogEntry
-from downtime.models import Period
-from eultheme.models import Banner
 from logentry_admin.admin import LogEntryAdmin
 
 import sequences
@@ -22,9 +20,6 @@ admin_site.register(auth.models.Group, auth.admin.GroupAdmin)
 admin_site.register(auth.models.User, auth.admin.UserAdmin)
 admin_site.register(sequences.models.Sequence, sequences.admin.Sequence)
 
-# eultheme / downtime
-admin_site.register(Period)
-admin_site.register(Banner)
 admin_site.register(LogEntry, LogEntryAdmin)
 
 

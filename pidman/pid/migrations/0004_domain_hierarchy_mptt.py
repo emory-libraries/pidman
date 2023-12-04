@@ -47,7 +47,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='domain',
             name='parent',
-            field=mptt.fields.TreeForeignKey(related_name='collections', blank=True, to='pid.Domain', null=True),
+            field=mptt.fields.TreeForeignKey(related_name='collections', blank=True, to='pid.Domain', null=True, on_delete=models.CASCADE),
         ),
         migrations.RunPython(rebuild_hierarchy, migrations.RunPython.noop)
     ]

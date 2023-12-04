@@ -14,7 +14,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='domain',
             name='policy',
-            field=models.ForeignKey(blank=True, to='pid.Policy', help_text=b'Policy statement for pids in this domain', null=True),
+            field=models.ForeignKey(blank=True, to='pid.Policy', help_text=b'Policy statement for pids in this domain', null=True, on_delete=models.CASCADE),
         ),
         migrations.AlterIndexTogether(
             name='pid',
