@@ -138,19 +138,13 @@ def setup_virtualenv(python=None):
 
     with cd('%(remote_path)s/%(build_dir)s' % env):
         # create the virtualenv under the build dir
-        sudo('virtualenv --no-site-packages --prompt=\'[%s]\' %s env' \
-            % (env['build_dir'], python_opt), user=env.remote_acct)
+        sudo('python3 -m venv env', user=env.remote_acct)
         # activate the environment and install required packages
         with prefix('source env/bin/activate'):
             pip_cmd = 'pip install -r pip-install-req.txt'
             if env.remote_proxy:
                 pip_cmd += ' --proxy=%(remote_proxy)s' % env
             sudo(pip_cmd, user=env.remote_acct)
-            if files.exists('../pip-local-req.txt'):
-                pip_cmd = 'pip install -r ../pip-local-req.txt'
-                if env.remote_proxy:
-                    pip_cmd += ' --proxy=%(remote_proxy)s' % env
-                sudo(pip_cmd, user=env.remote_acct)
 
 
 def configure_site():
@@ -166,8 +160,8 @@ def configure_site():
             sudo('python manage.py collectstatic --noinput' % env,
                  user=env.remote_acct)
             # make static files world-readable
-            sudo('chmod -R a+r `env DJANGO_SETTINGS_MODULE=\'%(project)s.settings\' python -c \'from django.conf import settings; print settings.STATIC_ROOT\'`' % env,
-                 user=env.remote_acct)
+            sudo('chmod -R a+r `env DJANGO_SETTINGS_MODULE="%(project)s.settings" python -c "from django.conf import settings; print(settings.STATIC_ROOT)"`' % env,
+                     user=env.remote_acct)
 
 
 def update_links():

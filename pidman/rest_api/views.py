@@ -131,7 +131,7 @@ them from being resolved.'''
         pid = get_object_or_404(Pid, pid__exact=noid, type=type.title())
 
     if request.method == 'PUT':
-        if not request.user.is_authenticated():
+        if not request.user.is_authenticated:
             # 401 unauthorized - not logged in or invalid credentials
             return HttpResponseUnauthorized(BASIC_AUTH_REALM)
         elif not request.user.has_perm('pid.change_pid'):
@@ -255,7 +255,7 @@ def target(request, noid, type, qualifier):
     status = 200
 
     if request.method == 'PUT':
-        if not request.user.is_authenticated():
+        if not request.user.is_authenticated:
             # 401 unauthorized - not logged in or invalid credentials
             return HttpResponseUnauthorized(BASIC_AUTH_REALM)
 
@@ -334,7 +334,7 @@ def target(request, noid, type, qualifier):
     # ARK targets can be deleted; PURLs have only one target-- not allowing deletion
     if request.method == 'DELETE' and type == 'ark':
         # check permissions before deleting
-        if not request.user.is_authenticated():
+        if not request.user.is_authenticated:
             return HttpResponseUnauthorized(BASIC_AUTH_REALM)
         elif not request.user.has_perm('pid.delete_pid'):
             return HttpResponseForbidden()
@@ -389,7 +389,7 @@ def create_pid(request, type):
     '''
     if request.method == 'POST':
         # TODO: require ssl ?
-        if not request.user.is_authenticated():
+        if not request.user.is_authenticated:
             # 401 unauthorized - not logged in or invalid credentials
             return HttpResponseUnauthorized(BASIC_AUTH_REALM)
         elif not request.user.has_perm('pid.add_pid'):
@@ -662,7 +662,7 @@ def domains(request):
 
     elif request.method == 'POST':
         #Validate permissions
-        if not request.user.is_authenticated():
+        if not request.user.is_authenticated:
             # 401 unauthorized - not logged in or invalid credentials
             return HttpResponseUnauthorized(BASIC_AUTH_REALM)
         elif not request.user.has_perm('pid.add_domain'):
@@ -758,7 +758,7 @@ def domain(request, id):
 
     if request.method == 'PUT':
         # Validate permissions
-        if not request.user.is_authenticated():
+        if not request.user.is_authenticated:
             # 401 unauthorized - not logged in or invalid credentials
             return HttpResponseUnauthorized(BASIC_AUTH_REALM)
         elif not request.user.has_perm('pid.change_domain'):

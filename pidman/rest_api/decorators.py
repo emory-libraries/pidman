@@ -1,5 +1,5 @@
 from functools import wraps
-
+import base64
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import AnonymousUser
 
@@ -19,7 +19,7 @@ def basic_authentication(view_method):
         basic = 'Basic '
         if auth_info and auth_info.startswith(basic):
             basic_info = auth_info[len(basic):]
-            u, p = basic_info.decode('base64').split(':')
+            u, p = base64.b64decode(basic_info.encode('ascii')).decode('ascii').split(':')
             request.user = authenticate(username=u, password=p)
         else:
             request.user = None
