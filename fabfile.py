@@ -130,11 +130,11 @@ def setup_virtualenv(python=None):
     'Create a virtualenv and install required packages on the remote server.'
     python_opt = '--python=' + python if python else ''
 
-    with cd('%(remote_path)s/%(build_dir)s' % env):
+    # with cd('%(remote_path)s/%(build_dir)s' % env):
         # TODO: we should be using an http proxy here  (how?)
         # create the virtualenv under the build dir
-        sudo('virtualenv --no-site-packages %s env' % (python_opt,),
-             user=env.remote_acct)
+        # sudo('virtualenv --no-site-packages %s env' % (python_opt,),
+        #      user=env.remote_acct)
 
     with cd('%(remote_path)s/%(build_dir)s' % env):
         # create the virtualenv under the build dir

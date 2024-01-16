@@ -16,7 +16,7 @@ from django.http import HttpResponse, HttpResponseNotAllowed, \
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import get_object_or_404
 
-from eulcommon.djangoextras.http.responses import HttpResponseUnauthorized
+from pidman.rest_api.utils import HttpResponseUnauthorized
 
 from pidman.pid.models import Pid, Target, Domain, ExtSystem, Proxy, Policy
 from pidman.pid.ark_utils import valid_qualifier

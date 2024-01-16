@@ -1,5 +1,4 @@
 Django<4
-eulcommon
 django-auth-ldap
 django-widget-tweaks
 django-sequences
